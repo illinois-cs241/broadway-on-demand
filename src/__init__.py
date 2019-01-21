@@ -1,7 +1,7 @@
 from flask import Flask, send_from_directory, render_template, request, redirect
 from flask_session import Session
 
-from src import db, bw_api, auth, ghe_api, util
+from src import db, bw_api, auth, ghe_api, util, common
 from src.config import *
 from src.routes_staff import StaffRoutes
 from src.routes_student import StudentRoutes
@@ -52,6 +52,12 @@ def static_file(path):
 @app.route("/", methods=["GET"])
 @auth.require_auth
 def root(netid):
+	is_student = common.is_student(netid)
+	is_staff = common.is_staff(netid)
+	if is_student and not is_staff:
+		return redirect("/student/")
+	if is_staff and not is_student:
+		return redirect("/staff/")
 	return render_template("home.html", netid=netid)
 
 

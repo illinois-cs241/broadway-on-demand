@@ -24,3 +24,13 @@ def get_remaining_runs(assignment, runs, now=None):
 	elif assignment["quota"] == db.Quota.DAILY:
 		today_runs = list(filter(lambda r: is_run_today(r, now), runs))
 		return assignment["max_runs"] - len(today_runs)
+
+
+def is_student(netid):
+	courses = db.get_courses_for_student(netid)
+	return bool(courses)
+
+
+def is_staff(netid):
+	courses = db.get_courses_for_staff(netid)
+	return bool(courses)
