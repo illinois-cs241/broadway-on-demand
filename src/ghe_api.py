@@ -14,7 +14,6 @@ def get_access_token(code):
 		"code": code
 	}
 	try:
-		# resp = requests.post(f'{GHE_OAUTH_URL}/access_token', json=data, headers=ACCEPT_JSON)
 		resp = requests.post("%s/access_token" % GHE_OAUTH_URL, json=data, headers=ACCEPT_JSON)
 		return resp.json()["access_token"]
 	except requests.exceptions.RequestException:
@@ -27,7 +26,6 @@ def get_login(access_token):
 	if DEV_MODE:
 		return "srpatil2"
 	try:
-		# resp = requests.get(f'{GHE_API_URL}/user', params={"access_token": access_token})
 		resp = requests.get("%s/user" % GHE_API_URL, params={"access_token": access_token})
 		return resp.json()["login"]
 	except requests.exceptions.RequestException:

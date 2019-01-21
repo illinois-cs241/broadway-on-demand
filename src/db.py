@@ -49,7 +49,7 @@ def add_assignment(cid, aid, max_runs, quota, start, end):
 		{"course_id": cid, "assignment_id": aid, "max_runs": max_runs, "quota": quota, "start": start, "end": end})
 
 
-def get_assignment_runs(cid, aid, netid=None):
+def get_grading_runs(cid, aid, netid=None):
 	if netid:
 		return list(
 			mongo.db.runs.find({"course_id": cid, "assignment_id": aid, "netid": netid}).sort("timestamp", DESCENDING))
@@ -58,9 +58,17 @@ def get_assignment_runs(cid, aid, netid=None):
 			mongo.db.runs.find({"course_id": cid, "assignment_id": aid}).sort("netid", ASCENDING))
 
 
-def add_assignment_run(cid, aid, netid, timestamp, run_id):
+def add_grading_run(cid, aid, netid, timestamp, run_id):
 	mongo.db.runs.insert_one(
 		{"_id": run_id, "course_id": cid, "assignment_id": aid, "netid": netid, "timestamp": timestamp})
+
+
+def get_grading_run(run_id):
+	return mongo.db.runs.find_one({"_id": run_id})
+
+
+def set_assignment_run_feedback(run_id, feedback):
+	mongo.db.runs.update({"_id": run_id}, {"$set": {"feedback": feedback}})
 
 
 def get_staff(netid):

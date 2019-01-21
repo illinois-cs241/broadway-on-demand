@@ -34,7 +34,7 @@ class StudentRoutes:
 
 			course = db.get_course(cid)
 			assignment = db.get_assignment(cid, aid)
-			runs = db.get_assignment_runs(cid, aid, netid)
+			runs = db.get_grading_runs(cid, aid, netid)
 			now = datetime.utcnow().timestamp()
 
 			if not in_grading_period(assignment, now):
@@ -47,7 +47,7 @@ class StudentRoutes:
 		@auth.require_auth
 		def student_grade_assignment(netid, cid, aid):
 			assignment = db.get_assignment(cid, aid)
-			runs = db.get_assignment_runs(cid, aid, netid=netid)
+			runs = db.get_grading_runs(cid, aid, netid=netid)
 			now = datetime.utcnow().timestamp()
 
 			if not in_grading_period(assignment, now):
@@ -59,5 +59,5 @@ class StudentRoutes:
 			if run_id is None:
 				return redirect("/student/course/%s/%s/?error=failure" % (cid, aid))
 
-			db.add_assignment_run(cid, aid, netid, now, run_id)
+			db.add_grading_run(cid, aid, netid, now, run_id)
 			return redirect("/student/course/%s/%s/" % (cid, aid))

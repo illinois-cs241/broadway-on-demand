@@ -3,8 +3,9 @@ from flask_session import Session
 
 from src import db, bw_api, auth, ghe_api, util
 from src.config import *
-from src.staff_routes import StaffRoutes
-from src.student_routes import StudentRoutes
+from src.routes_staff import StaffRoutes
+from src.routes_student import StudentRoutes
+from src.routes_system import SystemRoutes
 from src.template_filters import TemplateFilters
 
 app = Flask(__name__)
