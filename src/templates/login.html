@@ -1,5 +1,5 @@
 <!doctype html>
-<html>
+<html class="h-100">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -19,30 +19,27 @@
 
     <title>Log In | Broadway On Demand</title>
 </head>
-<body>
-<nav class="navbar bg-dark">
-    <a class="navbar-brand">
-        Broadway On Demand
-    </a>
-</nav>
-<div class="container-fluid">
-    <div class="h-100 row align-items-center">
-        <div class="col-xl-4">
-            <div class="card">
-                <div class="card-body">
-                    <h4 class="card-title" style="margin-bottom: 0.5em;">Authentication Required</h4>
-                    <div>
-                        <a href="https://github-dev.cs.illinois.edu/login/oauth/authorize?client_id=fc29446d2007666d05cf">
-                            <button type="submit" class="btn btn-primary">Log in with GitHub Enterprise</button>
-                        </a>
-                        {% if error %}
-                        <p class="text-danger" style="margin-top: 0.5rem; margin-bottom: 0">An error occurred. Please try again.</p>
-                        {% endif %}
+<body class="h-100">
+    <div class="h-100 d-flex flex-column">
+        <nav class="navbar bg-dark">
+            <a class="navbar-brand">Broadway On Demand</a>
+        </nav>
+        <div class="row flex-fill align-items-center">
+            <div class="container-fluid">
+                <div class="col-md-4 offset-md-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h4 class="card-title" style="margin-bottom: 0.5em;">Authentication Required</h4>
+                            <div>
+                                <a href="https://github-dev.cs.illinois.edu/login/oauth/authorize?client_id=46baa4e27abc31cd6a6b">
+                                    <button type="submit" class="btn btn-primary">Log in with GitHub Enterprise</button>
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 </body>
 </html>
