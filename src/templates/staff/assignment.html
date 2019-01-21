@@ -1,0 +1,25 @@
+{% set title = "%s (staff) (%s)" % (assignment.assignment_id, netid) %}
+{% include 'staff/header.html' %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title">{{assignment.assignment_id}}</h4>
+                    <h5>Max Grading Runs: {{assignment.max_runs}}</h5>
+                </div>
+            </div>
+        </div>
+        {% for run in runs %}
+        <div class="col-md-6 col-xl-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-titles">{{run.netid}}</h5>
+                    <h6>{{run.timestamp|fmt_datetime}} ({{run.timestamp|fmt_datetime_diff}})</h6>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% include 'staff/footer.html' %}

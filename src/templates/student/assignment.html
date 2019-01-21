@@ -1,0 +1,66 @@
+{% set title = "%s (%s)" % (assignment.assignment_id, netid) %}
+{% include 'student/header.html' %}
+<script type="application/javascript">
+    function confirmGradeNow() {
+        let proceed = window.confirm("The current latest commit in your repository will be graded, using 1 available run. Are you sure you want to proceed?");
+        if (proceed) {
+            document.getElementById("grade_now_form").submit();
+        }
+    }
+</script>
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="../../..">Student Home</a></li>
+        <li class="breadcrumb-item"><a href="..">{{course.name}}</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{assignment.assignment_id}}</li>
+    </ol>
+</nav>
+<div class="container-fluid">
+    <div class="row">
+
+        <div class="col-md-6 col-lg-8 col-xl-9">
+            <table class="table table-hover">
+                <thead>
+                <tr>
+                    <th scope="col">Timestamp</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for run in runs %}
+                <tr>
+                    <td>{{run.timestamp|fmt_timestamp_full}}</td>
+                </tr>
+                {% endfor %}
+                {% if not runs %}
+                <tr>
+                    <td>No previous runs</td>
+                </tr>
+                {% endif %}
+                </tbody>
+            </table>
+            <span class="text-secondary"> All times in {{tzname}}</span>
+        </div>
+
+
+        <div class="col-md-6 col-lg-4 col-xl-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Available Runs: {{available_runs}}/{{assignment.max_runs}}</h5>
+                    {% if available_runs > 0 %}
+                    <form action="." id="grade_now_form" method="post">
+                        <button onclick="confirmGradeNow()" type="button" class="btn btn-primary">Grade Now</button>
+                    </form>
+                    {% endif %}
+                    {% if error %}
+                    <span class="text-danger">{{error}}</span>
+                    {% endif %}
+                    <p>
+                        <strong>Start</strong> {{assignment.start|fmt_timestamp}}
+                        <br><strong>End</strong> {{assignment.end|fmt_timestamp}}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% include 'student/footer.html' %}

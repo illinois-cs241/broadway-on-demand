@@ -1,0 +1,46 @@
+body {
+    background: #fff;
+    font-family: 'Roboto', sans-serif;
+}
+
+a.navbar-brand {
+    font-weight: bold;
+    color: white!important;
+}
+
+.container-fluid {
+    padding: 20px 20px 0 20px;
+}
+
+.card {
+    background: #fff;
+    margin-bottom: 20px;
+    border-radius: 10px;
+    border: 1px solid rgba(0,0,0,0.5);
+}
+
+.card-body {
+    padding: 1rem;
+}
+
+.card-title {
+    font-weight: bold;
+    margin-bottom: 0.25rem;
+}
+
+.card > a {
+    color: inherit;
+}
+
+a:link, a:visited, a:hover, a:active {
+  text-decoration: none;
+}
+
+.card-body > form {
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+.form-group > label {
+    font-weight: bolder;
+}

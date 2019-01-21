@@ -1,0 +1,92 @@
+{% set title = "%s (staff) (%s)" % (course.name, netid) %}
+{% include 'staff/header.html' %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="../..">Staff Home</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{course.name}}</li>
+    </ol>
+</nav>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-6 col-lg-8 col-xl-9">
+            <table class="table table-hover">
+                <thead>
+                <tr>
+                    <th scope="col">ID</th>
+                    <th scope="col">Max Runs</th>
+                    <th scope="col">Start</th>
+                    <th scope="col">End</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for assignment in assignments %}
+                <tr>
+                    <td>{{assignment.assignment_id}}</td>
+                    <td>{{assignment.max_runs}} ({{assignment.quota}})</td>
+                    <td>{{assignment.start|fmt_timestamp}}</td>
+                    <td>{{assignment.end|fmt_timestamp}}</td>
+                </tr>
+                {% endfor %}
+                {% if not assignments %}
+                <tr>
+                    <td colspan="4">No assignments</td>
+                </tr>
+                {% endif %}
+                </tbody>
+            </table>
+            <span class="text-secondary"> All times in {{tzname}}</span>
+        </div>
+        <div class="col-md-6 col-lg-4 col-xl-3">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title">Add assignment</h4>
+                    <form action="." method="post">
+                        <div class="form-group">
+                            <label for="aid">Assignment ID</label>
+                            <input type="text" class="form-control" id="aid" name="aid">
+                        </div>
+                        <div class="form-group">
+                            <label for="max_runs">Max Runs</label>
+                            <input type="number" min="1" max="100" class="form-control" id="max_runs"
+                                   name="max_runs">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-check-label">Quota Type</label><br>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="quota" id="quota_daily"
+                                       value="daily" checked>
+                                <label class="form-check-label" for="quota_daily">
+                                    Daily
+                                </label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="quota" id="quota_total"
+                                       value="total">
+                                <label class="form-check-label" for="quota_total">
+                                    Total
+                                </label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="start">Start Date & Time</label> <span
+                                class="badge badge-secondary">{{tzname}}</span>
+                            <input type="datetime-local" class="form-control" id="start" name="start">
+                        </div>
+                        <div class="form-group">
+                            <label for="start">End Date & Time</label> <span class="badge badge-secondary">{{tzname}}</span>
+                            <input type="datetime-local" class="form-control" id="end" name="end">
+                        </div>
+                        {% if error %}
+                        <div class="form-group">
+                            <span id="error" class="form-text text-danger">{{error}}
+                            </span>
+                        </div>
+                        {% endif %}
+                        <button type="submit" class="btn btn-primary">Save</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% include 'staff/footer.html' %}

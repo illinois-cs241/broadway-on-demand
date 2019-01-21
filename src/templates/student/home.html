@@ -1,0 +1,24 @@
+{% set title = "Broadway On Demand (%s)" % netid %}
+{% include 'student/header.html' %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item active" aria-current="page">Student Home</li>
+    </ol>
+</nav>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-6 col-xl-4">
+            {% for course in courses %}
+            <div class="card">
+                <a href="course/{{course._id}}/">
+                    <div class="card-body">
+                        <h4 class="card-title">{{course.name}}</h4>
+                        <h5 class="card-title">{{course._id}}</h5>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% include 'student/footer.html' %}
