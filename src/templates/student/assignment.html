@@ -1,5 +1,5 @@
 {% set title = "%s (%s)" % (assignment.assignment_id, netid) %}
-{% include 'student/header.html' %}
+{% include 'header.html' %}
 <script type="application/javascript">
     function confirmGradeNow() {
         let proceed = window.confirm("The current latest commit in your repository will be graded, using 1 available run. Are you sure you want to proceed?");
@@ -63,4 +63,4 @@
         </div>
     </div>
 </div>
-{% include 'student/footer.html' %}
+{% include 'footer.html' %}

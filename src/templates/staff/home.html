@@ -1,5 +1,5 @@
 {% set title = "Broadway On Demand (staff) (%s)" % netid %}
-{% include 'staff/header.html' %}
+{% include 'header.html' %}
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
         <li class="breadcrumb-item active" aria-current="page">Staff Home</li>
@@ -7,19 +7,29 @@
 </nav>
 <div class="container-fluid">
     <div class="row">
-        <div class="col-md-6 col-xl-4">
-            {% for course in courses %}
-
-            <div class="card">
-                <a href="course/{{course._id}}/">
-                    <div class="card-body">
-                        <h4 class="card-title">{{course.name}}</h4>
-                        <h5 class="card-title">{{course._id}}</h5>
-                    </div>
-                </a>
-            </div>
-            {% endfor %}
+        <div class="col-md-6 offset-md-3 col-xl-4 offset-xl-4">
+            <table class="table table-hover">
+                <thead>
+                <tr>
+                    <th scope="col">ID</th>
+                    <th scope="col">Name</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for course in courses %}
+                    <tr>
+                        <td><a href="./course/{{ course._id }}/">{{ course._id }}</a></td>
+                        <td><a href="./course/{{ course._id }}/">{{ course.name }}</a></td>
+                    </tr>
+                {% endfor %}
+                {% if not courses %}
+                    <tr>
+                        <td colspan="2">No courses</td>
+                    </tr>
+                {% endif %}
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
-{% include 'staff/footer.html' %}
+{% include 'footer.html' %}
