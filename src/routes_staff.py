@@ -1,4 +1,4 @@
-from flask import render_template, request, redirect
+from flask import render_template, request, redirect, abort
 
 from src import db, util, auth
 from src.config import TZ
@@ -6,6 +6,9 @@ from src.config import TZ
 
 class StaffRoutes:
 	def __init__(self, app):
+		def verify_staff(netid, cid):
+			return netid in db.get_course(cid)["staff_ids"]
+
 		@app.route("/staff/", methods=["GET"])
 		@auth.require_auth
 		def staff_home(netid):
@@ -15,6 +18,9 @@ class StaffRoutes:
 		@app.route("/staff/course/<cid>/", methods=["GET"])
 		@auth.require_auth
 		def staff_get_course(netid, cid):
+			if not verify_staff(netid, cid):
+				return abort(403)
+
 			course = db.get_course(cid)
 			assignments = db.get_assignments_for_course(cid)
 			return render_template("staff/course.html", netid=netid, course=course, assignments=assignments, tzname=str(TZ), error=None)
@@ -22,6 +28,9 @@ class StaffRoutes:
 		@app.route("/staff/course/<cid>/", methods=["POST"])
 		@auth.require_auth
 		def staff_attempt_add_assignment(netid, cid):
+			if not verify_staff(netid, cid):
+				return abort(403)
+
 			def err(msg):
 				return render_template("staff/course.html", netid=netid, course=course, assignments=assignments, tzname=str(TZ), error=msg)
 
@@ -58,6 +67,9 @@ class StaffRoutes:
 		@app.route("/staff/course/<cid>/<aid>/", methods=["GET"])
 		@auth.require_auth
 		def staff_get_assignment(netid, cid, aid):
+			if not verify_staff(netid, cid):
+				return abort(403)
+
 			course = db.get_course(cid)
 			assignment = db.get_assignment(cid, aid)
 			runs = db.get_grading_runs(cid, aid)
