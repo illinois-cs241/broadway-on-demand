@@ -19,7 +19,7 @@ Session(app)
 @app.route("/login/", methods=["GET"])
 @auth.require_no_auth
 def login_page():
-	return render_template("login.html")
+	return render_template("login.html", login_url=GHE_LOGIN_URL)
 
 
 @app.route("/login/ghe_callback/", methods=["GET"])
