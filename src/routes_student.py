@@ -1,4 +1,4 @@
-from flask import render_template, redirect, request
+from flask import render_template, redirect, request, abort
 
 from src import bw_api, auth
 from src.common import *
@@ -6,6 +6,9 @@ from src.common import *
 
 class StudentRoutes:
 	def __init__(self, app):
+		def verify_student(netid, cid):
+			return netid in db.get_course(cid)["student_ids"]
+
 		@app.route("/student/", methods=["GET"])
 		@auth.require_auth
 		def student_home(netid):
@@ -15,6 +18,9 @@ class StudentRoutes:
 		@app.route("/student/course/<cid>/", methods=["GET"])
 		@auth.require_auth
 		def student_get_course(netid, cid):
+			if not verify_student(netid, cid):
+				return abort(403)
+
 			course = db.get_course(cid)
 			assignments = db.get_assignments_for_course(cid)
 			return render_template("student/course.html", netid=netid, course=course, assignments=assignments, tzname=str(TZ))
@@ -22,6 +28,9 @@ class StudentRoutes:
 		@app.route("/student/course/<cid>/<aid>/", methods=["GET"])
 		@auth.require_auth
 		def student_get_assignment(netid, cid, aid):
+			if not verify_student(netid, cid):
+				return abort(403)
+
 			error = None
 			if "error" in request.args:
 				error_code = request.args["error"]
@@ -46,6 +55,9 @@ class StudentRoutes:
 		@app.route("/student/course/<cid>/<aid>/", methods=["POST"])
 		@auth.require_auth
 		def student_grade_assignment(netid, cid, aid):
+			if not verify_student(netid, cid):
+				return abort(403)
+
 			assignment = db.get_assignment(cid, aid)
 			runs = db.get_grading_runs(cid, aid, netid=netid)
 			now = datetime.utcnow().timestamp()
