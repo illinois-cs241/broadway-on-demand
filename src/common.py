@@ -39,3 +39,11 @@ def is_student(netid):
 def is_staff(netid):
 	courses = db.get_courses_for_staff(netid)
 	return bool(courses)
+
+
+def verify_student(netid, cid):
+	return netid in db.get_course(cid)["student_ids"]
+
+
+def verify_staff(netid, cid):
+	return netid in db.get_course(cid)["staff_ids"]

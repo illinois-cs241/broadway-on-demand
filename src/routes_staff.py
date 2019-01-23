@@ -2,13 +2,11 @@ from flask import render_template, request, redirect, abort
 
 from src import db, util, auth
 from src.config import TZ
+from src.common import verify_staff
 
 
 class StaffRoutes:
 	def __init__(self, app):
-		def verify_staff(netid, cid):
-			return netid in db.get_course(cid)["staff_ids"]
-
 		@app.route("/staff/", methods=["GET"])
 		@auth.require_auth
 		def staff_home(netid):
