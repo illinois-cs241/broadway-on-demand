@@ -77,3 +77,14 @@ class StudentRoutes:
 
 			db.add_grading_run(cid, aid, netid, now, run_id)
 			return redirect("/student/course/%s/%s/" % (cid, aid))
+
+		@app.route("/student/course/<cid>/<aid>/<run_id>/status/", methods=["GET"])
+		@auth.require_auth
+		def student_get_run_status(netid, cid, aid, run_id):
+			if not verify_student(netid, cid):
+				return abort(403)
+
+			status = bw_api.get_grading_run_status(cid, aid, run_id)
+			if status:
+				return status
+			return "unknown; please try again"

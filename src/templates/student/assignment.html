@@ -7,12 +7,25 @@
             document.getElementById("grade_now_form").submit();
         }
     }
+
+    function getRunStatus(runId) {
+        $.ajax(
+            {
+                url: "./" + runId + "/status/",
+                success: function (result) {
+                    $("#status-" + runId).html(result)
+                },
+                error: function () {
+                    $("#status-" + runId).html("unknown; please try again")
+                }
+            })
+    }
 </script>
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
         <li class="breadcrumb-item"><a href="../../..">Student Home</a></li>
-        <li class="breadcrumb-item"><a href="..">{{course.name}}</a></li>
-        <li class="breadcrumb-item active" aria-current="page">{{assignment.assignment_id}}</li>
+        <li class="breadcrumb-item"><a href="..">{{ course.name }}</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ assignment.assignment_id }}</li>
     </ol>
 </nav>
 <div class="container-fluid">
@@ -23,40 +36,43 @@
                 <thead>
                 <tr>
                     <th scope="col">Timestamp</th>
+                    <th scope="col">Status</th>
                 </tr>
                 </thead>
                 <tbody>
                 {% for run in runs %}
-                <tr>
-                    <td>{{run.timestamp|fmt_timestamp_full}}</td>
-                </tr>
+                    <tr>
+                        <td>{{ run.timestamp|fmt_timestamp_full }}</td>
+                        <td><a href="#" onclick="getRunStatus('{{ run._id }}')" id="status-{{ run._id }}">check
+                            status</a></td>
+                    </tr>
                 {% endfor %}
                 {% if not runs %}
-                <tr>
-                    <td>No previous runs</td>
-                </tr>
+                    <tr>
+                        <td colspan="2">No previous runs</td>
+                    </tr>
                 {% endif %}
                 </tbody>
             </table>
-            <span class="text-secondary"> All times in {{tzname}}</span>
+            <span class="text-secondary"> All times in {{ tzname }}</span>
         </div>
 
 
         <div class="col-md-6 col-lg-4 col-xl-3">
             <div class="card">
                 <div class="card-body">
-                    <h5 class="card-title">Available Runs: {{available_runs}}/{{assignment.max_runs}}</h5>
+                    <h5 class="card-title">Available Runs: {{ available_runs }}/{{ assignment.max_runs }}</h5>
                     {% if available_runs > 0 %}
-                    <form action="." id="grade_now_form" method="post">
-                        <button onclick="confirmGradeNow()" type="button" class="btn btn-primary">Grade Now</button>
-                    </form>
+                        <form action="." id="grade_now_form" method="post">
+                            <button onclick="confirmGradeNow()" type="button" class="btn btn-primary">Grade Now</button>
+                        </form>
                     {% endif %}
                     {% if error %}
-                    <span class="text-danger">{{error}}</span>
+                        <span class="text-danger">{{ error }}</span>
                     {% endif %}
                     <p>
-                        <strong>Start</strong> {{assignment.start|fmt_timestamp}}
-                        <br><strong>End</strong> {{assignment.end|fmt_timestamp}}
+                        <strong>Start</strong> {{ assignment.start|fmt_timestamp }}
+                        <br><strong>End</strong> {{ assignment.end|fmt_timestamp }}
                     </p>
                 </div>
             </div>
