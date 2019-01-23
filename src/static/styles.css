@@ -44,3 +44,7 @@ a:link, a:visited, a:hover, a:active {
 .form-group > label {
     font-weight: bolder;
 }
+
+th.student-header {
+    background: #e9ecef;
+}
