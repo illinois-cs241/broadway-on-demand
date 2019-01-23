@@ -7,9 +7,6 @@ from src.config import TZ
 
 
 def in_grading_period(assignment, now=None):
-	print(now)
-	print(assignment["start"])
-	print(assignment["end"])
 	if now is None:
 		now = util.now_timestamp()
 	return assignment["start"] <= now <= assignment["end"]
