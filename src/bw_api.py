@@ -1,7 +1,7 @@
 import requests
 
 from src.config import BROADWAY_API_TOKEN, BROADWAY_API_URL
-from src.util import timestamp_to_iso
+from src.util import timestamp_to_bw_api_format
 
 HEADERS = {"Authorization": "Bearer %s" % BROADWAY_API_TOKEN}
 
@@ -18,7 +18,7 @@ def start_grading_run(cid, aid, netid, timestamp):
 	data = {
 		"students_env": [{
 			"STUDENT_ID": netid,
-			"DUE_DATE": timestamp_to_iso(timestamp)
+			"DUE_DATE": timestamp_to_bw_api_format(timestamp)
 		}]
 	}
 	try:

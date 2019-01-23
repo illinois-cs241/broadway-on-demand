@@ -66,5 +66,16 @@ def timestamp_to_iso(timestamp):
 	return datetime.utcfromtimestamp(timestamp).isoformat()
 
 
+def timestamp_round_up_minute(timestamp):
+	if timestamp % 60 == 0:
+		return timestamp
+	return ((int(timestamp)//60)*60) + 60
+
+
+def timestamp_to_bw_api_format(timestamp):
+	timestamp = timestamp_round_up_minute(timestamp)
+	return datetime.utcfromtimestamp(timestamp).replace(tzinfo=utc).astimezone(TZ).strftime("%Y-%m-%d %H:%M")
+
+
 def now_timestamp():
 	return datetime.utcnow().replace(tzinfo=utc).timestamp()
