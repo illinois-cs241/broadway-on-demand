@@ -70,5 +70,5 @@ class StaffRoutes:
 
 			course = db.get_course(cid)
 			assignment = db.get_assignment(cid, aid)
-			runs = db.get_grading_runs(cid, aid)
-			return render_template("staff/assignment.html", netid=netid, course=course, assignment=assignment, runs=runs)
+			student_runs = db.get_assignment_runs(cid, aid)
+			return render_template("staff/assignment.html", netid=netid, course=course, assignment=assignment, student_runs=student_runs)

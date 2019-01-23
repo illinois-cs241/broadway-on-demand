@@ -1,0 +1,45 @@
+{% set title = "%s (staff) (%s)" % (course.name, netid) %}
+{% include 'header.html' %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="../../..">Staff Home</a></li>
+        <li class="breadcrumb-item"><a href="..">{{ course.name }}</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ assignment._id }}</li>
+    </ol>
+</nav>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-6 col-lg-8 col-xl-9">
+            <table class="table table-hover">
+                <thead>
+                <tr>
+                    <th scope="col">NetID</th>
+                    <th scope="col">Run ID</th>
+                    <th scope="col">Time</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for student in student_runs %}
+                    <tr>
+                        <th scope="col" colspan="3">{{ student._id }}</th>
+                    </tr>
+                    {% for run in student.runs %}
+                        <tr>
+                            <td></td>
+                            <td>{{ run._id }}</td>
+                            <td>{{ run.timestamp|fmt_timestamp }}</td>
+                        </tr>
+                    {% endfor %}
+                {% endfor %}
+                {% if not student_runs %}
+                    <tr>
+                        <td colspan="3">No runs</td>
+                    </tr>
+                {% endif %}
+                </tbody>
+            </table>
+            <span class="text-secondary"> All times in {{ tzname }}</span>
+        </div>
+    </div>
+</div>
+{% include 'footer.html' %}

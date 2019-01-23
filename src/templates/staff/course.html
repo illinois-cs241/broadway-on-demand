@@ -3,7 +3,7 @@
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
         <li class="breadcrumb-item"><a href="../..">Staff Home</a></li>
-        <li class="breadcrumb-item active" aria-current="page">{{course.name}}</li>
+        <li class="breadcrumb-item active" aria-current="page">{{ course.name }}</li>
     </ol>
 </nav>
 <div class="container-fluid">
@@ -20,21 +20,21 @@
                 </thead>
                 <tbody>
                 {% for assignment in assignments %}
-                <tr>
-                    <td>{{assignment.assignment_id}}</td>
-                    <td>{{assignment.max_runs}} ({{assignment.quota}})</td>
-                    <td>{{assignment.start|fmt_timestamp}}</td>
-                    <td>{{assignment.end|fmt_timestamp}}</td>
-                </tr>
+                    <tr>
+                        <td><a href="./{{ assignment.assignment_id }}/">{{ assignment.assignment_id }}</a></td>
+                        <td>{{ assignment.max_runs }} ({{ assignment.quota }})</td>
+                        <td>{{ assignment.start|fmt_timestamp }}</td>
+                        <td>{{ assignment.end|fmt_timestamp }}</td>
+                    </tr>
                 {% endfor %}
                 {% if not assignments %}
-                <tr>
-                    <td colspan="4">No assignments</td>
-                </tr>
+                    <tr>
+                        <td colspan="4">No assignments</td>
+                    </tr>
                 {% endif %}
                 </tbody>
             </table>
-            <span class="text-secondary"> All times in {{tzname}}</span>
+            <span class="text-secondary"> All times in {{ tzname }}</span>
         </div>
         <div class="col-md-6 col-lg-4 col-xl-3">
             <div class="card">
@@ -69,18 +69,19 @@
                         </div>
                         <div class="form-group">
                             <label for="start">Start Date & Time</label> <span
-                                class="badge badge-secondary">{{tzname}}</span>
+                                class="badge badge-secondary">{{ tzname }}</span>
                             <input type="datetime-local" class="form-control" id="start" name="start">
                         </div>
                         <div class="form-group">
-                            <label for="start">End Date & Time</label> <span class="badge badge-secondary">{{tzname}}</span>
+                            <label for="start">End Date & Time</label> <span
+                                class="badge badge-secondary">{{ tzname }}</span>
                             <input type="datetime-local" class="form-control" id="end" name="end">
                         </div>
                         {% if error %}
-                        <div class="form-group">
-                            <span id="error" class="form-text text-danger">{{error}}
+                            <div class="form-group">
+                            <span id="error" class="form-text text-danger">{{ error }}
                             </span>
-                        </div>
+                            </div>
                         {% endif %}
                         <button type="submit" class="btn btn-primary">Save</button>
                     </form>

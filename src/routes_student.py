@@ -41,7 +41,7 @@ class StudentRoutes:
 
 			course = db.get_course(cid)
 			assignment = db.get_assignment(cid, aid)
-			runs = db.get_grading_runs(cid, aid, netid)
+			runs = db.get_assignment_runs_for_student(cid, aid, netid)
 			now = util.now_timestamp()
 
 			if not in_grading_period(assignment, now):
@@ -61,7 +61,7 @@ class StudentRoutes:
 				return abort(403)
 
 			assignment = db.get_assignment(cid, aid)
-			runs = db.get_grading_runs(cid, aid, netid=netid)
+			runs = db.get_assignment_runs_for_student(cid, aid, netid=netid)
 			now = util.now_timestamp()
 
 			if not verify_staff(netid, cid):

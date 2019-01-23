@@ -33,7 +33,7 @@ def login_ghe_callback():
 	netid = ghe_api.get_login(access_token)
 	if netid is None:
 		return redirect("/login/?error=1")
-	db.update_user(netid, access_token)
+	db.set_user_access_token(netid, access_token)
 	auth.set_uid(netid)
 	return redirect("/")
 
