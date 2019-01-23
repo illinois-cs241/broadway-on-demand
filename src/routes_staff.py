@@ -1,6 +1,6 @@
 from flask import render_template, request, redirect, abort
 
-from src import db, util, auth
+from src import db, util, auth, bw_api
 from src.config import TZ
 from src.common import verify_staff
 
@@ -72,3 +72,14 @@ class StaffRoutes:
 			assignment = db.get_assignment(cid, aid)
 			student_runs = db.get_assignment_runs(cid, aid)
 			return render_template("staff/assignment.html", netid=netid, course=course, assignment=assignment, student_runs=student_runs, tzname=str(TZ))
+
+		@app.route("/staff/course/<cid>/<aid>/<run_id>/status/", methods=["GET"])
+		@auth.require_auth
+		def staff_get_run_status(netid, cid, aid, run_id):
+			if not verify_staff(netid, cid):
+				return abort(403)
+
+			status = bw_api.get_grading_run_status(cid, aid, run_id)
+			if status:
+				return status
+			return "unknown; please try again"

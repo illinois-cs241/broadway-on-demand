@@ -1,5 +1,19 @@
 {% set title = "%s (staff) (%s)" % (course.name, netid) %}
 {% include 'header.html' %}
+<script type="application/javascript">
+    function getRunStatus(runId) {
+        $.ajax(
+            {
+                url: "./" + runId + "/status/",
+                success: function (result) {
+                    $("#status-" + runId).html(result)
+                },
+                error: function () {
+                    $("#status-" + runId).html("unknown; please try again")
+                }
+            })
+    }
+</script>
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
         <li class="breadcrumb-item"><a href="../../..">Staff Home</a></li>
@@ -13,9 +27,9 @@
             <table class="table table-hover">
                 <thead>
                 <tr>
-                    <th scope="col">NetID</th>
                     <th scope="col">Run ID</th>
                     <th scope="col">Time</th>
+                    <th scope="col">Status</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -25,9 +39,10 @@
                     </tr>
                     {% for run in student.runs %}
                         <tr>
-                            <td></td>
                             <td>{{ run._id }}</td>
                             <td>{{ run.timestamp|fmt_timestamp }}</td>
+                            <td><a class="run-status text-info" onclick="getRunStatus('{{ run._id }}')" id="status-{{ run._id }}">check
+                                status</a></td>
                         </tr>
                     {% endfor %}
                 {% endfor %}
