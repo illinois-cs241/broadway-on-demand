@@ -19,9 +19,7 @@ def start_grading_run(cid, aid, netid, timestamp):
 		"students_env": [{
 			"STUDENT_ID": netid,
 			"DUE_DATE": timestamp_to_iso(timestamp)
-		}],
-		"post_processing_env": {},
-		"pre_processing_env": {}
+		}]
 	}
 	try:
 		resp = requests.post(url="%s/grading_run/%s/%s" % (BROADWAY_API_URL, cid, aid), headers=HEADERS, json=data)
