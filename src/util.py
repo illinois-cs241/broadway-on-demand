@@ -3,6 +3,7 @@ from functools import wraps
 from re import fullmatch
 
 from flask import request
+from pytz import utc
 
 from src.config import TZ
 
@@ -63,3 +64,7 @@ def parse_form_datetime(datetime_local_str):
 
 def timestamp_to_iso(timestamp):
 	return datetime.utcfromtimestamp(timestamp).isoformat()
+
+
+def now_timestamp():
+	return datetime.utcnow().replace(tzinfo=utc).timestamp()

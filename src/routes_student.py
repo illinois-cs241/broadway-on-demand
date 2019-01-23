@@ -1,6 +1,6 @@
 from flask import render_template, redirect, request, abort
 
-from src import bw_api, auth
+from src import bw_api, auth, util
 from src.common import *
 
 
@@ -44,7 +44,7 @@ class StudentRoutes:
 			course = db.get_course(cid)
 			assignment = db.get_assignment(cid, aid)
 			runs = db.get_grading_runs(cid, aid, netid)
-			now = datetime.utcnow().timestamp()
+			now = util.now_timestamp()
 
 			if not in_grading_period(assignment, now):
 				available_runs = 0
@@ -60,7 +60,7 @@ class StudentRoutes:
 
 			assignment = db.get_assignment(cid, aid)
 			runs = db.get_grading_runs(cid, aid, netid=netid)
-			now = datetime.utcnow().timestamp()
+			now = util.now_timestamp()
 
 			if not in_grading_period(assignment, now):
 				return redirect("/student/course/%s/%s/?error=grading_period" % (cid, aid))

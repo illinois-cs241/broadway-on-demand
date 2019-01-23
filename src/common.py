@@ -1,12 +1,17 @@
 from datetime import datetime
 
-from src import db
+from pytz import utc
+
+from src import db, util
 from src.config import TZ
 
 
 def in_grading_period(assignment, now=None):
+	print(now)
+	print(assignment["start"])
+	print(assignment["end"])
 	if now is None:
-		now = datetime.utcnow().timestamp()
+		now = util.now_timestamp()
 	return assignment["start"] <= now <= assignment["end"]
 
 
@@ -18,7 +23,7 @@ def is_run_today(run, now):
 
 def get_remaining_runs(assignment, runs, now=None):
 	if now is None:
-		now = datetime.utcnow().timestamp()
+		now = util.now_timestamp()
 	if assignment["quota"] == db.Quota.TOTAL:
 		return assignment["max_runs"] - len(runs)
 	elif assignment["quota"] == db.Quota.DAILY:
