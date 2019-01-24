@@ -1,4 +1,5 @@
 import requests
+import json
 
 from src.config import BROADWAY_API_TOKEN, BROADWAY_API_URL
 from src.util import timestamp_to_bw_api_format
@@ -45,4 +46,20 @@ def get_grading_run_status(cid, aid, run_id):
 	except requests.exceptions.RequestException:
 		return None
 	except KeyError:
+		return None
+
+# post to /api/v1/grading_config/<cid>/<aid>
+def add_assignment(cid, aid, config):
+	"""
+	Add a new assignment.
+	:param cid: the course ID.
+	:param aid: the assignment ID within the course.
+	:param config: assignemnt config(pre-processing pipeline, student pipelines, etc.)
+	"""
+
+	try:
+		resp = requests.post(url="%s/grading_config/%s/%s" % (BROADWAY_API_URL, cid, aid), headers=HEADERS,
+							 data=json.dumps(config))
+		return resp.status_code == 200
+	except requests.exceptions.RequestException:
 		return None

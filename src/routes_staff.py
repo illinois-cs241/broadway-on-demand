@@ -4,6 +4,7 @@ from src import db, util, auth, bw_api
 from src.config import TZ
 from src.common import verify_staff
 
+import json
 
 class StaffRoutes:
 	def __init__(self, app):
@@ -35,7 +36,7 @@ class StaffRoutes:
 			course = db.get_course(cid)
 			assignments = db.get_assignments_for_course(cid)
 
-			missing = util.check_missing_fields(request.form, *["aid", "max_runs", "quota", "start", "end"])
+			missing = util.check_missing_fields(request.form, *["aid", "max_runs", "quota", "start", "end", "grader_conf"])
 			if missing:
 				return err("Error: Missing fields (%s)" % (", ".join(missing)))
 
@@ -58,6 +59,15 @@ class StaffRoutes:
 			end = util.parse_form_datetime(request.form["end"]).timestamp()
 			if start >= end:
 				return err("Error: Start must be before End.")
+
+			# add assignment to broadway
+			grader_conf = request.form["grader_conf"]
+			
+			if not util.valid_json(grader_conf):
+				return err("Error: Grader config is not a valid JSON object")
+
+			if not bw_api.add_assignment(cid, request.form["aid"], json.loads(grader_conf)):
+				return err("Error: Failed to add assignment")
 
 			db.add_assignment(cid, request.form["aid"], max_runs, request.form["quota"], start, end)
 			return redirect("/staff/course/%s/" % cid)

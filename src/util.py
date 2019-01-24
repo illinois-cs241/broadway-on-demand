@@ -7,6 +7,7 @@ from pytz import utc
 
 from src.config import TZ
 
+import json
 
 def check_missing_fields(data, *args):
 	"""
@@ -57,6 +58,12 @@ def error(msg, status=400):
 def valid_id(id_str):
 	return bool(fullmatch(r'[a-zA-Z0-9_.\-]+', id_str))
 
+def valid_json(json_str):
+	try:
+		json.loads(json_str)
+		return True
+	except:
+		return False
 
 def parse_form_datetime(datetime_local_str):
 	return TZ.localize(datetime.strptime(datetime_local_str, "%Y-%m-%dT%H:%M"))
