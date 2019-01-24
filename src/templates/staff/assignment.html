@@ -6,10 +6,14 @@
             {
                 url: "./" + runId + "/status/",
                 success: function (result) {
-                    $("#status-" + runId).html(result)
+                    $("#status-" + runId).html("<i class=\"fas fa-sync-alt\"></i> " + result)
+                                         .removeClass("btn-warning")
+                                         .addClass("btn-info");
                 },
                 error: function () {
-                    $("#status-" + runId).html("unknown; please try again")
+                    $("#status-" + runId).html("<i class=\"fas fa-sync-alt\"></i> " + "Failed. Try again")
+                                         .addClass("btn-warning")
+                                         .removeClass("btn-info");
                 }
             })
     }
@@ -41,8 +45,9 @@
                         <tr>
                             <td>{{ run._id }}</td>
                             <td>{{ run.timestamp|fmt_timestamp }}</td>
-                            <td><a class="run-status text-info" onclick="getRunStatus('{{ run._id }}')" id="status-{{ run._id }}">check
-                                status</a></td>
+                            <td>
+                                <button class="btn btn-secondary btn-sm" type="button" onclick="getRunStatus('{{ run._id }}')" id="status-{{ run._id }}">Check status</button>
+                            </td>
                         </tr>
                     {% endfor %}
                 {% endfor %}
