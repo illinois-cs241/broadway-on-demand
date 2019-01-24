@@ -48,7 +48,3 @@ a:link, a:visited, a:hover, a:active {
 th.student-header {
     background: #e9ecef;
 }
-
-a.run-status {
-    cursor: pointer;
-}
