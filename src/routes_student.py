@@ -87,4 +87,4 @@ class StudentRoutes:
 			status = bw_api.get_grading_run_status(cid, aid, run_id)
 			if status:
 				return status
-			return "unknown; please try again"
+			return "", 400
