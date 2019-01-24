@@ -13,8 +13,8 @@ def in_grading_period(assignment, now=None):
 
 
 def is_run_today(run, now):
-	today = TZ.localize(datetime.utcfromtimestamp(now)).date()
-	run_date = TZ.localize(datetime.utcfromtimestamp(run["timestamp"])).date()
+	today = datetime.utcfromtimestamp(now).replace(tzinfo=utc).astimezone(TZ).date()
+	run_date = datetime.utcfromtimestamp(run["timestamp"]).replace(tzinfo=utc).astimezone(TZ).date()
 	return run_date == today
 
 
