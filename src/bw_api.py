@@ -25,6 +25,7 @@ def start_grading_run(cid, aid, netids, timestamp):
 			"DUE_DATE": timestamp_to_bw_api_format(timestamp)
 		} for netid in netids]
 	}
+	
 	try:
 		resp = requests.post(url="%s/grading_run/%s/%s" % (BROADWAY_API_URL, cid, aid), headers=HEADERS, json=data)
 		run_id = resp.json()["data"]["grading_run_id"]
