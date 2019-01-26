@@ -29,18 +29,46 @@ def get_remaining_runs(assignment, runs, now=None):
 
 
 def is_student(netid):
+	""""""
 	courses = db.get_courses_for_student(netid)
 	return bool(courses)
 
 
 def is_staff(netid):
+	"""
+	Check whether the given NetID is a staff member of at least 1 course.
+	:param netid: a user's NetID.
+	:return: a boolean value.
+	"""
 	courses = db.get_courses_for_staff(netid)
 	return bool(courses)
 
 
 def verify_student(netid, cid):
+	"""
+	Check whether the given NetID is a student in the given course.
+	:param netid: a user's NetID.
+	:param cid: a course ID.
+	:return: a boolean value.
+	"""
 	return netid in db.get_course(cid)["student_ids"]
 
 
+def verify_admin(netid, cid):
+	"""
+	Check whether the given NetID is a course admin in the given course.
+	:param netid: a user's NetID.
+	:param cid: a course ID.
+	:return: a boolean value.
+	"""
+	return netid in db.get_course(cid)["admin_ids"]
+
+
 def verify_staff(netid, cid):
+	"""
+	Check whether the given NetID is a staff member in the given course.
+	:param netid: a user's NetID.
+	:param cid: a course ID.
+	:return: a boolean value.
+	"""
 	return netid in db.get_course(cid)["staff_ids"]

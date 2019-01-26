@@ -2,7 +2,7 @@ from flask import render_template, request, redirect, abort
 
 from src import db, util, auth, bw_api
 from src.config import TZ
-from src.common import verify_staff
+from src.common import verify_staff, verify_admin
 
 
 class StaffRoutes:
@@ -21,12 +21,13 @@ class StaffRoutes:
 
 			course = db.get_course(cid)
 			assignments = db.get_assignments_for_course(cid)
-			return render_template("staff/course.html", netid=netid, course=course, assignments=assignments, tzname=str(TZ), error=None)
+			is_admin = verify_admin(netid, cid)
+			return render_template("staff/course.html", netid=netid, course=course, assignments=assignments, tzname=str(TZ), is_admin=is_admin, error=None)
 
 		@app.route("/staff/course/<cid>/", methods=["POST"])
 		@auth.require_auth
 		def staff_attempt_add_assignment(netid, cid):
-			if not verify_staff(netid, cid):
+			if not verify_staff(netid, cid) or not verify_admin(netid, cid):
 				return abort(403)
 
 			def err(msg):
