@@ -1,23 +1,6 @@
 {% set title = "%s (staff) (%s)" % (course.name, netid) %}
 {% include 'header.html' %}
-<script type="application/javascript">
-    function getRunStatus(runId) {
-        $.ajax(
-            {
-                url: "./" + runId + "/status/",
-                success: function (result) {
-                    $("#status-" + runId).html("<i class=\"fas fa-sync-alt\"></i> " + result)
-                                         .removeClass("btn-warning")
-                                         .addClass("btn-info");
-                },
-                error: function () {
-                    $("#status-" + runId).html("<i class=\"fas fa-sync-alt\"></i> " + "Failed. Try again")
-                                         .addClass("btn-warning")
-                                         .removeClass("btn-info");
-                }
-            })
-    }
-</script>
+{% include 'status.html' %}
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
         <li class="breadcrumb-item"><a href="../../..">Staff Home</a></li>
