@@ -24,44 +24,49 @@ class StaffRoutes:
 			is_admin = verify_admin(netid, cid)
 			return render_template("staff/course.html", netid=netid, course=course, assignments=assignments, tzname=str(TZ), is_admin=is_admin, error=None)
 
-		@app.route("/staff/course/<cid>/", methods=["POST"])
+		@app.route("/staff/course/<cid>/<aid>/", methods=["POST"])
 		@auth.require_auth
-		def staff_attempt_add_assignment(netid, cid):
+		def staff_attempt_add_assignment(netid, cid, aid):
 			if not verify_staff(netid, cid) or not verify_admin(netid, cid):
 				return abort(403)
 
 			def err(msg):
-				return render_template("staff/course.html", netid=netid, course=course, assignments=assignments, tzname=str(TZ), error=msg)
+				return msg, 400
 
 			course = db.get_course(cid)
 			assignments = db.get_assignments_for_course(cid)
 
-			missing = util.check_missing_fields(request.form, *["aid", "max_runs", "quota", "start", "end"])
+			missing = util.check_missing_fields(request.form, *["max_runs", "quota", "start", "end"])
 			if missing:
-				return err("Error: Missing fields (%s)" % (", ".join(missing)))
+				return err("Missing fields (%s)." % (", ".join(missing)))
 
-			aid = request.form["aid"]
 			if not util.valid_id(aid):
-				return err("Error: Invalid Assignment ID. Allowed characters: a-z A-Z _ - .")
+				return err("Invalid Assignment ID. Allowed characters: a-z A-Z _ - .")
 
-			new_assignment = db.get_assignment(cid, request.form["aid"])
+			new_assignment = db.get_assignment(cid, aid)
 			if new_assignment:
-				return err("Error: Assignment ID already exists.")
+				return err("Assignment ID already exists.")
 
 			try:
 				max_runs = int(request.form["max_runs"])
 				if max_runs < 1:
-					return err("Error: Max Runs must be a positive integer.")
+					return err("Max Runs must be a positive integer.")
 			except ValueError:
-				return err("Error: Maximum Grading Runs must be a positive integer.")
+				return err("Max Runs must be a positive integer.")
+
+			quota = request.form["quota"]
+			if not db.Quota.is_valid(quota):
+				return err("Quota Type is invalid.")
 
 			start = util.parse_form_datetime(request.form["start"]).timestamp()
 			end = util.parse_form_datetime(request.form["end"]).timestamp()
+			if start is None or end is None:
+				return err("Missing or invalid Start or End.")
 			if start >= end:
-				return err("Error: Start must be before End.")
+				return err("Start must be before End.")
 
-			db.add_assignment(cid, request.form["aid"], max_runs, request.form["quota"], start, end)
-			return redirect("/staff/course/%s/" % cid)
+			db.add_assignment(cid, aid, max_runs, quota, start, end)
+			return "", 204
 
 		@app.route("/staff/course/<cid>/<aid>/", methods=["GET"])
 		@auth.require_auth

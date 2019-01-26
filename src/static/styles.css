@@ -48,3 +48,7 @@ a:link, a:visited, a:hover, a:active {
 th.student-header {
     background: #e9ecef;
 }
+
+i.fas {
+    margin-right: 0.5em;
+}
