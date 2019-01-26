@@ -96,24 +96,24 @@ class SlackBot:
             if run is None:
                 return public(user, "grading run `{}` does not exist".format(run_id))
 
-            @delayed(uesr)
+            @delayed(user)
             def cont():
-                status = bw_api.get_grading_run_status(run["cid"], run["aid"], run_id)
+                status = bw_api.get_grading_run_status(run["course_id"], run["assignment_id"], run_id)
 
                 if status is None:
                     return "failed to get status for run `{}`". format(run_id)
 
                 return "run `{}`: {}".format(run_id, status)
 
-            return public("fetching")
+            return public(user, "fetching")
 
         # add extra commands here
         @command("grade")
         def cmd_grade(user, netid, args):
-            """usage: <course> <assignment> <netid-1> [netid-2] ..."""
+            """usage: grade <course> <assignment> <netid-1> [netid-2] ..."""
 
             if len(args) < 3:
-                return private(user, )
+                return private(user, "usage: grade <course> <assignment> <netid-1> [netid-2] ...")
 
             cid = args[0]
             aid = args[1]
@@ -125,7 +125,7 @@ class SlackBot:
 
             # check assignment exists
             if not common.verify_aid(cid, aid):
-                return private(user, "assignment `{}` does not exist in courses `{}`".format(aid, cid))
+                return private(user, "assignment `{}` does not exist in course `{}`".format(aid, cid))
 
             # check netid is admin
             if not common.verify_admin(netid, cid):
@@ -181,8 +181,3 @@ class SlackBot:
                     return cmd_dict[cmd](user, netid, args[1:])
                 else:
                     return private(user, "command `{}` does not exist".format(cmd))
-
-if __name__ == "__main__":
-    app = Flask(__name__)
-    SlackBot(app)
-    app.run(host="0.0.0.0", port=3133)
