@@ -11,6 +11,10 @@ class Quota:
 	# Gives students max_runs grading runs over the entire assignment period.
 	TOTAL = "total"
 
+	@classmethod
+	def is_valid(cls, quota):
+		return quota in [cls.DAILY, cls.TOTAL]
+
 
 def init(app):
 	mongo.init_app(app)
@@ -116,4 +120,3 @@ def add_grading_run(cid, aid, netid, timestamp, run_id):
 
 def get_grading_run(run_id):
 	return mongo.db.runs.find_one({"_id": run_id})
-
