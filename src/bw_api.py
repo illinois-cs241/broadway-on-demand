@@ -41,7 +41,7 @@ def get_grading_run_status(cid, aid, run_id):
 	"""
 	try:
 		resp = requests.get(url="%s/grading_run/%s/%s/%s" % (BROADWAY_API_URL, cid, aid, run_id), headers=HEADERS)
-		return resp.json()["data"]["state"]
+		return resp.json()["data"]["student_jobs_state"][0]
 	except requests.exceptions.RequestException:
 		return None
 	except KeyError:
