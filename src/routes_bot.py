@@ -30,26 +30,28 @@ class Command:
         self.netid = self.email.split("@")[0]
         self.response_url = request.form.get("response_url")
 
-    def public(self, msg, attach=[]):
+    def public(self, msg, *attach_l, attach=[]):
         """
         Visible to everyone in the channel
         """
 
         return {
             "response_type": "in_channel",
-            "text": "<@" + self.user + "> " + msg,
-            "attachments": attach
+            "text":
+                "<@" + self.user + "> " + msg if msg is not None else None,
+            "attachments": list(attach_l) + attach
         }
 
-    def private(self, msg, attach=[]):
+    def private(self, msg, *attach_l, attach=[]):
         """
         Only visible to the command sender
         """
 
         return {
             "response_type": "ephemeral",
-            "text": "<@" + self.user + "> " + msg,
-            "attachments": attach
+            "text":
+                "<@" + self.user + "> " + msg if msg is not None else None,
+            "attachments": list(attach_l) + attach
         }
 
     def delayed(self, f):
@@ -93,13 +95,40 @@ class SlackSigner:
 
         return wrapper
 
+class AI:
+    """just passed the Turing test"""
+
+    colors = [ "#1abc9c", "#2ecc71", "#3498db", "#9b59b6", "#f1c40f", "#e67e22", "#e74c3c" ]
+
+    positive_prompts = [ "Here you go" ]
+    negative_prompts = [ "Uh-oh" ]
+
+    @staticmethod
+    def color():
+        return choice(AI.colors)
+
+    @staticmethod
+    def positive():
+        return choice(AI.positive_prompts)
+
+    @staticmethod
+    def negative():
+        return choice(AI.negative_prompts)
+
+class Attachment:
+    @staticmethod
+    def random_color(msg):
+        return {
+            "color": AI.color(),
+            "text": msg,
+            "mrkdwn_in": ["text"]
+        }
+
 class SlackBot(SlackClient):
     """
     Basic slack bot class
     Handles incoming commands and dispatch of command handlers
     """
-
-    colors = [ "#1abc9c", "#2ecc71", "#3498db", "#9b59b6", "#f1c40f", "#e67e22", "#e74c3c" ]
 
     def get_user_email(self, user_id):
         res = self.api_call("users.info", user=user_id)
@@ -117,11 +146,8 @@ class SlackBot(SlackClient):
                     # try match function parameters
                     return f(self, cmd, *cmd.args[1:])
                 except TypeError:
-                    return cmd.private("Wrong argument", attach = [
-                        {
-                            "color": choice(SlackBot.colors),
-                            "text": "{}\nUsage: `{} {}`".format(help_msg, cmd.cmd, f.__doc__)
-                        }
+                    return cmd.private("Wrong argument", attach=[
+                        Attachment.random_color("{}\nUsage: `{} {}`".format(help_msg, cmd.cmd, f.__doc__))
                     ]) # return usage
 
             self.cmd_dict[name] = (wrapper, help_msg)
@@ -137,10 +163,7 @@ class SlackBot(SlackClient):
             ret.append("{}\n`{} {}`".format(msg, cmd.cmd, f.__doc__))
 
         return cmd.public("Some help?", attach=[
-            {
-                "color": choice(SlackBot.colors),
-                "text": cont
-            } for cont in ret
+            Attachment.random_color(cont) for cont in ret
         ])
 
     def __init__(self, app):
@@ -173,6 +196,59 @@ class BroadwayBot(SlackBot):
     def __init__(self, app):
         super().__init__(app)
 
+        @self.command("list", "List courses/assignments")
+        def cmd_list(bot, cmd, *courses):
+            """list [course-1] [course-2] ..."""
+            
+            if len(courses):
+                # list assignments in courses
+
+                prompt_list = []
+
+                for course in courses:
+                    if not common.verify_course(course):
+                        return cmd.public(AI.negative(), attach=[
+                            Attachment.random_color("Course `{}` does not exist".format(course))
+                        ])
+
+                    assigns = db.get_assignments_for_course(course)
+
+                    if assigns is not None:
+                        if len(assigns):
+                            ids = [ "`" + assign["assignment_id"] + "`" for assign in assigns ]
+
+                            prompt_list.append(Attachment.random_color(
+                                "Course `{}` has the following assignment(s)\n{}" \
+                                .format(course, ", ".join(ids))
+                            ))
+                        else:
+                            prompt_list.append(Attachment.random_color(
+                                "Course `{}` has no assignment"
+                            ))
+                    else:
+                        prompt_list.append(Attachment.random_color(
+                            "Course `{}` does not exist"
+                        ))
+
+                return cmd.public(AI.positive(), attach=prompt_list)
+
+            else:
+                # assuming admin_ids is a subset of staff_ids
+                courses = db.get_all_courses()
+                course_names = [ course["_id"] for course in courses ]
+
+                if len(courses):
+                    return cmd.public(AI.positive(), attach=[
+                        Attachment.random_color(
+                            "You have access to the following course(s)\n{}" \
+                            .format(", ".join([ "`" + name + "`" for name in course_names ]))
+                        )
+                    ])
+                else:
+                    return cmd.public(AI.negative(), attach=[
+                        Attachment.random_color("There is no course")
+                    ])
+
         @self.command("status", "Check status of a grading run")
         def cmd_status(bot, cmd, run_id):
             """status <run-id>"""
@@ -187,11 +263,11 @@ class BroadwayBot(SlackBot):
                 status = bw_api.get_grading_run_status(run["course_id"], run["assignment_id"], run_id)
 
                 if status is None:
-                    return cmd.public("Failed to get status for run `{}`". format(run_id))
+                    return cmd.public(None, Attachment.random_color("Failed to get status for run `{}`". format(run_id)))
 
-                return cmd.public("Run `{}`: {}".format(run_id, status))
+                return cmd.public(None, Attachment.random_color("Run `{}`: {}".format(run_id, status)))
 
-            return cmd.public("Fetching")
+            return cmd.public("Just a sec")
 
         # add extra commands here
         @self.command("grade", "Request grading run")
@@ -199,11 +275,11 @@ class BroadwayBot(SlackBot):
             """grade <course> <assignment> <netid-1> [netid-2] ..."""
 
             # check course exists
-            if not common.verify_cid(cid):
+            if not common.verify_course(cid):
                 return cmd.public("Course `{}` does not exist".format(cid))
 
             # check assignment exists
-            if not common.verify_aid(cid, aid):
+            if not common.verify_assignment(cid, aid):
                 return cmd.public("Assignment `{}` does not exist in course `{}`".format(aid, cid))
 
             # check netid is admin
@@ -226,15 +302,15 @@ class BroadwayBot(SlackBot):
                     run_id = None
 
                 if run_id is None:
-                    return cmd.public("Failed to request grading run")
+                    return cmd.public(None, Attachment.random_color("Failed to request grading run"))
                 else:
                     # run created
                     for student in netids:
                         db.add_grading_run(cid, aid, student, ts, run_id)
 
-                    return cmd.public("Grading run requested, run_id `{}`".format(run_id))
+                    return cmd.public(None, Attachment.random_color("Grading run requested, run_id `{}`".format(run_id)))
 
-            return cmd.public("Processing")
+            return cmd.public("Requesting")
 
         @self.command("help", "Print help message")
         def cmd_help(bot, cmd):

@@ -74,9 +74,9 @@ def verify_staff(netid, cid):
 	return netid in db.get_course(cid)["staff_ids"]
 
 
-def verify_cid(cid):
+def verify_course(cid):
 	return db.get_course(cid) is not None
 
 
-def verify_aid(cid, aid):
+def verify_assignment(cid, aid):
 	return db.get_assignment(cid, aid) is not None
