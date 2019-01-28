@@ -20,7 +20,7 @@ class StaffRoutes:
 				return abort(403)
 
 			course = db.get_course(cid)
-			assignments = db.get_assignments_for_course(cid)
+			assignments = list(db.get_assignments_for_course(cid))
 			is_admin = verify_admin(netid, cid)
 			return render_template("staff/course.html", netid=netid, course=course, assignments=assignments, tzname=str(TZ), is_admin=is_admin, error=None)
 
@@ -32,9 +32,6 @@ class StaffRoutes:
 
 			def err(msg):
 				return msg, 400
-
-			course = db.get_course(cid)
-			assignments = db.get_assignments_for_course(cid)
 
 			missing = util.check_missing_fields(request.form, *["max_runs", "quota", "start", "end"])
 			if missing:
@@ -76,7 +73,7 @@ class StaffRoutes:
 
 			course = db.get_course(cid)
 			assignment = db.get_assignment(cid, aid)
-			student_runs = db.get_assignment_runs(cid, aid)
+			student_runs = list(db.get_assignment_runs(cid, aid))
 			return render_template("staff/assignment.html", netid=netid, course=course, assignment=assignment, student_runs=student_runs, tzname=str(TZ))
 
 		@app.route("/staff/course/<cid>/<aid>/<run_id>/status/", methods=["GET"])
