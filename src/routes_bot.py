@@ -1,5 +1,6 @@
 import os
 import json
+import re
 
 from random import choice
 from functools import wraps
@@ -18,17 +19,15 @@ from src import config
 import requests
 import threading
 
-class Command:
-    """Wrapper class for a command"""
+RUN_ID_PATTERN = r"[0-9a-f]{24}"
 
-    def __init__(self, bot, form):
-        self.cmd = form.get("command")
-        self.args = form.get("text").split()
-        self.user = form.get("user_id")
-
+class SlackRequest:
+    def __init__(self, bot, user, form):
+        self.user = user
         self.email = bot.get_user_email(self.user)
         self.netid = self.email.split("@")[0]
-        self.response_url = request.form.get("response_url")
+
+        self.response_url = form.get("response_url")
 
     def public(self, msg, *attach_l, attach=[]):
         """
@@ -49,8 +48,7 @@ class Command:
 
         return {
             "response_type": "ephemeral",
-            "text":
-                "<@" + self.user + "> " + msg if msg is not None else None,
+            "text": msg if msg is not None else None,
             "attachments": list(attach_l) + attach
         }
 
@@ -71,6 +69,38 @@ class Command:
         thread.start()
 
         return
+
+class Command(SlackRequest):
+    """Wrapper class for a command"""
+
+    def __init__(self, bot, form):
+        self.cmd = form.get("command")
+        self.args = form.get("text").split()
+
+        SlackRequest.__init__(self, bot, form.get("user_id"), form)
+
+class Action(SlackRequest):
+    """wrapper class for an action"""
+
+    def __init__(self, bot, form):
+        self.callback_id = form.get("callback_id")
+        self.message = form.get("message")
+
+        SlackRequest.__init__(self, bot, form["user"]["id"], form)
+
+    def private(self, *args, **kargs):
+        obj = super().private(*args, **kargs)
+        res = requests.post(self.response_url, data=json.dumps(obj))
+
+        if res.status_code != 200:
+            raise Exception("Callback failed: " + res.text)
+
+    def public(self, *args, **kargs):
+        obj = super().public(*args, **kargs)
+        res = requests.post(self.response_url, data=json.dumps(obj))
+
+        if res.status_code != 200:
+            raise Exception("Callback failed: " + res.text)
 
 class SlackSigner:
     """
@@ -156,6 +186,13 @@ class SlackBot(SlackClient):
 
         return decorator
 
+    def action(self, name):
+        def decorator(f):
+            self.action_dict[name] = f
+            return f # preseve docstring
+
+        return decorator
+
     def print_help(self, cmd):
         ret = [] # prepend an empty line
 
@@ -168,6 +205,7 @@ class SlackBot(SlackClient):
 
     def __init__(self, app):
         self.cmd_dict = {}
+        self.action_dict = {}
 
         SlackClient.__init__(self, config.SLACK_API_TOKEN)
 
@@ -188,6 +226,20 @@ class SlackBot(SlackClient):
                 else:
                     return jsonify(cmd.private("Command `{}` does not exist".format(cmd.args[0])))
 
+        @app.route("/slack/action", methods=["POST"])
+        @signer.check_sig
+        def slack_action():
+            """Parse and dispatch action handlers"""
+
+            action = Action(self, json.loads(request.form.get("payload")))
+
+            if action.callback_id in self.action_dict:
+                self.action_dict[action.callback_id](self, action)
+                return ""
+            else:
+                action.private("Action `{}` does not exist".format(action.callback_id))
+                return ""
+
 class BroadwayBot(SlackBot):
     """
     Class that implements all broadway related commands
@@ -195,6 +247,36 @@ class BroadwayBot(SlackBot):
 
     def __init__(self, app):
         super().__init__(app)
+
+        @self.action("run_status")
+        def action_run_status(bot, action):
+            text = action.message.get("text")
+            attachments = action.message.get("attachments", [])
+
+            text += "\n".join([ attach.get("text", "") for attach in attachments ])
+            
+            result = re.search(RUN_ID_PATTERN, text)
+
+            if result is None:
+                action.private("This message contains no run id")
+                return
+
+            run_id = result.group(0)
+
+            run = db.get_grading_run(run_id)
+
+            if run is None:
+                action.private("Grading run `{}` does not exist".format(run_id))
+                return
+
+            status = bw_api.get_grading_run_status(run["course_id"], run["assignment_id"], run_id)
+
+            if status is None:
+                action.private(None, Attachment.random_color("Failed to get status for run `{}`". format(run_id)))
+                return
+
+            action.private(None, Attachment.random_color("Run `{}`: {}".format(run_id, status)))
+            return
 
         @self.command("list", "List courses/assignments")
         def cmd_list(bot, cmd, *courses):
