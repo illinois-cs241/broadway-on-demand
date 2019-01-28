@@ -34,11 +34,11 @@
             beforeSend: function () {
                 $('#mdl-add-assn-error').html('').fadeOut();
             },
-            success: function (result) {
+            success: function () {
                 $('#mdl-add-assn').modal('hide');
                 location.reload();
             },
-            error: function (xhr, status, error) {
+            error: function (xhr) {
                 if (!xhr.responseText) {
                     $('#mdl-add-assn-error').html("Save failed. Please try again.").fadeIn();
                 } else {

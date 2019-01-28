@@ -106,7 +106,7 @@ def get_assignment_runs(cid, aid):
 	])
 
 
-def add_grading_run(cid, aid, netid, timestamp, run_id):
+def add_grading_run(cid, aid, netid, timestamp, run_id, extension_used=None):
 	"""
 	Add a new grading run.
 	:param cid: a course ID.
@@ -114,9 +114,23 @@ def add_grading_run(cid, aid, netid, timestamp, run_id):
 	:param netid: a student's NetID.
 	:param timestamp: a UNIX timestamp for this run.
 	:param run_id: the run ID received from Broadway API. Used to retrieve status.
+	:param extension_used: the extension used for this run, if any.
 	"""
-	mongo.db.runs.insert_one({"_id": run_id, "course_id": cid, "assignment_id": aid, "netid": netid, "timestamp": timestamp})
+	new_run = {"_id": run_id, "course_id": cid, "assignment_id": aid, "netid": netid, "timestamp": timestamp}
+	if extension_used is not None:
+		new_run["extension_used"] = extension_used["_id"]
+		extension_used["remaining_runs"] -= 1
+		mongo.db.extensions.update({"_id": extension_used["_id"]}, extension_used)
+	mongo.db.runs.insert_one(new_run)
 
 
 def get_grading_run(run_id):
 	return mongo.db.runs.find_one({"_id": run_id})
+
+
+def get_extensions(cid, aid, netid):
+	return mongo.db.extensions.find({"course_id": cid, "assignment_id": aid, "netid": netid})
+
+
+def add_extension(cid, aid, netid, max_runs, start, end):
+	return mongo.db.extensions.insert_one({"course_id": cid, "assignment_id": aid, "netid": netid, "max_runs": max_runs, "remaining_runs": max_runs, "start": start, "end": end})
