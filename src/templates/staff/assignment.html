@@ -102,57 +102,59 @@
             </table>
             <div class="text-secondary"> All times in {{ tzname }}</div>
         </div>
-        <div class="col-md-6 col-lg-4 col-xl-3">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Assignment actions</h5>
+        {% if is_admin %}
+            <div class="col-md-6 col-lg-4 col-xl-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Assignment actions</h5>
 
-                    <button type="button" class="btn btn-outline-primary mt-3" data-toggle="modal" data-target="#mdl-add-ext">
-                        <i class="fas fa-plus"></i> Add extension
-                    </button>
-                    <div class="modal fade" id="mdl-add-ext" tabindex="-1" role="dialog" aria-labelledby="mdl-add-ext-label" aria-hidden="true">
-                        <div class="modal-dialog" role="document">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h5 class="modal-title" id="mdl-add-ext-label">Add extension</h5>
-                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                        <span aria-hidden="true">&times;</span>
-                                    </button>
-                                </div>
-                                <div class="modal-body">
-                                    <form name="add-ext" id="add-ext">
-                                        <div class="form-group">
-                                            <label for="netids">NetIDs</label>
-                                            <small>(comma-separated list)</small>
-                                            <input type="text" class="form-control" id="mdl-add-ext-netids" name="netids">
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="max_runs">Max Runs (total)</label>
-                                            <input type="number" min="1" max="100" class="form-control" id="mdl-add-ext-runs" name="max_runs">
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="start">Start Date & Time</label> <span class="badge badge-secondary">{{ tzname }}</span>
-                                            <input type="datetime-local" class="form-control" id="mdl-add-ext-start" name="start">
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="start">End Date & Time</label> <span
-                                                class="badge badge-secondary">{{ tzname }}</span>
-                                            <input type="datetime-local" class="form-control" id="mdl-add-ext-end"
-                                                   name="end">
-                                        </div>
-                                        <div id="mdl-add-ext-error" class="form-text text-danger"></div>
-                                    </form>
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-primary" id="mdl-add-ext-save" onclick="attemptAddExtension()">Save
-                                    </button>
+                        <button type="button" class="btn btn-outline-primary mt-3" data-toggle="modal" data-target="#mdl-add-ext">
+                            <i class="fas fa-plus"></i> Add extension
+                        </button>
+                        <div class="modal fade" id="mdl-add-ext" tabindex="-1" role="dialog" aria-labelledby="mdl-add-ext-label" aria-hidden="true">
+                            <div class="modal-dialog" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="mdl-add-ext-label">Add extension</h5>
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form name="add-ext" id="add-ext">
+                                            <div class="form-group">
+                                                <label for="netids">NetIDs</label>
+                                                <small>(comma-separated list)</small>
+                                                <input type="text" class="form-control" id="mdl-add-ext-netids" name="netids">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="max_runs">Max Runs (total)</label>
+                                                <input type="number" min="1" max="100" class="form-control" id="mdl-add-ext-runs" name="max_runs">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="start">Start Date & Time</label> <span class="badge badge-secondary">{{ tzname }}</span>
+                                                <input type="datetime-local" class="form-control" id="mdl-add-ext-start" name="start">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="start">End Date & Time</label> <span
+                                                    class="badge badge-secondary">{{ tzname }}</span>
+                                                <input type="datetime-local" class="form-control" id="mdl-add-ext-end"
+                                                       name="end">
+                                            </div>
+                                            <div id="mdl-add-ext-error" class="form-text text-danger"></div>
+                                        </form>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-primary" id="mdl-add-ext-save" onclick="attemptAddExtension()">Save
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
+        {% endif %}
     </div>
 </div>
 {% include 'footer.html' %}
