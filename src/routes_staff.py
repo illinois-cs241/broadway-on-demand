@@ -1,4 +1,4 @@
-from flask import render_template, request, abort
+from flask import render_template, request, abort, jsonify
 
 from src import db, util, auth, bw_api
 from src.config import TZ
@@ -77,6 +77,17 @@ class StaffRoutes:
 			is_admin = verify_admin(netid, cid)
 			return render_template("staff/assignment.html", netid=netid, course=course, assignment=assignment, student_runs=student_runs, tzname=str(TZ), is_admin=is_admin)
 
+		@app.route("/staff/course/<cid>/<aid>/extensions/", methods=["GET"])
+		@auth.require_auth
+		def staff_get_extensions(netid, cid, aid):
+			if not verify_staff(netid, cid) or not verify_admin(netid, cid):
+				return abort(403)
+
+			extensions = list(db.get_extensions(cid, aid))
+			for ext in extensions:
+				ext["_id"] = str(ext["_id"])
+			return jsonify(extensions), 200
+
 		@app.route("/staff/course/<cid>/<aid>/extensions/", methods=["POST"])
 		@auth.require_auth
 		def staff_add_extension(netid, cid, aid):
@@ -93,10 +104,10 @@ class StaffRoutes:
 			if util.check_missing_fields(request.form, "netids", "max_runs", "start", "end"):
 				return err("Missing fields. Please try again.")
 
-			netids = request.form["netids"].replace(" ", "").split(",")
-			for netid in netids:
-				if not util.valid_id(netid) or not verify_student(netid, cid):
-					return err("Invalid or non-existent student NetID: %s" % netid)
+			student_netids = request.form["netids"].replace(" ", "").split(",")
+			for student_netid in student_netids:
+				if not util.valid_id(student_netid) or not verify_student(student_netid, cid):
+					return err("Invalid or non-existent student NetID: %s" % student_netid)
 
 			try:
 				max_runs = int(request.form["max_runs"])
@@ -110,8 +121,8 @@ class StaffRoutes:
 			if start >= end:
 				return err("Start must be before End.")
 
-			for netid in netids:
-				db.add_extension(cid, aid, netid, max_runs, start, end)
+			for student_netid in student_netids:
+				db.add_extension(cid, aid, student_netid, max_runs, start, end)
 			return "", 204
 
 		@app.route("/staff/course/<cid>/<aid>/<run_id>/status/", methods=["GET"])
