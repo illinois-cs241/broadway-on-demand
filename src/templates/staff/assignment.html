@@ -59,9 +59,11 @@
             }
         });
     }
+
     function fmtTimestamp(timestamp) {
-        return new Date(timestamp*1000).toLocaleString('en-US', {timeZone: '{{ tzname }}' });
+        return new Date(timestamp * 1000).toLocaleString('en-US', {timeZone: '{{ tzname }}'});
     }
+
     function viewExtensions() {
         $.ajax({
             type: "GET",
@@ -71,14 +73,18 @@
                 console.log(result);
                 let tbody = $('#mdl-view-exts-body');
                 tbody.empty();
-                for (let i in result) {
-                    tbody.append(
-                        '<tr><td>' + result[i].netid
-                        + '</td><td class="text-right">' + fmtTimestamp(result[i].start)
-                        + '</td><td class="text-right">' + fmtTimestamp(result[i].end)
-                        + '</td><td class="text-right">' + result[i].max_runs
-                        + '</td><td class="text-right">' + result[i].remaining_runs
-                        + '</td></tr>\n');
+                if (result == undefined || result.length == 0) {
+                    tbody.append('<tr><td colspan="5">No extensions</td></tr>')
+                } else {
+                    for (let i in result) {
+                        tbody.append(
+                            '<tr><td>' + result[i].netid
+                            + '</td><td class="text-right">' + fmtTimestamp(result[i].start)
+                            + '</td><td class="text-right">' + fmtTimestamp(result[i].end)
+                            + '</td><td class="text-right">' + result[i].max_runs
+                            + '</td><td class="text-right">' + result[i].remaining_runs
+                            + '</td></tr>\n');
+                    }
                 }
                 $('#mdl-view-exts').modal('show');
             },
@@ -196,19 +202,19 @@
                                     <div class="modal-body">
                                         <div class="table-responsive">
                                             <table class="table table-fit table-hover">
-                                            <thead>
-                                            <tr>
-                                                <th scope="col">NetID</th>
-                                                <th scope="col">Start</th>
-                                                <th scope="col">End</th>
-                                                <th scope="col">Max Runs</th>
-                                                <th scope="col">Remaining Runs</th>
-                                            </tr>
-                                            </thead>
-                                            <tbody id="mdl-view-exts-body">
+                                                <thead>
+                                                <tr>
+                                                    <th scope="col">NetID</th>
+                                                    <th scope="col">Start</th>
+                                                    <th scope="col">End</th>
+                                                    <th scope="col">Max Runs</th>
+                                                    <th scope="col">Remaining Runs</th>
+                                                </tr>
+                                                </thead>
+                                                <tbody id="mdl-view-exts-body">
 
-                                            </tbody>
-                                        </table>
+                                                </tbody>
+                                            </table>
                                         </div>
                                     </div>
                                 </div>
