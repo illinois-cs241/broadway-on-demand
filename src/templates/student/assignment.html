@@ -4,7 +4,23 @@
     function confirmGradeNow() {
         let proceed = window.confirm("The current latest commit in your repository will be graded, using 1 available run. Are you sure you want to proceed?");
         if (proceed) {
-            document.getElementById("grade_now_form").submit();
+            $.ajax({
+                type: "POST",
+                url: "./run/",
+                beforeSend: function () {
+                    $('#grade-now-error').html('').hide();
+                },
+                success: function () {
+                    location.reload();
+                },
+                error: function (xhr) {
+                    if (!xhr.responseText) {
+                        $('#grade-now-error').html("Failed to start grading run. Please try again.").show();
+                    } else {
+                        $('#grade-now-error').html(xhr.responseText).show();
+                    }
+                }
+            })
         }
     }
 
@@ -14,13 +30,13 @@
                 url: "./" + runId + "/status/",
                 success: function (result) {
                     $("#status-" + runId).html("<i class=\"fas fa-sync-alt\"></i> " + result)
-                                         .removeClass("btn-warning")
-                                         .addClass("btn-info");
+                        .removeClass("btn-warning")
+                        .addClass("btn-info");
                 },
                 error: function () {
-                    $("#status-" + runId).html("<i class=\"fas fa-sync-alt\"></i> " + "Failed. Try again")
-                                         .addClass("btn-warning")
-                                         .removeClass("btn-info");
+                    $("#status-" + runId).html("<i class=\"fas fa-sync-alt\"></i> " + "Status unknown")
+                        .addClass("btn-warning")
+                        .removeClass("btn-info");
                 }
             })
     }
@@ -66,15 +82,16 @@
         <div class="col-md-6 col-lg-4 col-xl-3">
             <div class="card">
                 <div class="card-body">
-                    <h5 class="card-title">Available Runs: {{ available_runs }}/{{ assignment.max_runs }}</h5>
-                    {% if available_runs > 0 %}
-                        <form action="." id="grade_now_form" method="post">
+                    <h5 class="card-title">Available Runs: {{ num_available_runs }}/{{ assignment.max_runs }} ({{ assignment.quota }})</h5>
+                    {% if num_extension_runs > 0 %}
+                        <h5 class="card-title">+ {{ num_extension_runs }} Extension Runs</h5>
+                    {% endif %}
+                    {% if num_available_runs + num_extension_runs > 0 %}
+                        <form action=".">
                             <button onclick="confirmGradeNow()" type="button" class="btn btn-primary">Grade Now</button>
                         </form>
                     {% endif %}
-                    {% if error %}
-                        <span class="text-danger">{{ error }}</span>
-                    {% endif %}
+                    <div id="grade-now-error" class="text-danger"></div>
                     <p>
                         <strong>Start</strong> {{ assignment.start|fmt_timestamp }}
                         <br><strong>End</strong> {{ assignment.end|fmt_timestamp }}

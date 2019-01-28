@@ -18,14 +18,30 @@ def is_run_today(run, now):
 	return run_date == today
 
 
-def get_remaining_runs(assignment, runs, now=None):
+def get_available_runs(cid, aid, netid, now=None):
 	if now is None:
 		now = util.now_timestamp()
+
+	assignment = db.get_assignment(cid, aid)
+	runs = db.get_assignment_runs_for_student(cid, aid, netid)
+
+	if not in_grading_period(assignment, now):
+		return 0
+
 	if assignment["quota"] == db.Quota.TOTAL:
-		return assignment["max_runs"] - len(runs)
+		return max(assignment["max_runs"] - len(runs), 0)
 	elif assignment["quota"] == db.Quota.DAILY:
 		today_runs = list(filter(lambda r: is_run_today(r, now), runs))
-		return assignment["max_runs"] - len(today_runs)
+		return max(assignment["max_runs"] - len(today_runs), 0)
+
+
+def get_active_extensions(cid, aid, netid, now=None):
+	if now is None:
+		now = util.now_timestamp()
+	extensions = db.get_extensions(cid, aid, netid)
+	active_extensions = list(filter(lambda ext: ext["start"] <= now <= ext["end"], extensions))
+	num_extension_runs = sum(map(lambda ext: ext["remaining_runs"], active_extensions))
+	return active_extensions, num_extension_runs
 
 
 def is_student(netid):
