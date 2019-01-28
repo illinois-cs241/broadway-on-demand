@@ -79,7 +79,7 @@ class StaffRoutes:
 		@app.route("/staff/course/<cid>/<aid>/extensions/", methods=["POST"])
 		@auth.require_auth
 		def staff_add_extension(netid, cid, aid):
-			if not verify_staff(netid, cid):
+			if not verify_staff(netid, cid) or not verify_admin(netid, cid):
 				return abort(403)
 
 			def err(msg):

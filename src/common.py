@@ -23,10 +23,11 @@ def get_available_runs(cid, aid, netid, now=None):
 		now = util.now_timestamp()
 
 	assignment = db.get_assignment(cid, aid)
-	runs = db.get_assignment_runs_for_student(cid, aid, netid)
 
 	if not in_grading_period(assignment, now):
 		return 0
+
+	runs = db.get_assignment_runs_for_student(cid, aid, netid)
 
 	if assignment["quota"] == db.Quota.TOTAL:
 		return max(assignment["max_runs"] - len(runs), 0)
