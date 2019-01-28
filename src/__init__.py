@@ -44,7 +44,7 @@ def logout(netid):
 	return auth.logout()
 
 
-@app.route("/static/<path>/", methods=["GET"])
+@app.route("/static/<path>", methods=["GET"])
 def static_file(path):
 	return send_from_directory("static", path)
 
