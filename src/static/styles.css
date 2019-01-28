@@ -52,3 +52,11 @@ th.student-header {
 i.fas {
     margin-right: 0.5em;
 }
+
+.table-fit > th {
+    width: auto !important;
+}
+
+table.table-fit {
+    width: auto !important;
+}
