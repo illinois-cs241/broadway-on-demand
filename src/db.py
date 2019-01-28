@@ -128,8 +128,11 @@ def get_grading_run(run_id):
 	return mongo.db.runs.find_one({"_id": run_id})
 
 
-def get_extensions(cid, aid, netid):
-	return mongo.db.extensions.find({"course_id": cid, "assignment_id": aid, "netid": netid})
+def get_extensions(cid, aid, netid=None):
+	if netid is None:
+		return mongo.db.extensions.find({"course_id": cid, "assignment_id": aid}).sort("netid", ASCENDING)
+	else:
+		return mongo.db.extensions.find({"course_id": cid, "assignment_id": aid, "netid": netid})
 
 
 def add_extension(cid, aid, netid, max_runs, start, end):
