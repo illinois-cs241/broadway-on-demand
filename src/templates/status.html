@@ -1,0 +1,29 @@
+<script type="application/javascript">
+    function getRunStatus(runId) {
+        $.ajax(
+            {
+                url: "./" + runId + "/status/",
+                success: function (result) {
+                    var status_map = {
+                        "scheduled": "btn-info",
+                        "running": "btn-info",
+                        "success": "btn-success",
+                        "failed": "btn-danger",
+                        "": "btn-info"
+                    };
+
+                    for (var key in status_map) {
+                        if (result.indexOf(key) != -1) {
+                            $("#status-" + runId).html("<i class=\"fas fa-sync-alt\"></i> " + result)
+                                                 .attr("class", "btn btn-secondary btn-sm " + status_map[key]);
+                            break;
+                        }
+                    }
+                },
+                error: function () {
+                    $("#status-" + runId).html("<i class=\"fas fa-sync-alt\"></i> Unknown. Try again")
+                                         .attr("class", "btn btn-secondary btn-sm btn-warning");
+                }
+            })
+    }
+</script>

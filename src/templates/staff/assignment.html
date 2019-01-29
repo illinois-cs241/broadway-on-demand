@@ -1,27 +1,10 @@
 {% set title = "%s (staff) (%s)" % (course.name, netid) %}
 {% include 'header.html' %}
+{% include 'status.html' %}
 <script type="application/javascript">
-    function getRunStatus(runId) {
-        $.ajax(
-            {
-                url: "./" + runId + "/status/",
-                success: function (result) {
-                    $("#status-" + runId).html("<i class=\"fas fa-sync-alt\"></i> " + result)
-                        .removeClass("btn-warning")
-                        .addClass("btn-info");
-                },
-                error: function () {
-                    $("#status-" + runId).html("<i class=\"fas fa-sync-alt\"></i> " + "Status unknown")
-                        .addClass("btn-warning")
-                        .removeClass("btn-info");
-                }
-            });
-    }
-
     function addExtErr(msg) {
         $('#mdl-add-ext-error').html(msg).show();
     }
-
     function attemptAddExtension() {
         let netids = $('#mdl-add-ext-netids').val();
         if (!netids) {
@@ -59,11 +42,9 @@
             }
         });
     }
-
     function fmtTimestamp(timestamp) {
         return new Date(timestamp * 1000).toLocaleString('en-US', {timeZone: '{{ tzname }}'});
     }
-
     function viewExtensions() {
         $.ajax({
             type: "GET",

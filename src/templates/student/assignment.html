@@ -1,5 +1,6 @@
 {% set title = "%s (%s)" % (assignment.assignment_id, netid) %}
 {% include 'header.html' %}
+{% include 'status.html' %}
 <script type="application/javascript">
     function confirmGradeNow() {
         let proceed = window.confirm("The current latest commit in your repository will be graded, using 1 available run. Are you sure you want to proceed?");
@@ -22,23 +23,6 @@
                 }
             })
         }
-    }
-
-    function getRunStatus(runId) {
-        $.ajax(
-            {
-                url: "./" + runId + "/status/",
-                success: function (result) {
-                    $("#status-" + runId).html("<i class=\"fas fa-sync-alt\"></i> " + result)
-                        .removeClass("btn-warning")
-                        .addClass("btn-info");
-                },
-                error: function () {
-                    $("#status-" + runId).html("<i class=\"fas fa-sync-alt\"></i> " + "Status unknown")
-                        .addClass("btn-warning")
-                        .removeClass("btn-info");
-                }
-            })
     }
 </script>
 <nav aria-label="breadcrumb">
