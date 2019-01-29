@@ -1,5 +1,53 @@
 {% set title = "%s (staff) (%s)" % (course.name, netid) %}
 {% include 'header.html' %}
+<script type="application/javascript">
+    function addAssnErr(msg) {
+        $('#mdl-add-assn-error').html(msg).show();
+    }
+
+    function attemptAddAssignment() {
+        let aid = $('#mdl-add-assn-aid').val();
+        if (!aid) {
+            addAssnErr("Assignment ID is required.");
+            return;
+        }
+        let maxRuns = $('#mdl-add-assn-runs').val();
+        if (!maxRuns) {
+            addAssnErr("Max Runs is required.");
+            return;
+        }
+        let quota = $('input[name=quota]:checked', '#add-assn').val();
+        if (!quota) {
+            addAssnErr("Quota Type is required.");
+            return;
+        }
+        let start = $('#mdl-add-assn-start').val();
+        let end = $('#mdl-add-assn-end').val();
+        if (!start || !end) {
+            addAssnErr("Start and End are required.");
+            return;
+        }
+        $.ajax({
+            type: "POST",
+            url: "./" + aid + "/",
+            data: {max_runs: maxRuns, quota: quota, start: start, end: end},
+            beforeSend: function () {
+                $('#mdl-add-assn-error').html('').fadeOut();
+            },
+            success: function () {
+                $('#mdl-add-assn').modal('hide');
+                location.reload();
+            },
+            error: function (xhr) {
+                if (!xhr.responseText) {
+                    $('#mdl-add-assn-error').html("Save failed. Please try again.").fadeIn();
+                } else {
+                    $('#mdl-add-assn-error').html(xhr.responseText).fadeIn();
+                }
+            }
+        })
+    }
+</script>
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
         <li class="breadcrumb-item"><a href="../..">Staff Home</a></li>
@@ -9,7 +57,7 @@
 <div class="container-fluid">
     <div class="row">
         <div class="col-md-6 col-lg-8 col-xl-9">
-            <table class="table table-hover">
+            <table class="table table-hover table-fit">
                 <thead>
                 <tr>
                     <th scope="col">ID</th>
@@ -34,58 +82,65 @@
                 {% endif %}
                 </tbody>
             </table>
-            <span class="text-secondary"> All times in {{ tzname }}</span>
+            <div class="text-secondary"> All times in {{ tzname }}</div>
         </div>
         {% if is_admin %}
             <div class="col-md-6 col-lg-4 col-xl-3">
                 <div class="card">
                     <div class="card-body">
-                        <h4 class="card-title">Add assignment</h4>
-                        <form action="." method="post">
-                            <div class="form-group">
-                                <label for="aid">Assignment ID</label>
-                                <input type="text" class="form-control" id="aid" name="aid">
-                            </div>
-                            <div class="form-group">
-                                <label for="max_runs">Max Runs</label>
-                                <input type="number" min="1" max="100" class="form-control" id="max_runs"
-                                       name="max_runs">
-                            </div>
-                            <div class="form-group">
-                                <label class="form-check-label">Quota Type</label><br>
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="quota" id="quota_daily"
-                                           value="daily" checked>
-                                    <label class="form-check-label" for="quota_daily">
-                                        Daily
-                                    </label>
+                        <h5 class="card-title">Course actions</h5>
+
+                        <button type="button" class="btn btn-outline-primary mt-3" data-toggle="modal" data-target="#mdl-add-assn">
+                            <i class="fas fa-calendar-plus"></i> Add assignment
+                        </button>
+                        <div class="modal fade" id="mdl-add-assn" tabindex="-1" role="dialog" aria-labelledby="mdl-add-assn-label" aria-hidden="true">
+                            <div class="modal-dialog" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="mdl-add-assn-label">Add assignment</h5>
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form name="add-assn" id="add-assn">
+                                            <div class="form-group">
+                                                <label for="aid">Assignment ID</label>
+                                                <input type="text" class="form-control" id="mdl-add-assn-aid" name="aid">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="max_runs">Max Runs</label>
+                                                <input type="number" min="1" max="100" class="form-control" id="mdl-add-assn-runs" name="max_runs">
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="form-check-label">Quota Type</label><br>
+                                                <div class="form-check form-check-inline">
+                                                    <input class="form-check-input" type="radio" name="quota" id="mdl-add-assn-quota-daily" value="daily" checked>
+                                                    <label class="form-check-label" for="mdl-add-assn-quota-daily">Daily</label>
+                                                </div>
+                                                <div class="form-check form-check-inline">
+                                                    <input class="form-check-input" type="radio" name="quota" id="mdl-add-assn-quota-daily" value="total">
+                                                    <label class="form-check-label" for="mdl-add-assn-quota-total">Total</label>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="start">Start Date & Time</label> <span class="badge badge-secondary">{{ tzname }}</span>
+                                                <input type="datetime-local" class="form-control" id="mdl-add-assn-start" name="start">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="start">End Date & Time</label> <span class="badge badge-secondary">{{ tzname }}</span>
+                                                <input type="datetime-local" class="form-control" id="mdl-add-assn-end" name="end">
+                                            </div>
+                                            <span id="mdl-add-assn-error" class="form-text text-danger"></span>
+                                        </form>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-primary" id="mdl-add-assn-save" onclick="attemptAddAssignment()">Save
+                                        </button>
+                                    </div>
                                 </div>
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="quota" id="quota_total"
-                                           value="total">
-                                    <label class="form-check-label" for="quota_total">
-                                        Total
-                                    </label>
-                                </div>
                             </div>
-                            <div class="form-group">
-                                <label for="start">Start Date & Time</label> <span
-                                    class="badge badge-secondary">{{ tzname }}</span>
-                                <input type="datetime-local" class="form-control" id="start" name="start">
-                            </div>
-                            <div class="form-group">
-                                <label for="start">End Date & Time</label> <span
-                                    class="badge badge-secondary">{{ tzname }}</span>
-                                <input type="datetime-local" class="form-control" id="end" name="end">
-                            </div>
-                            {% if error %}
-                                <div class="form-group">
-                                <span id="error" class="form-text text-danger">{{ error }}
-                                </span>
-                                </div>
-                            {% endif %}
-                            <button type="submit" class="btn btn-primary">Save</button>
-                        </form>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -59,7 +59,10 @@ def valid_id(id_str):
 
 
 def parse_form_datetime(datetime_local_str):
-	return TZ.localize(datetime.strptime(datetime_local_str, "%Y-%m-%dT%H:%M"))
+	try:
+		return TZ.localize(datetime.strptime(datetime_local_str, "%Y-%m-%dT%H:%M"))
+	except ValueError:
+		return None
 
 
 def timestamp_to_iso(timestamp):
