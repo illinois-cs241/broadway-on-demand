@@ -1,8 +1,10 @@
+from datetime import datetime, timedelta
+
 from flask import render_template, request, abort, jsonify
 
 from src import db, util, auth, bw_api
 from src.config import TZ
-from src.common import verify_staff, verify_admin, verify_student
+from src.common import verify_staff, verify_admin, verify_student, get_available_runs
 
 
 class StaffRoutes:
@@ -135,3 +137,40 @@ class StaffRoutes:
 			if status:
 				return status
 			return "", 400
+
+		@app.route("/staff/course/<cid>/<aid>/unused")
+		def staff_start_unused_grading_run(cid, aid):
+			"""
+			This endpoint, given cid and aid, checks for unused grading runs of all students in the course for
+			the previous day at 23:59:59. If a student didn't use an autograder run the previous day, an autograder
+			run is triggered for them.
+			:param cid: a course ID
+			:param aid: an assignment ID
+			:return: HTTP 204 if request succeeded, 403 if unsafe
+			"""
+			# We expect this endpoint to be used only from localhost.
+			if request.headers.get("X-Forwarded-For"):
+				# Request originated from nginx. This is unsafe. Abort.
+				return abort(403)
+
+			# Calculate check_time which for 12 am deadlines is the previous day @ 23:59:59
+			now = datetime.now()
+			today_midnight = datetime(now.year, now.month, now.day)		# current day midnight
+			check_time = today_midnight - timedelta(seconds=1)			# previous day 23:59:59
+			check_timestamp = check_time.timestamp()
+
+			# Get list of students in the course, and check for unused grading runs
+			student_ids = list(db.get_students_for_course(cid))
+			for netid in student_ids:
+				num_available_runs = get_available_runs(cid, aid, netid, check_timestamp)
+
+				if num_available_runs > 0:
+					# If the student has an available run, use it
+					run_id = bw_api.start_grading_run(cid, aid, netid, check_timestamp)
+					if run_id is None:
+						print("Failed to start unused grading run for cid: %s, aid: %s, netid: %s" % (cid, aid, netid))
+						continue
+
+					db.add_grading_run(cid, aid, netid, check_timestamp, run_id, extension_used=None)
+
+			return "", 204

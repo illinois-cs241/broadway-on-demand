@@ -137,3 +137,7 @@ def get_extensions(cid, aid, netid=None):
 
 def add_extension(cid, aid, netid, max_runs, start, end):
 	return mongo.db.extensions.insert_one({"course_id": cid, "assignment_id": aid, "netid": netid, "max_runs": max_runs, "remaining_runs": max_runs, "start": start, "end": end})
+
+
+def get_students_for_course(cid):
+	return get_course(cid)["student_ids"]
