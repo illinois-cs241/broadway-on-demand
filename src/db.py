@@ -77,6 +77,16 @@ def add_assignment(cid, aid, max_runs, quota, start, end):
 		{"course_id": cid, "assignment_id": aid, "max_runs": max_runs, "quota": quota, "start": start, "end": end})
 
 
+def update_assignment(cid, aid, max_runs, quota, start, end):
+	if quota not in [Quota.DAILY, Quota.TOTAL]:
+		raise RuntimeError("Invalid quota type for assignment.")
+	res = mongo.db.assignments.update(
+		{"course_id": cid, "assignment_id": aid},
+		{"$set": {"max_runs": max_runs, "quota": quota, "start": start, "end": end}}
+	)
+	return res["n"] == 1 and 0 <= res["nModified"] <= 1
+
+
 def get_assignment_runs_for_student(cid, aid, netid):
 	"""
 	Get a student's runs for a specified course and assignment.
