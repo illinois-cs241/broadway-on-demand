@@ -1,4 +1,5 @@
 from flask import render_template, request, abort, jsonify
+from subprocess import check_output
 
 from src import db, util, auth, bw_api
 from src.config import TZ
@@ -11,7 +12,12 @@ class StaffRoutes:
 		@auth.require_auth
 		def staff_home(netid):
 			courses = db.get_courses_for_staff(netid)
-			return render_template("staff/home.html", netid=netid, courses=courses)
+			version_code = check_output('git rev-parse --short=8 HEAD'.split(' ')).decode('utf-8')
+			if len(version_code) >= 8:
+				version_code = version_code[0:8]
+			else:
+				version_code = 'unknown'
+			return render_template("staff/home.html", netid=netid, courses=courses, version_code=version_code)
 
 		@app.route("/staff/course/<cid>/", methods=["GET"])
 		@auth.require_auth
