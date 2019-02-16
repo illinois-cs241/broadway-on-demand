@@ -101,7 +101,8 @@ def get_assignment_runs(cid, aid):
 	"""
 	return mongo.db.runs.aggregate([
 		{"$match": {"course_id": cid, "assignment_id": aid}},
-		{"$group": {"_id": "$netid", "runs": {"$addToSet": {"_id": "$_id", "timestamp": "$timestamp"}}}},
+		{"$sort": {"timestamp": -1}},
+		{"$group": {"_id": "$netid", "runs": {"$push": {"_id": "$_id", "timestamp": "$timestamp"}}}},
 		{"$sort": {"_id": 1}}
 	])
 
