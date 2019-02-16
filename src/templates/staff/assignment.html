@@ -2,6 +2,47 @@
 {% include 'header.html' %}
 {% include 'status.html' %}
 <script type="application/javascript">
+    function editAssnErr(msg) {
+        $('#mdl-edit-assn-error').html(msg).show();
+    }
+    function attemptEditAssignment() {
+        let maxRuns = $('#mdl-edit-assn-runs').val();
+        if (!maxRuns) {
+            editAssnErr("Max Runs is required.");
+            return;
+        }
+        let quota = $('input[name=quota]:checked', '#edit-assn').val();
+        if (!quota) {
+            editAssnErr("Quota Type is required.");
+            return;
+        }
+        let start = $('#mdl-edit-assn-start').val();
+        let end = $('#mdl-edit-assn-end').val();
+        if (!start || !end) {
+            editAssnErr("Start and End are required.");
+            return;
+        }
+        $.ajax({
+            type: "POST",
+            url: "./edit/",
+            data: {max_runs: maxRuns, quota: quota, start: start, end: end},
+            beforeSend: function () {
+                $('#mdl-edit-assn-error').html('').fadeOut();
+            },
+            success: function () {
+                $('#mdl-edit-assn').modal('hide');
+                location.reload();
+            },
+            error: function (xhr) {
+                if (!xhr.responseText) {
+                    $('#mdl-edit-assn-error').html("Save failed. Please try again.").fadeIn();
+                } else {
+                    $('#mdl-edit-assn-error').html(xhr.responseText).fadeIn();
+                }
+            }
+        })
+    }
+    
     function addExtErr(msg) {
         $('#mdl-add-ext-error').html(msg).show();
     }
@@ -122,7 +163,60 @@
                 <div class="card">
                     <div class="card-body">
                         <h5 class="card-title">Assignment actions</h5>
+                        
+                        <button type="button" class="btn btn-outline-primary mt-3" data-toggle="modal" data-target="#mdl-edit-assn">
+                            <i class="fas fa-pen"></i> Edit assignment
+                        </button>
+                        <div class="modal fade" id="mdl-edit-assn" tabindex="-1" role="dialog" aria-labelledby="mdl-edit-assn-label" aria-hidden="true">
+                            <div class="modal-dialog" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="mdl-edit-assn-label">Edit assignment</h5>
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form name="edit-assn" id="edit-assn">
+                                            <div class="form-group">
+                                                <label for="aid">Assignment ID</label>
+                                                <input type="text" class="form-control" id="mdl-edit-assn-aid" name="aid" value="{{ assignment.assignment_id }}" disabled>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="max_runs">Max Runs</label>
+                                                <input type="number" min="1" max="100" class="form-control" id="mdl-edit-assn-runs" name="max_runs" value="{{ assignment.max_runs }}">
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="form-check-label">Quota Type</label><br>
+                                                <div class="form-check form-check-inline">
+                                                    <input class="form-check-input" type="radio" name="quota" id="mdl-edit-assn-quota-daily" value="daily" {% if assignment.quota == "daily" %}checked{% endif %}>
+                                                    <label class="form-check-label" for="mdl-edit-assn-quota-daily">Daily</label>
+                                                </div>
+                                                <div class="form-check form-check-inline">
+                                                    <input class="form-check-input" type="radio" name="quota" id="mdl-edit-assn-quota-daily" value="total" {% if assignment.quota == "total" %}checked{% endif %}>
+                                                    <label class="form-check-label" for="mdl-edit-assn-quota-total">Total</label>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="start">Start Date & Time</label> <span class="badge badge-secondary">{{ tzname }}</span>
+                                                <input type="datetime-local" class="form-control" id="mdl-edit-assn-start" name="start" value="{{ assignment.start|fmt_datetime_local }}">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="start">End Date & Time</label> <span class="badge badge-secondary">{{ tzname }}</span>
+                                                <input type="datetime-local" class="form-control" id="mdl-edit-assn-end" name="end" value="{{ assignment.end|fmt_datetime_local }}">
+                                            </div>
+                                            <span id="mdl-edit-assn-error" class="form-text text-danger"></span>
+                                        </form>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-primary" id="mdl-edit-assn-save" onclick="attemptEditAssignment()">Save
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
+                        <br>
                         <button type="button" class="btn btn-outline-primary mt-3" data-toggle="modal" data-target="#mdl-add-ext">
                             <i class="fas fa-plus"></i> Add extension
                         </button>
