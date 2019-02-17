@@ -85,6 +85,46 @@ class StaffRoutes:
 			is_admin = verify_admin(netid, cid)
 			return render_template("staff/assignment.html", netid=netid, course=course, assignment=assignment, student_runs=student_runs, tzname=str(TZ), is_admin=is_admin)
 
+		@app.route("/staff/course/<cid>/<aid>/edit/", methods=["POST"])
+		@auth.require_auth
+		def staff_edit_assignment(netid, cid, aid):
+			if not verify_staff(netid, cid) or not verify_admin(netid, cid):
+				return abort(403)
+
+			course = db.get_course(cid)
+			assignment = db.get_assignment(cid, aid)
+			if course is None or assignment is None:
+				return abort(404)
+
+			def err(msg):
+				return msg, 400
+
+			missing = util.check_missing_fields(request.form, *["max_runs", "quota", "start", "end"])
+			if missing:
+				return err("Missing fields (%s)." % (", ".join(missing)))
+
+			try:
+				max_runs = int(request.form["max_runs"])
+				if max_runs < 1:
+					return err("Max Runs must be a positive integer.")
+			except ValueError:
+				return err("Max Runs must be a positive integer.")
+
+			quota = request.form["quota"]
+			if not db.Quota.is_valid(quota):
+				return err("Quota Type is invalid.")
+
+			start = util.parse_form_datetime(request.form["start"]).timestamp()
+			end = util.parse_form_datetime(request.form["end"]).timestamp()
+			if start is None or end is None:
+				return err("Missing or invalid Start or End.")
+			if start >= end:
+				return err("Start must be before End.")
+
+			if not db.update_assignment(cid, aid, max_runs, quota, start, end):
+				return err("Save failed or no changes were made.")
+			return "", 204
+
 		@app.route("/staff/course/<cid>/<aid>/extensions/", methods=["GET"])
 		@auth.require_auth
 		def staff_get_extensions(netid, cid, aid):
