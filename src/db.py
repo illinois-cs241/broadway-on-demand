@@ -49,6 +49,11 @@ def get_courses_for_staff(netid):
 	return list(courses)
 
 
+def get_all_courses():
+	courses = mongo.db.courses.find({})
+	return list(courses)
+
+
 def get_course(cid):
 	return mongo.db.courses.find_one({"_id": cid})
 

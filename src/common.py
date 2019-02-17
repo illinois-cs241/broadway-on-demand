@@ -89,3 +89,11 @@ def verify_staff(netid, cid):
 	:return: a boolean value.
 	"""
 	return netid in db.get_course(cid)["staff_ids"]
+
+
+def verify_course(cid):
+	return db.get_course(cid) is not None
+
+
+def verify_assignment(cid, aid):
+	return db.get_assignment(cid, aid) is not None

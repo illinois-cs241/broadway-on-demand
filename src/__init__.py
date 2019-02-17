@@ -6,6 +6,7 @@ from src.config import *
 from src.routes_staff import StaffRoutes
 from src.routes_student import StudentRoutes
 from src.routes_system import SystemRoutes
+from src.routes_bot import BroadwayBot
 from src.template_filters import TemplateFilters
 
 app = Flask(__name__)
@@ -64,3 +65,4 @@ def root(netid):
 StudentRoutes(app)
 StaffRoutes(app)
 TemplateFilters(app)
+BroadwayBot(app)
