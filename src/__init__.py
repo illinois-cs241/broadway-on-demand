@@ -15,7 +15,7 @@ app.config["MONGO_URI"] = MONGO_URI
 db.init(app)
 Session(app)
 
-blueprint = Blueprint('on-demand', __name__, url_prefix='/on-demand')
+blueprint = Blueprint('on-demand', __name__, url_prefix=BASE_URL)
 StudentRoutes(blueprint)
 StaffRoutes(blueprint)
 
