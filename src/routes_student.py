@@ -6,14 +6,14 @@ from src.config import TZ
 
 
 class StudentRoutes:
-	def __init__(self, app):
-		@app.route("/student/", methods=["GET"])
+	def __init__(self, blueprint):
+		@blueprint.route("/student/", methods=["GET"])
 		@auth.require_auth
 		def student_home(netid):
 			courses = db.get_courses_for_student(netid)
 			return render_template("student/home.html", netid=netid, courses=courses)
 
-		@app.route("/student/course/<cid>/", methods=["GET"])
+		@blueprint.route("/student/course/<cid>/", methods=["GET"])
 		@auth.require_auth
 		def student_get_course(netid, cid):
 			if not verify_student(netid, cid):
@@ -23,7 +23,7 @@ class StudentRoutes:
 			assignments = db.get_assignments_for_course(cid)
 			return render_template("student/course.html", netid=netid, course=course, assignments=assignments, tzname=str(TZ))
 
-		@app.route("/student/course/<cid>/<aid>/", methods=["GET"])
+		@blueprint.route("/student/course/<cid>/<aid>/", methods=["GET"])
 		@auth.require_auth
 		def student_get_assignment(netid, cid, aid):
 			if not verify_student(netid, cid):
@@ -42,7 +42,7 @@ class StudentRoutes:
 
 			return render_template("student/assignment.html", netid=netid, course=course, assignment=assignment, runs=runs, num_available_runs=num_available_runs, num_extension_runs=num_extension_runs, tzname=str(TZ))
 
-		@app.route("/student/course/<cid>/<aid>/run/", methods=["POST"])
+		@blueprint.route("/student/course/<cid>/<aid>/run/", methods=["POST"])
 		@auth.require_auth
 		def student_grade_assignment(netid, cid, aid):
 			if not verify_student(netid, cid):
@@ -73,7 +73,7 @@ class StudentRoutes:
 			db.add_grading_run(cid, aid, netid, now, run_id, extension_used=ext_to_use)
 			return "", 204
 
-		@app.route("/student/course/<cid>/<aid>/<run_id>/status/", methods=["GET"])
+		@blueprint.route("/student/course/<cid>/<aid>/<run_id>/status/", methods=["GET"])
 		@auth.require_auth
 		def student_get_run_status(netid, cid, aid, run_id):
 			if not verify_student(netid, cid):

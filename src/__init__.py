@@ -1,4 +1,4 @@
-from flask import Flask, send_from_directory, render_template, request, redirect
+from flask import Flask, Blueprint, send_from_directory, render_template, request, redirect
 from flask_session import Session
 
 from src import db, bw_api, auth, ghe_api, util, common
@@ -14,15 +14,16 @@ app.config["SESSION_MONGODB_DB"] = SESSION_MONGODB_DB
 app.config["MONGO_URI"] = MONGO_URI
 db.init(app)
 Session(app)
+blueprint = Blueprint('on-demand', __name__, url_prefix='/on-demand')
 
 
-@app.route("/login/", methods=["GET"])
+@blueprint.route("/login/", methods=["GET"])
 @auth.require_no_auth
 def login_page():
 	return render_template("login.html", login_url=GHE_LOGIN_URL)
 
 
-@app.route("/login/ghe_callback/", methods=["GET"])
+@blueprint.route("/login/ghe_callback/", methods=["GET"])
 def login_ghe_callback():
 	code = request.args.get("code")
 	if code is None:
@@ -38,18 +39,18 @@ def login_ghe_callback():
 	return redirect("/")
 
 
-@app.route("/logout/", methods=["GET"])
+@blueprint.route("/logout/", methods=["GET"])
 @auth.require_auth
 def logout(netid):
 	return auth.logout()
 
 
-@app.route("/static/<path>", methods=["GET"])
+@blueprint.route("/static/<path>", methods=["GET"])
 def static_file(path):
 	return send_from_directory("static", path)
 
 
-@app.route("/", methods=["GET"])
+@blueprint.route("/", methods=["GET"])
 @auth.require_auth
 def root(netid):
 	is_student = common.is_student(netid)
@@ -61,6 +62,8 @@ def root(netid):
 	return render_template("home.html", netid=netid)
 
 
-StudentRoutes(app)
-StaffRoutes(app)
+StudentRoutes(blueprint)
+StaffRoutes(blueprint)
 TemplateFilters(app)
+
+app.register_blueprint(blueprint)
