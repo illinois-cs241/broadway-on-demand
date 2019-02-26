@@ -3,10 +3,10 @@
 <div class="container-fluid">
     <div class="h-100 row align-items-center">
         <div class="col-xl-4">
-            <a href="/student/" style="margin-right: 10px;">
+            <a href="{{ url_for('.student_home') }}" style="margin-right: 10px;">
                 <button class="btn btn-primary">Student</button>
             </a>
-            <a href="/staff/">
+            <a href="{{ url_for('.staff_home') }}">
                 <button class="btn btn-primary">Staff</button>
             </a>
         </div>

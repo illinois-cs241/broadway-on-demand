@@ -24,7 +24,7 @@
         }
         $.ajax({
             type: "POST",
-            url: "./edit/",
+            url: "{{ url_for('.staff_edit_assignment', cid=course._id, aid=assignment.assignment_id) }}",
             data: {max_runs: maxRuns, quota: quota, start: start, end: end},
             beforeSend: function () {
                 $('#mdl-edit-assn-error').html('').fadeOut();
@@ -65,7 +65,7 @@
         }
         $.ajax({
             type: "POST",
-            url: "./extensions/",
+            url: "{{ url_for('.staff_add_extension', cid=course._id, aid=assignment.assignment_id) }}",
             data: {netids: netids, max_runs: maxRuns, start: start, end: end},
             beforeSend: function () {
                 $('#mdl-add-ext-error').html('').hide();
@@ -89,7 +89,7 @@
     function viewExtensions() {
         $.ajax({
             type: "GET",
-            url: "./extensions/",
+            url: "{{ url_for('.staff_get_extensions', cid=course._id, aid=assignment.assignment_id) }}",
             dataType: "json",
             success: function (result) {
                 console.log(result);
@@ -118,8 +118,8 @@
 </script>
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="../../..">Staff Home</a></li>
-        <li class="breadcrumb-item"><a href="..">{{ course.name }}</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('.staff_home') }}">Staff Home</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('.staff_get_course', cid=course._id) }}">{{ course.name }}</a></li>
         <li class="breadcrumb-item active" aria-current="page">{{ assignment.assignment_id }}</li>
     </ol>
 </nav>

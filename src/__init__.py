@@ -1,4 +1,4 @@
-from flask import Flask, Blueprint, send_from_directory, render_template, request, redirect
+from flask import Flask, Blueprint, url_for, send_from_directory, render_template, request, redirect
 from flask_session import Session
 
 from src import db, bw_api, auth, ghe_api, util, common
@@ -14,7 +14,10 @@ app.config["SESSION_MONGODB_DB"] = SESSION_MONGODB_DB
 app.config["MONGO_URI"] = MONGO_URI
 db.init(app)
 Session(app)
+
 blueprint = Blueprint('on-demand', __name__, url_prefix='/on-demand')
+StudentRoutes(blueprint)
+StaffRoutes(blueprint)
 
 
 @blueprint.route("/login/", methods=["GET"])
@@ -30,13 +33,13 @@ def login_ghe_callback():
 		return util.error("Invalid request; missing code argument.")
 	access_token = ghe_api.get_access_token(code)
 	if access_token is None:
-		return redirect("/login/?error=1")
+		return redirect(url_for(".login_page") + '?error=1')
 	netid = ghe_api.get_login(access_token)
 	if netid is None:
-		return redirect("/login/?error=1")
+		return redirect(url_for(".login_page") + '?error=1')
 	db.set_user_access_token(netid, access_token)
 	auth.set_uid(netid)
-	return redirect("/")
+	return redirect(url_for(".root"))
 
 
 @blueprint.route("/logout/", methods=["GET"])
@@ -56,14 +59,12 @@ def root(netid):
 	is_student = common.is_student(netid)
 	is_staff = common.is_staff(netid)
 	if is_student and not is_staff:
-		return redirect("/student/")
+		return redirect(url_for(".student_home"))
 	if is_staff and not is_student:
-		return redirect("/staff/")
+		return redirect(url_for(".staff_home"))
 	return render_template("home.html", netid=netid)
 
 
-StudentRoutes(blueprint)
-StaffRoutes(blueprint)
-TemplateFilters(app)
-
 app.register_blueprint(blueprint)
+
+TemplateFilters(app)

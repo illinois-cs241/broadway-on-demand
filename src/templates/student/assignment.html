@@ -7,7 +7,7 @@
         if (proceed) {
             $.ajax({
                 type: "POST",
-                url: "./run/",
+                url: "{{ url_for('.student_grade_assignment', cid=course._id, aid=assignment._id) }}",
                 beforeSend: function () {
                     $('#grade-now-error').html('').hide();
                 },
@@ -27,8 +27,8 @@
 </script>
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="../../..">Student Home</a></li>
-        <li class="breadcrumb-item"><a href="..">{{ course.name }}</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('.student_home') }}">Student Home</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('.student_get_course', cid=course._id) }}">{{ course.name }}</a></li>
         <li class="breadcrumb-item active" aria-current="page">{{ assignment.assignment_id }}</li>
     </ol>
 </nav>

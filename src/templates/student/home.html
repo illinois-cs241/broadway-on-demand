@@ -18,8 +18,8 @@
                 <tbody>
                 {% for course in courses %}
                     <tr>
-                        <td><a href="./course/{{ course._id }}/">{{ course._id }}</a></td>
-                        <td><a href="./course/{{ course._id }}/">{{ course.name }}</a></td>
+                        <td><a href="{{ url_for('.student_get_course', cid=course._id) }}">{{ course._id }}</a></td>
+                        <td><a href="{{ url_for('.student_get_course', cid=course._id) }}">{{ course.name }}</a></td>
                     </tr>
                 {% endfor %}
                 {% if not courses %}
