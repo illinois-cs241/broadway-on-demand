@@ -3,8 +3,8 @@ from src.config import SYSTEM_API_TOKEN
 from src import db
 
 class SystemRoutes:
-	def __init__(self, app):
-		@app.route("/system/feedback/", methods=["POST"])
+	def __init__(self, blueprint):
+		@blueprint.route("/system/feedback/", methods=["POST"])
 		def system_feedback():
 			if request.headers.get("Authorization") != ("Bearer %s" % SYSTEM_API_TOKEN):
 				return "Unauthorized", 401

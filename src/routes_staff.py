@@ -7,8 +7,8 @@ from src.common import verify_staff, verify_admin, verify_student
 
 
 class StaffRoutes:
-	def __init__(self, app):
-		@app.route("/staff/", methods=["GET"])
+	def __init__(self, blueprint):
+		@blueprint.route("/staff/", methods=["GET"])
 		@auth.require_auth
 		def staff_home(netid):
 			courses = db.get_courses_for_staff(netid)
@@ -21,7 +21,7 @@ class StaffRoutes:
 				pass
 			return render_template("staff/home.html", netid=netid, courses=courses, version_code=version_code)
 
-		@app.route("/staff/course/<cid>/", methods=["GET"])
+		@blueprint.route("/staff/course/<cid>/", methods=["GET"])
 		@auth.require_auth
 		def staff_get_course(netid, cid):
 			if not verify_staff(netid, cid):
@@ -32,7 +32,7 @@ class StaffRoutes:
 			is_admin = verify_admin(netid, cid)
 			return render_template("staff/course.html", netid=netid, course=course, assignments=assignments, tzname=str(TZ), is_admin=is_admin, error=None)
 
-		@app.route("/staff/course/<cid>/<aid>/", methods=["POST"])
+		@blueprint.route("/staff/course/<cid>/<aid>/", methods=["POST"])
 		@auth.require_auth
 		def staff_add_assignment(netid, cid, aid):
 			if not verify_staff(netid, cid) or not verify_admin(netid, cid):
@@ -73,7 +73,7 @@ class StaffRoutes:
 			db.add_assignment(cid, aid, max_runs, quota, start, end)
 			return "", 204
 
-		@app.route("/staff/course/<cid>/<aid>/", methods=["GET"])
+		@blueprint.route("/staff/course/<cid>/<aid>/", methods=["GET"])
 		@auth.require_auth
 		def staff_get_assignment(netid, cid, aid):
 			if not verify_staff(netid, cid):
@@ -85,7 +85,7 @@ class StaffRoutes:
 			is_admin = verify_admin(netid, cid)
 			return render_template("staff/assignment.html", netid=netid, course=course, assignment=assignment, student_runs=student_runs, tzname=str(TZ), is_admin=is_admin)
 
-		@app.route("/staff/course/<cid>/<aid>/edit/", methods=["POST"])
+		@blueprint.route("/staff/course/<cid>/<aid>/edit/", methods=["POST"])
 		@auth.require_auth
 		def staff_edit_assignment(netid, cid, aid):
 			if not verify_staff(netid, cid) or not verify_admin(netid, cid):
@@ -125,7 +125,7 @@ class StaffRoutes:
 				return err("Save failed or no changes were made.")
 			return "", 204
 
-		@app.route("/staff/course/<cid>/<aid>/extensions/", methods=["GET"])
+		@blueprint.route("/staff/course/<cid>/<aid>/extensions/", methods=["GET"])
 		@auth.require_auth
 		def staff_get_extensions(netid, cid, aid):
 			if not verify_staff(netid, cid) or not verify_admin(netid, cid):
@@ -136,7 +136,7 @@ class StaffRoutes:
 				ext["_id"] = str(ext["_id"])
 			return jsonify(extensions), 200
 
-		@app.route("/staff/course/<cid>/<aid>/extensions/", methods=["POST"])
+		@blueprint.route("/staff/course/<cid>/<aid>/extensions/", methods=["POST"])
 		@auth.require_auth
 		def staff_add_extension(netid, cid, aid):
 			if not verify_staff(netid, cid) or not verify_admin(netid, cid):
@@ -173,7 +173,7 @@ class StaffRoutes:
 				db.add_extension(cid, aid, student_netid, max_runs, start, end)
 			return "", 204
 
-		@app.route("/staff/course/<cid>/<aid>/<run_id>/status/", methods=["GET"])
+		@blueprint.route("/staff/course/<cid>/<aid>/<run_id>/status/", methods=["GET"])
 		@auth.require_auth
 		def staff_get_run_status(netid, cid, aid, run_id):
 			if not verify_staff(netid, cid):

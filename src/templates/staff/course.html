@@ -28,7 +28,7 @@
         }
         $.ajax({
             type: "POST",
-            url: "./" + aid + "/",
+            url: {{ url_for('.staff_get_course', cid=course._id) }} + aid + '/',
             data: {max_runs: maxRuns, quota: quota, start: start, end: end},
             beforeSend: function () {
                 $('#mdl-add-assn-error').html('').fadeOut();
@@ -49,7 +49,7 @@
 </script>
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="../..">Staff Home</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('.staff_home') }}">Staff Home</a></li>
         <li class="breadcrumb-item active" aria-current="page">{{ course.name }}</li>
     </ol>
 </nav>
@@ -68,7 +68,7 @@
                 <tbody>
                 {% for assignment in assignments %}
                     <tr>
-                        <td><a href="./{{ assignment.assignment_id }}/">{{ assignment.assignment_id }}</a></td>
+                        <td><a href="{{ url_for('.staff_get_assignment', cid=course._id, aid=assignment.assignment_id) }}">{{ assignment.assignment_id }}</a></td>
                         <td>{{ assignment.max_runs }} ({{ assignment.quota }})</td>
                         <td>{{ assignment.start|fmt_timestamp }}</td>
                         <td>{{ assignment.end|fmt_timestamp }}</td>

@@ -4,6 +4,8 @@ DEV_MODE = False
 
 TZ = timezone("America/Chicago")
 
+BASE_URL = "/on-demand"
+
 SESSION_TYPE = "mongodb"
 SESSION_MONGODB = "localhost:27017"
 SESSION_MONGODB_DB = "flask_session"
