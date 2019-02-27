@@ -7,7 +7,7 @@
         if (proceed) {
             $.ajax({
                 type: "POST",
-                url: "{{ url_for('.student_grade_assignment', cid=course._id, aid=assignment._id) }}",
+                url: "{{ url_for('.student_grade_assignment', cid=course._id, aid=assignment.assignment_id) }}",
                 beforeSend: function () {
                     $('#grade-now-error').html('').hide();
                 },
