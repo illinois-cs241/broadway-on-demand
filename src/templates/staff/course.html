@@ -28,7 +28,7 @@
         }
         $.ajax({
             type: "POST",
-            url: "{{ url_for('.staff_get_course', cid=course._id) }} + aid + '/'",
+            url: "{{ url_for('.staff_get_course', cid=course._id) }}" + aid + '/',
             data: {max_runs: maxRuns, quota: quota, start: start, end: end},
             beforeSend: function () {
                 $('#mdl-add-assn-error').html('').fadeOut();
