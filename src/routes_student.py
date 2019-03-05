@@ -52,7 +52,6 @@ class StudentRoutes:
 				return msg, 400
 
 			now = util.now_timestamp()
-			now = util.timestamp_round_up_minute(now)
 
 			ext_to_use = None
 
