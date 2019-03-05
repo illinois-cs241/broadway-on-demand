@@ -76,7 +76,6 @@ def timestamp_round_up_minute(timestamp):
 
 
 def timestamp_to_bw_api_format(timestamp):
-	timestamp = timestamp_round_up_minute(timestamp)
 	return datetime.utcfromtimestamp(timestamp).replace(tzinfo=utc).astimezone(TZ).strftime("%Y-%m-%d %H:%M")
 
 

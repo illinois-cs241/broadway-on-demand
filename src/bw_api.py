@@ -1,4 +1,5 @@
-import requests
+import requests, logging
+from json.decoder import JSONDecodeError
 
 from src.config import BROADWAY_API_TOKEN, BROADWAY_API_URL
 from src.util import timestamp_to_bw_api_format
@@ -26,8 +27,13 @@ def start_grading_run(cid, aid, netid, timestamp):
 		run_id = resp.json()["data"]["grading_run_id"]
 		return run_id
 	except requests.exceptions.RequestException:
+		logging.error("start_grading_run failed with RequestException. cid={}, aid={}, netid={}".format(cid, aid, netid))
 		return None
 	except KeyError:
+		logging.error("start_grading_run failed with KeyError. cid={}, aid={}, netid={}".format(cid, aid, netid))
+		return None
+	except JSONDecodeError:
+		logging.error("start_grading_run failed with JSONDecodeError. cid={}, aid={}, netid={}".format(cid, aid, netid))
 		return None
 
 
@@ -45,4 +51,6 @@ def get_grading_run_status(cid, aid, run_id):
 	except requests.exceptions.RequestException:
 		return None
 	except KeyError:
+		return None
+	except JSONDecodeError:
 		return None
