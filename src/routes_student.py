@@ -66,6 +66,8 @@ class StudentRoutes:
 					# find the extension that is closest to expiration
 					ext_to_use = min(active_extensions, key=lambda ext: ext["end"])
 
+			now = util.timestamp_round_up_minute(now)
+
 			run_id = bw_api.start_grading_run(cid, aid, netid, now)
 			if run_id is None:
 				return err("Failed to start grading run. Please try again.")
