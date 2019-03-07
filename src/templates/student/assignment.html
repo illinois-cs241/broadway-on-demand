@@ -46,7 +46,7 @@
                 <tbody>
                 {% for run in runs %}
                     <tr>
-                        <td>{{ run.timestamp|fmt_timestamp_full }}</td>
+                        <td>{{ run.timestamp | round_timestamp | fmt_timestamp_full }}</td>
                         <td>
                             <button class="btn btn-secondary btn-sm" type="button" onclick="getRunStatus('{{ run._id }}')" id="status-{{ run._id }}">Check status</button>
                         </td>
