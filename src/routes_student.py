@@ -3,6 +3,7 @@ from flask import render_template, abort
 from config import TZ
 from src import bw_api, auth, util, db
 from src.common import verify_student, verify_staff, get_available_runs, get_active_extensions
+from src.ghe_api import get_latest_commit
 
 
 class StudentRoutes:
@@ -37,10 +38,13 @@ class StudentRoutes:
 			num_available_runs = get_available_runs(cid, aid, netid, now)
 			active_extensions, num_extension_runs = get_active_extensions(cid, aid, netid, now)
 
+			user = db.get_user(netid)
+			commit = get_latest_commit(netid, user["access_token"], course["github_org"])
+
 			if verify_staff(netid, cid):
 				num_available_runs = max(num_available_runs, 1)
 
-			return render_template("student/assignment.html", netid=netid, course=course, assignment=assignment, runs=runs, num_available_runs=num_available_runs, num_extension_runs=num_extension_runs, tzname=str(TZ))
+			return render_template("student/assignment.html", netid=netid, course=course, assignment=assignment, commit=commit, runs=runs, num_available_runs=num_available_runs, num_extension_runs=num_extension_runs, tzname=str(TZ))
 
 		@blueprint.route("/student/course/<cid>/<aid>/run/", methods=["POST"])
 		@auth.require_auth

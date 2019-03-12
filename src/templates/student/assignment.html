@@ -4,25 +4,26 @@
 <script type="application/javascript">
     function confirmGradeNow() {
         let proceed = window.confirm("The current latest commit in your repository will be graded, using 1 available run. Are you sure you want to proceed?");
-        if (proceed) {
-            $.ajax({
-                type: "POST",
-                url: "{{ url_for('.student_grade_assignment', cid=course._id, aid=assignment.assignment_id) }}",
-                beforeSend: function () {
-                    $('#grade-now-error').html('').hide();
-                },
-                success: function () {
-                    location.reload();
-                },
-                error: function (xhr) {
-                    if (!xhr.responseText) {
-                        $('#grade-now-error').html("Failed to start grading run. Please try again.").show();
-                    } else {
-                        $('#grade-now-error').html(xhr.responseText).show();
-                    }
-                }
-            })
+        if (!proceed) {
+            return;
         }
+        $.ajax({
+            type: "POST",
+            url: "{{ url_for('.student_grade_assignment', cid=course._id, aid=assignment.assignment_id) }}",
+            beforeSend: function () {
+                $('#grade-now-error').html('').hide();
+            },
+            success: function () {
+                location.reload();
+            },
+            error: function (xhr) {
+                if (!xhr.responseText) {
+                    $('#grade-now-error').html("Failed to start grading run. Please try again.").show();
+                } else {
+                    $('#grade-now-error').html(xhr.responseText).show();
+                }
+            }
+        });
     }
 </script>
 <nav aria-label="breadcrumb">
@@ -70,15 +71,25 @@
                     {% if num_extension_runs > 0 %}
                         <h5 class="card-title">+ {{ num_extension_runs }} Extension Runs</h5>
                     {% endif %}
-                    {% if num_available_runs + num_extension_runs > 0 %}
-                        <form action=".">
-                            <button onclick="confirmGradeNow()" type="button" class="btn btn-primary">Grade Now</button>
-                        </form>
-                    {% endif %}
-                    <div id="grade-now-error" class="text-danger"></div>
+                    {% set has_runs = num_available_runs + num_extension_runs > 0 %}
+                    {% set has_commits = not not commit["sha"] %}
+                    <form action=".">
+                        <button onclick="confirmGradeNow()" type="button" class="btn btn-primary" {% if not has_runs or not has_commits %}disabled{% endif %}>Grade Now</button>
+                    </form>
                     <p>
                         <strong>Start</strong> {{ assignment.start|fmt_timestamp }}
                         <br><strong>End</strong> {{ assignment.end|fmt_timestamp }}
+                        <hr/>
+                        {% if not commit["sha"] %}
+                          <strong class="text-danger">Latest Commit</strong>
+                          <br>{{ commit["message"] }}
+                        {% else %}
+                          <strong>Latest Commit</strong>
+                          <br><code><a class="code-link" href="{{ commit['url'] }}" target="_blank">{{ commit["sha"] | truncate(7, end="") }}</a></code>
+                          <span title="{{ commit['message'] }}">{{ commit["message"] | truncate(50, killwords=True) }}</span>
+                        {% endif %}
+                        <div id="grade-now-error" class="text-danger"></div>
+
                     </p>
                 </div>
             </div>

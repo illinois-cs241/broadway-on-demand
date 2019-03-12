@@ -1,6 +1,13 @@
+import logging
 import requests
+from datetime import datetime as dt
 
-from config import GHE_OAUTH_URL, GHE_API_URL, GHE_CLIENT_ID, GHE_CLIENT_SECRET, DEV_MODE, DEV_MODE_LOGIN
+from config import (
+	GHE_OAUTH_URL, GHE_API_URL, GHE_CLIENT_ID, GHE_CLIENT_SECRET, DEV_MODE, TZ
+)
+from src.util import commit_matches_author
+
+logger = logging.getLogger(__name__)
 
 ACCEPT_JSON = {"Accept": "application/json"}
 
@@ -32,3 +39,46 @@ def get_login(access_token):
 		return None
 	except KeyError:
 		return None
+
+def get_latest_commit(netid, access_token, course):
+	latest_commit = {"message": "An error occurred", "sha": "", "url": ""}
+	commits_url = "{}/repos/{}/{}/commits".format(GHE_API_URL, course, netid)
+	commits_url += "?until=" + dt.now(tz=TZ).isoformat()
+	commits_url += "&sha=master"
+
+	try:
+		response = requests.get(commits_url, params={"access_token": access_token})
+	except requests.exceptions.RequestException as ex:
+		return latest_commit
+
+	if response.status_code == 404 or response.status_code == 409:
+		# failure due to student error
+		latest_commit["message"] = (
+			"No commits found. Is your repo configured properly?"
+		)
+		return latest_commit
+	if response.status_code != 200:
+		logger.error("Failed to fetch latest commit for %s:\n%s", netid, response.text)
+		return latest_commit
+
+	commits = response.json()
+	latest_raw_commit = None
+	if len(commits) == 1:
+		# student has only one commit before now, so we'll use that
+		latest_raw_commit = commits[0]
+	for commit in commits:
+		# the student has multiple commits, make sure
+		# we don't grade one of the deploy commits
+		if commit_matches_author(commit, netid):
+			latest_raw_commit = commit
+			break
+
+	if latest_raw_commit is None:
+		latest_commit["commit"]["message"] = (
+			"No commits found. Is your git author set correctly?"
+		)
+	else:
+		latest_commit["message"] = latest_raw_commit["commit"]["message"]
+		latest_commit["sha"] = latest_raw_commit["sha"]
+		latest_commit["url"] = latest_raw_commit["html_url"]
+	return latest_commit
