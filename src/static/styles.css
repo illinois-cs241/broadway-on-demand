@@ -3,11 +3,17 @@ body {
     font-family: 'Roboto', sans-serif;
 }
 
+a.code-link {
+    color: inherit;
+}
+a.code-link:hover {
+    text-decoration: underline;
+}
+
 a.navbar-brand {
     font-weight: bold;
     color: white!important;
 }
-
 .container-fluid {
     padding: 20px 20px 0 20px;
 }
