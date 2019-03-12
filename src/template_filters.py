@@ -3,7 +3,7 @@ from datetime import datetime
 from jinja2 import Markup
 from pytz import utc
 
-from src.config import TZ
+from config import TZ
 from src.util import timestamp_round_up_minute
 
 

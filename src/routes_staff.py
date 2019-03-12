@@ -1,8 +1,9 @@
-from flask import render_template, request, abort, jsonify
 from subprocess import check_output, CalledProcessError
 
+from flask import render_template, request, abort, jsonify
+
+from config import TZ
 from src import db, util, auth, bw_api
-from src.config import TZ
 from src.common import verify_staff, verify_admin, verify_student
 
 

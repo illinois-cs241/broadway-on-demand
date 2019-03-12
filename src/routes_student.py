@@ -1,8 +1,8 @@
-from flask import render_template, redirect, request, abort
+from flask import render_template, abort
 
+from config import TZ
 from src import bw_api, auth, util, db
-from src.common import verify_student, verify_staff, in_grading_period, get_available_runs, get_active_extensions
-from src.config import TZ
+from src.common import verify_student, verify_staff, get_available_runs, get_active_extensions
 
 
 class StudentRoutes:

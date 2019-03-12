@@ -5,7 +5,7 @@ from re import fullmatch
 from flask import request
 from pytz import utc
 
-from src.config import TZ
+from config import TZ
 
 
 def check_missing_fields(data, *args):

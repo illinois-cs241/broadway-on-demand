@@ -1,6 +1,6 @@
 import requests
 
-from src.config import GHE_OAUTH_URL, GHE_API_URL, GHE_CLIENT_ID, GHE_CLIENT_SECRET, DEV_MODE
+from config import GHE_OAUTH_URL, GHE_API_URL, GHE_CLIENT_ID, GHE_CLIENT_SECRET, DEV_MODE
 
 ACCEPT_JSON = {"Accept": "application/json"}
 
