@@ -20,5 +20,5 @@ SYSTEM_API_TOKEN = "some_token"
 GHE_CLIENT_ID = "some_client_id"
 GHE_CLIENT_SECRET = "some_client_secret"
 GHE_OAUTH_URL = "https://some.host/login/oauth"
-GHE_LOGIN_URL = "%s/authorize?client_id=%s" % (GHE_OAUTH_URL, GHE_CLIENT_ID)
+GHE_LOGIN_URL = "%s/authorize?client_id=%s&scope=repo" % (GHE_OAUTH_URL, GHE_CLIENT_ID)
 GHE_API_URL = "https://some.host/api/v3"
