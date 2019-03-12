@@ -1,6 +1,7 @@
 from pytz import timezone
 
 DEV_MODE = False
+DEV_MODE_LOGIN = "srpatil2"
 
 TZ = timezone("America/Chicago")
 
