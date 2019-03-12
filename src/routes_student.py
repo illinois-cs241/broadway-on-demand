@@ -1,9 +1,10 @@
-from flask import render_template, abort
+from flask import render_template, request, abort
 
 from config import TZ
 from src import bw_api, auth, util, db
 from src.common import verify_student, verify_staff, get_available_runs, get_active_extensions
 from src.ghe_api import get_latest_commit
+from src.util import verify_csrf_token
 
 
 class StudentRoutes:
@@ -51,6 +52,8 @@ class StudentRoutes:
 		def student_grade_assignment(netid, cid, aid):
 			if not verify_student(netid, cid):
 				return abort(403)
+			if not verify_csrf_token(request.form.get("csrf_token")):
+				return abort(400)
 
 			def err(msg):
 				return msg, 400

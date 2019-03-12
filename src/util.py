@@ -1,8 +1,9 @@
+import uuid
 from datetime import datetime
 from functools import wraps
 from re import fullmatch
 
-from flask import request
+from flask import request, session
 from pytz import utc
 
 from config import TZ
@@ -70,6 +71,17 @@ def error(msg, status=400):
 	:param status: An HTTP status code for the response; 400 if not specified.
 	"""
 	return "%s\n" % msg, status
+
+
+def generate_csrf_token():
+	if '_csrf_token' not in session:
+		session['_csrf_token'] = str(uuid.uuid4())
+	return session['_csrf_token']
+
+
+def verify_csrf_token(client_token):
+	token = session.pop('_csrf_token', None)
+	return token and token == client_token
 
 
 def valid_id(id_str):
