@@ -1,8 +1,8 @@
 from flask import Flask, Blueprint, url_for, send_from_directory, render_template, request, redirect
 from flask_session import Session
 
+from config import *
 from src import db, bw_api, auth, ghe_api, util, common
-from src.config import *
 from src.routes_staff import StaffRoutes
 from src.routes_student import StudentRoutes
 from src.routes_system import SystemRoutes

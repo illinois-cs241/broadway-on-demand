@@ -1,6 +1,6 @@
 import requests
 
-from src.config import GHE_OAUTH_URL, GHE_API_URL, GHE_CLIENT_ID, GHE_CLIENT_SECRET, DEV_MODE
+from config import GHE_OAUTH_URL, GHE_API_URL, GHE_CLIENT_ID, GHE_CLIENT_SECRET, DEV_MODE, DEV_MODE_LOGIN
 
 ACCEPT_JSON = {"Accept": "application/json"}
 
@@ -24,7 +24,7 @@ def get_access_token(code):
 
 def get_login(access_token):
 	if DEV_MODE:
-		return "srpatil2"
+		return DEV_MODE_LOGIN
 	try:
 		resp = requests.get("%s/user" % GHE_API_URL, params={"access_token": access_token})
 		return resp.json()["login"]

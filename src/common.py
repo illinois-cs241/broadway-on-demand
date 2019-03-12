@@ -2,8 +2,8 @@ from datetime import datetime
 
 from pytz import utc
 
+from config import TZ
 from src import db, util
-from src.config import TZ
 
 
 def in_grading_period(assignment, now=None):

@@ -1,7 +1,9 @@
-import requests, logging
+import logging
 from json.decoder import JSONDecodeError
 
-from src.config import BROADWAY_API_TOKEN, BROADWAY_API_URL
+import requests
+
+from config import BROADWAY_API_TOKEN, BROADWAY_API_URL
 from src.util import timestamp_to_bw_api_format
 
 HEADERS = {"Authorization": "Bearer %s" % BROADWAY_API_TOKEN}

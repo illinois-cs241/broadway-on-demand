@@ -1,6 +1,7 @@
 from flask import request
-from src.config import SYSTEM_API_TOKEN
-from src import db
+
+from config import SYSTEM_API_TOKEN
+
 
 class SystemRoutes:
 	def __init__(self, blueprint):
