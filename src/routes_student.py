@@ -62,7 +62,7 @@ class StudentRoutes:
 			ext_to_use = None
 			current_csrf_token = request.form.get("csrf_token")
 
-			if not verify_staff(netid, cid) or True:
+			if not verify_staff(netid, cid):
 				# not a staff member; perform quota checks
 				num_available_runs = get_available_runs(cid, aid, netid, now)
 				active_extensions, num_extension_runs = get_active_extensions(cid, aid, netid, now)
