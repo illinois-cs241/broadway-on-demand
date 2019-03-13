@@ -4,7 +4,7 @@ from config import TZ
 from src import bw_api, auth, util, db
 from src.common import verify_student, verify_staff, get_available_runs, get_active_extensions
 from src.ghe_api import get_latest_commit
-from src.util import verify_csrf_token
+from src.util import verify_csrf_token, restore_csrf_token
 
 
 class StudentRoutes:
@@ -59,15 +59,16 @@ class StudentRoutes:
 				return msg, 400
 
 			now = util.now_timestamp()
-
 			ext_to_use = None
+			current_csrf_token = request.form.get("csrf_token")
 
-			if not verify_staff(netid, cid):
+			if not verify_staff(netid, cid) or True:
 				# not a staff member; perform quota checks
 				num_available_runs = get_available_runs(cid, aid, netid, now)
 				active_extensions, num_extension_runs = get_active_extensions(cid, aid, netid, now)
 
 				if num_available_runs + num_extension_runs <= 0:
+					restore_csrf_token(current_csrf_token)
 					return err("No grading runs available.")
 				if num_available_runs <= 0:
 					# find the extension that is closest to expiration
@@ -77,6 +78,7 @@ class StudentRoutes:
 
 			run_id = bw_api.start_grading_run(cid, aid, netid, now_rounded)
 			if run_id is None:
+				restore_csrf_token(current_csrf_token)
 				return err("Failed to start grading run. Please try again.")
 
 			db.add_grading_run(cid, aid, netid, now, run_id, extension_used=ext_to_use)

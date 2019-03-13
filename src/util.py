@@ -79,6 +79,10 @@ def generate_csrf_token():
 	return session['_csrf_token']
 
 
+def restore_csrf_token(value):
+	session['_csrf_token'] = value
+
+
 def verify_csrf_token(client_token):
 	token = session.pop('_csrf_token', None)
 	return token and token == client_token
