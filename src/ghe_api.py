@@ -41,6 +41,9 @@ def get_login(access_token):
 		return None
 
 def get_latest_commit(netid, access_token, course):
+	if DEV_MODE:
+		return {"message": "This is a test commit.", "sha": "2db06991c7846ade1b505e80fbaf257e034c4bd5", "url": "https://github.com/illinois-cs241/broadway-on-demand"}
+
 	latest_commit = {"message": "An error occurred", "sha": "", "url": ""}
 	commits_url = "{}/repos/{}/{}/commits".format(GHE_API_URL, course, netid)
 	commits_url += "?until=" + dt.now(tz=TZ).isoformat()
