@@ -10,6 +10,9 @@
         $.ajax({
             type: "POST",
             url: "{{ url_for('.student_grade_assignment', cid=course._id, aid=assignment.assignment_id) }}",
+            data: {
+                "csrf_token": $("#csrf_token").val()
+            },
             beforeSend: function () {
                 $('#grade-now-error').html('').hide();
             },
@@ -73,7 +76,8 @@
                     {% endif %}
                     {% set has_runs = num_available_runs + num_extension_runs > 0 %}
                     {% set has_commits = not not commit["sha"] %}
-                    <form action=".">
+                    <form action="">
+                        <input id="csrf_token" name="csrf_token" type="hidden" value="{{ csrf_token() }}">
                         <button onclick="confirmGradeNow()" type="button" class="btn btn-primary" {% if not has_runs or not has_commits %}disabled{% endif %}>Grade Now</button>
                     </form>
                     <p>

@@ -7,11 +7,13 @@ from src.routes_staff import StaffRoutes
 from src.routes_student import StudentRoutes
 from src.routes_system import SystemRoutes
 from src.template_filters import TemplateFilters
+from src.util import generate_csrf_token
 
 app = Flask(__name__)
 app.config["SESSION_TYPE"] = SESSION_TYPE
 app.config["SESSION_MONGODB_DB"] = SESSION_MONGODB_DB
 app.config["MONGO_URI"] = MONGO_URI
+app.jinja_env.globals['csrf_token'] = generate_csrf_token
 db.init(app)
 Session(app)
 
