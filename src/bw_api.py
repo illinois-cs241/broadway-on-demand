@@ -50,7 +50,7 @@ def get_grading_run_status(cid, run_id):
 	try:
 		resp = requests.get(url="%s/grading_run_status/%s/%s" % (BROADWAY_API_URL, cid, run_id), headers=HEADERS)
 		student_jobs_dict = resp.json()["data"]["student_jobs"]
-		return student_jobs_dict.values().next()
+		return list(student_jobs_dict.values())[0]
 	except requests.exceptions.RequestException as e:
 		logging.error("get_grading_run_status(cid={}, run_id={}): {}".format(cid, run_id, repr(e)))
 		return None
@@ -66,7 +66,7 @@ def get_grading_run_job_id(cid, run_id):
 	try:
 		resp = requests.get(url="%s/grading_run_status/%s/%s" % (BROADWAY_API_URL, cid, run_id), headers=HEADERS)
 		student_jobs_dict = resp.json()["data"]["student_jobs"]
-		return student_jobs_dict.keys().next()
+		return list(student_jobs_dict.keys())[0]
 	except requests.exceptions.RequestException as e:
 		logging.error("get_grading_run_job_id(cid={}, run_id={}): {}".format(cid, run_id, repr(e)))
 		return None
