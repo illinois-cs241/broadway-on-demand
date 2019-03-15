@@ -3,6 +3,10 @@ body {
     font-family: 'Roboto', sans-serif;
 }
 
+i.fab, i.fas {
+    margin-right: 0.4em;
+}
+
 a.code-link {
     color: inherit;
 }
@@ -15,14 +19,13 @@ a.navbar-brand {
     color: white!important;
 }
 .container-fluid {
-    padding: 20px 20px 0 20px;
+    padding: 20px;
 }
 
 .card {
     background: #fff;
     margin-bottom: 20px;
     border-radius: 10px;
-    border: 1px solid rgba(0,0,0,0.5);
 }
 
 .card-body {
@@ -53,10 +56,6 @@ a:link, a:visited, a:hover, a:active {
 
 th.student-header {
     background: #e9ecef;
-}
-
-i.fas {
-    margin-right: 0.5em;
 }
 
 .table-fit > th {
