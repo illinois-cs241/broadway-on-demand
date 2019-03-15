@@ -94,7 +94,6 @@ def get_grading_job_log(cid, job_id):
 
 
 def get_grading_run_log(cid, run_id):
-	return {"stdout": "Lorem ipsum dolor sit amet.\nLorem ipsum? Dolor! Sit amet.", "stderr": "Lorem ipsum dolor sit amet.\nLorem ipsum? Dolor! Sit amet."}
 	job_id = get_grading_run_job_id(cid, run_id)
 	if job_id is None:
 		return None
