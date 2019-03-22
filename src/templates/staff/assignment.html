@@ -22,10 +22,15 @@
             editAssnErr("Start and End are required.");
             return;
         }
+        let config = $('#mdl-edit-assn-config').val();
+        if (!config) {
+            editAssnErr("Assignment config is required.");
+            return;
+        }
         $.ajax({
             type: "POST",
             url: "{{ url_for('.staff_edit_assignment', cid=course._id, aid=assignment.assignment_id) }}",
-            data: {max_runs: maxRuns, quota: quota, start: start, end: end},
+            data: {max_runs: maxRuns, quota: quota, start: start, end: end, config: config},
             beforeSend: function () {
                 $('#mdl-edit-assn-error').html('').fadeOut();
             },
@@ -204,6 +209,10 @@
                                             <div class="form-group">
                                                 <label for="start">End Date & Time</label> <span class="badge badge-secondary">{{ tzname }}</span>
                                                 <input type="datetime-local" class="form-control" id="mdl-edit-assn-end" name="end" value="{{ assignment.end|fmt_datetime_local }}">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="start">Configuration</label>
+                                                <div><textarea type="text" class="form-control" id="mdl-edit-assn-config" name="config" rows="5" style="font-family: monospace;">{{ assignment_config if assignment_config else '' }}</textarea></div>
                                             </div>
                                             <span id="mdl-edit-assn-error" class="form-text text-danger"></span>
                                         </form>

@@ -45,7 +45,7 @@ class StudentRoutes:
 			if verify_staff(netid, cid):
 				num_available_runs = max(num_available_runs, 1)
 
-			return render_template("student/assignment.html", netid=netid, course=course, assignment=assignment, commit=commit, runs=runs, num_available_runs=num_available_runs, num_extension_runs=num_extension_runs, tzname=str(TZ))
+			return render_template("student/assignment.html", netid=netid, course=course, assignment=assignment, assignment_config=None, commit=commit, runs=runs, num_available_runs=num_available_runs, num_extension_runs=num_extension_runs, tzname=str(TZ))
 
 		@blueprint.route("/student/course/<cid>/<aid>/run/", methods=["POST"])
 		@auth.require_auth

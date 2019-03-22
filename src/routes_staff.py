@@ -76,7 +76,7 @@ class StaffRoutes:
 
 			try:
 				config = json.loads(request.form["config"])
-				msg = bw_api.add_assignment(cid, aid, config)
+				msg = bw_api.set_assignment_config(cid, aid, config)
 
 				if msg:
 					return err("Failed to add assignment to Broadway: {}".format(msg))
@@ -96,7 +96,12 @@ class StaffRoutes:
 			assignment = db.get_assignment(cid, aid)
 			student_runs = list(db.get_assignment_runs(cid, aid))
 			is_admin = verify_admin(netid, cid)
-			return render_template("staff/assignment.html", netid=netid, course=course, assignment=assignment, student_runs=student_runs, tzname=str(TZ), is_admin=is_admin)
+
+			assignment_config = json.dumps(bw_api.get_assignment_config(cid, aid))
+
+			return render_template("staff/assignment.html", netid=netid, course=course,
+								   assignment=assignment, assignment_config=assignment_config,
+								   student_runs=student_runs, tzname=str(TZ), is_admin=is_admin)
 
 		@blueprint.route("/staff/course/<cid>/<aid>/edit/", methods=["POST"])
 		@auth.require_auth
@@ -133,6 +138,15 @@ class StaffRoutes:
 				return err("Missing or invalid Start or End.")
 			if start >= end:
 				return err("Start must be before End.")
+
+			try:
+				config = json.loads(request.form["config"])
+				msg = bw_api.set_assignment_config(cid, aid, config)
+
+				if msg:
+					return err("Failed to add assignment to Broadway: {}".format(msg))
+			except JSONDecodeError:
+				return err("Failed to decode config JSON")
 
 			if not db.update_assignment(cid, aid, max_runs, quota, start, end):
 				return err("Save failed or no changes were made.")

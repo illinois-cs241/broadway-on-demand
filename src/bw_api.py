@@ -58,9 +58,27 @@ def get_grading_run_status(cid, aid, run_id):
 		return None
 
 
-def add_assignment(cid, aid, config):
+def get_assignment_config(cid, aid):
 	"""
-	Add a new assignment. Return error message if failed
+	Get run config for an assignment
+	:param cid: the course ID.
+	:param aid: the assignment ID within the course.
+	"""
+
+	try:
+		resp = requests.get(url="%s/grading_config/%s/%s" % (BROADWAY_API_URL, cid, aid), headers=HEADERS)
+
+		if resp.status_code == 200:
+			ret_data = resp.json()
+			return ret_data["data"]
+	except: pass
+
+	return None
+
+
+def set_assignment_config(cid, aid, config):
+	"""
+	Set run config for an assignment. Return error message if failed
 	:param cid: the course ID.
 	:param aid: the assignment ID within the course.
 	:param config: assignemnt config(pre-processing pipeline, student pipelines, etc.)
