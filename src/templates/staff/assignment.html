@@ -33,10 +33,12 @@
             data: {max_runs: maxRuns, quota: quota, start: start, end: end, config: config},
             beforeSend: function () {
                 $('#mdl-edit-assn-error').html('').fadeOut();
+                $('#mdl-edit-assn-save .loader').addClass("fa-spin");
             },
             success: function () {
                 $('#mdl-edit-assn').modal('hide');
                 location.reload();
+                $('#mdl-edit-assn-save .loader').removeClass("fa-spin");
             },
             error: function (xhr) {
                 if (!xhr.responseText) {
@@ -44,6 +46,8 @@
                 } else {
                     $('#mdl-edit-assn-error').html(xhr.responseText).fadeIn();
                 }
+
+                $('#mdl-edit-assn-save .loader').removeClass("fa-spin");
             }
         })
     }
@@ -218,7 +222,9 @@
                                         </form>
                                     </div>
                                     <div class="modal-footer">
-                                        <button type="button" class="btn btn-primary" id="mdl-edit-assn-save" onclick="attemptEditAssignment()">Save
+                                        <button type="button" class="btn btn-primary" id="mdl-edit-assn-save" onclick="attemptEditAssignment()">
+                                            <span class="fa fa-cog loader" style="margin-right: 0.2em;"></span>
+                                            Save
                                         </button>
                                     </div>
                                 </div>
