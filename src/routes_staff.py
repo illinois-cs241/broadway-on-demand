@@ -2,6 +2,9 @@ from subprocess import check_output, CalledProcessError
 
 from flask import render_template, request, abort, jsonify
 
+import json
+from json.decoder import JSONDecodeError
+
 from config import TZ
 from src import db, util, auth, bw_api
 from src.common import verify_staff, verify_admin, verify_student
@@ -42,7 +45,7 @@ class StaffRoutes:
 			def err(msg):
 				return msg, 400
 
-			missing = util.check_missing_fields(request.form, *["max_runs", "quota", "start", "end"])
+			missing = util.check_missing_fields(request.form, *["max_runs", "quota", "start", "end", "config"])
 			if missing:
 				return err("Missing fields (%s)." % (", ".join(missing)))
 
@@ -70,6 +73,15 @@ class StaffRoutes:
 				return err("Missing or invalid Start or End.")
 			if start >= end:
 				return err("Start must be before End.")
+
+			try:
+				config = json.loads(request.form["config"])
+				msg = bw_api.add_assignment(cid, aid, config)
+
+				if msg:
+					return err("Failed to add assignment to Broadway: {}".format(msg))
+			except JSONDecodeError:
+				return err("Failed to decode config JSON")
 
 			db.add_assignment(cid, aid, max_runs, quota, start, end)
 			return "", 204

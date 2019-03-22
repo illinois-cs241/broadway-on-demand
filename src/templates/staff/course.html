@@ -26,16 +26,23 @@
             addAssnErr("Start and End are required.");
             return;
         }
+        let config = $('#mdl-add-assn-config').val();
+        if (!config) {
+            addAssnErr("Assignment config is required.");
+            return;
+        }
         $.ajax({
             type: "POST",
             url: "{{ url_for('.staff_get_course', cid=course._id) }}" + aid + '/',
-            data: {max_runs: maxRuns, quota: quota, start: start, end: end},
+            data: {max_runs: maxRuns, quota: quota, start: start, end: end, config: config},
             beforeSend: function () {
                 $('#mdl-add-assn-error').html('').fadeOut();
+                $('#mdl-add-assn-save .loader').addClass("fa-spin");
             },
             success: function () {
                 $('#mdl-add-assn').modal('hide');
                 location.reload();
+                $('#mdl-add-assn-save .loader').removeClass("fa-spin");
             },
             error: function (xhr) {
                 if (!xhr.responseText) {
@@ -43,6 +50,8 @@
                 } else {
                     $('#mdl-add-assn-error').html(xhr.responseText).fadeIn();
                 }
+
+                $('#mdl-add-assn-save .loader').removeClass("fa-spin");
             }
         })
     }
@@ -130,11 +139,17 @@
                                                 <label for="start">End Date & Time</label> <span class="badge badge-secondary">{{ tzname }}</span>
                                                 <input type="datetime-local" class="form-control" id="mdl-add-assn-end" name="end">
                                             </div>
+                                            <div class="form-group">
+                                                <label for="start">Configuration</label>
+                                                <div><textarea type="text" class="form-control" id="mdl-add-assn-config" name="config" rows="5" style="font-family: monospace;"></textarea></div>
+                                            </div>
                                             <span id="mdl-add-assn-error" class="form-text text-danger"></span>
                                         </form>
                                     </div>
                                     <div class="modal-footer">
-                                        <button type="button" class="btn btn-primary" id="mdl-add-assn-save" onclick="attemptAddAssignment()">Save
+                                        <button type="button" class="btn btn-primary" id="mdl-add-assn-save" onclick="attemptAddAssignment()">
+                                            <span class="fa fa-cog loader" style="margin: 0.2em;"></span>
+                                            Save
                                         </button>
                                     </div>
                                 </div>

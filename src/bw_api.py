@@ -56,3 +56,32 @@ def get_grading_run_status(cid, aid, run_id):
 		return None
 	except JSONDecodeError:
 		return None
+
+
+def add_assignment(cid, aid, config):
+	"""
+	Add a new assignment. Return error message if failed
+	:param cid: the course ID.
+	:param aid: the assignment ID within the course.
+	:param config: assignemnt config(pre-processing pipeline, student pipelines, etc.)
+	"""
+
+	try:
+		resp = requests.post(url="%s/grading_config/%s/%s" % (BROADWAY_API_URL, cid, aid), headers=HEADERS,
+							 json=config)
+
+		if resp.status_code != 200:
+			ret_data = resp.json()
+			
+			if isinstance(ret_data["data"], str):
+				msg = ret_data["data"]
+			else:
+				msg = ret_data["data"]["message"]
+
+			return "{}: {}".format(resp.status_code, msg)
+		
+		return None
+	except JSONDecodeError:
+		return "Failed to decode server response"
+	except KeyError:
+		return "Failed to decode server response"
