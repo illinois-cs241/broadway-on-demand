@@ -140,11 +140,14 @@ class StaffRoutes:
 				return err("Start must be before End.")
 
 			try:
-				config = json.loads(request.form["config"])
-				msg = bw_api.set_assignment_config(cid, aid, config)
+				config_str = request.form.get("config")
 
-				if msg:
-					return err("Failed to add assignment to Broadway: {}".format(msg))
+				if config_str is not None: # skip update otherwise
+					config = json.loads(request.form["config"])
+					msg = bw_api.set_assignment_config(cid, aid, config)
+
+					if msg:
+						return err("Failed to add assignment to Broadway: {}".format(msg))
 			except JSONDecodeError:
 				return err("Failed to decode config JSON")
 

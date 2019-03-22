@@ -22,11 +22,19 @@
             editAssnErr("Start and End are required.");
             return;
         }
-        let config = $('#mdl-edit-assn-config').val();
+        
+        let config = normalizeJSON($('#mdl-edit-assn-config').val());
+        let old = $('#mdl-edit-assn-config').data("old-config")
+
         if (!config) {
-            editAssnErr("Assignment config is required.");
+            editAssnErr("Invalid assignment config");
             return;
         }
+
+        if (config == old) {
+            config = undefined;
+        }
+
         $.ajax({
             type: "POST",
             url: "{{ url_for('.staff_edit_assignment', cid=course._id, aid=assignment.assignment_id) }}",
@@ -124,6 +132,19 @@
             }
         });
     }
+
+    function normalizeJSON(json) {
+        try {
+            return JSON.stringify(JSON.parse(json));
+        } catch {
+            return null;
+        }
+    }
+
+    $(function () {
+        let old = normalizeJSON($('#mdl-edit-assn-config').val());
+        $('#mdl-edit-assn-config').data("old-config", old);
+    });
 </script>
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
