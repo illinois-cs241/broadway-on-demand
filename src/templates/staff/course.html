@@ -26,35 +26,89 @@
             addAssnErr("Start and End are required.");
             return;
         }
-        let config = $('#mdl-add-assn-config').val();
-        if (!config) {
-            addAssnErr("Assignment config is required.");
-            return;
-        }
-        $.ajax({
-            type: "POST",
-            url: "{{ url_for('.staff_get_course', cid=course._id) }}" + aid + '/',
-            data: {max_runs: maxRuns, quota: quota, start: start, end: end, config: config},
-            beforeSend: function () {
-                $('#mdl-add-assn-error').html('').fadeOut();
-                $('#mdl-add-assn-save .loader').addClass("fa-spin");
-            },
-            success: function () {
-                $('#mdl-add-assn').modal('hide');
-                location.reload();
-                $('#mdl-add-assn-save .loader').removeClass("fa-spin");
-            },
-            error: function (xhr) {
-                if (!xhr.responseText) {
-                    $('#mdl-add-assn-error').html("Save failed. Please try again.").fadeIn();
-                } else {
-                    $('#mdl-add-assn-error').html(xhr.responseText).fadeIn();
-                }
 
-                $('#mdl-add-assn-save .loader').removeClass("fa-spin");
+        let config = undefined;
+
+        if ($('#mdl-add-assn-config-nav-text').hasClass("active")) {
+            config = $('#mdl-add-assn-config').val();
+            if (!config) {
+                addAssnErr("Assignment config is required.");
+                return;
             }
-        })
+
+            do_post();
+        } else {
+            if (!$('#mdl-add-assn-config-upload')[0].files ||
+                !$('#mdl-add-assn-config-upload')[0].files[0] ||
+                !FileReader) {
+                addAssnErr("Unable to read file content, please use the text input instead");
+            } else {
+                let config_file = $('#mdl-add-assn-config-upload')[0].files[0];
+                let reader = new FileReader();
+
+                reader.onload = function () {
+                    config = reader.result;
+                    do_post();
+                };
+
+                reader.readAsText(config_file);
+
+                $('#mdl-add-assn-save .loader').addClass("fa-spin");
+            }
+        }
+
+        function do_post() {
+            $.ajax({
+                type: "POST",
+                url: "{{ url_for('.staff_get_course', cid=course._id) }}" + aid + '/',
+                data: {max_runs: maxRuns, quota: quota, start: start, end: end, config: config},
+                beforeSend: function () {
+                    $('#mdl-add-assn-error').html('').fadeOut();
+                    $('#mdl-add-assn-save .loader').addClass("fa-spin");
+                },
+                success: function () {
+                    $('#mdl-add-assn').modal('hide');
+                    location.reload();
+                    $('#mdl-add-assn-save .loader').removeClass("fa-spin");
+                },
+                error: function (xhr) {
+                    if (!xhr.responseText) {
+                        $('#mdl-add-assn-error').html("Save failed. Please try again.").fadeIn();
+                    } else {
+                        $('#mdl-add-assn-error').html(xhr.responseText).fadeIn();
+                    }
+
+                    $('#mdl-add-assn-save .loader').removeClass("fa-spin");
+                }
+            });
+        }
     }
+
+    $(function () {
+        $('#mdl-add-assn-config-upload-box').on("drag dragstart dragend dragover dragenter dragleave drop", function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        });
+
+        $('#mdl-add-assn-config-upload-box').on("dragstart dragover dragenter", function(e) {
+            $(this).addClass("on-drag");
+        }).on("dragend dragleave drop", function (e) {
+            $(this).removeClass("on-drag");
+        });
+
+        $('#mdl-add-assn-config-upload-box').on("drop", function (e) {
+            $('#mdl-add-assn-config-upload')[0].files = e.originalEvent.dataTransfer.files;
+        });
+        
+        $('#mdl-add-assn-config-upload-box').on("click", function () {
+            $('#mdl-add-assn-config-upload').click();
+        });
+
+        $('#mdl-add-assn-config-upload').on("change", function () {
+            let fake = $('#mdl-add-assn-config-upload').val().split(/\/|\\/g);
+            $('#mdl-add-assn-config-upload-box').text("File name: " + fake[fake.length - 1]);
+        });
+    });
 </script>
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
@@ -141,7 +195,24 @@
                                             </div>
                                             <div class="form-group">
                                                 <label for="start">Configuration</label>
-                                                <div><textarea type="text" class="form-control" id="mdl-add-assn-config" name="config" rows="5" style="font-family: monospace;"></textarea></div>
+                                                <nav>
+                                                    <div class="nav nav-tabs" role="tablist">
+                                                        <a id="mdl-add-assn-config-nav-text" class="nav-item nav-link active" data-toggle="tab" href="#nav-home" role="tab">Text</a>
+                                                        <a id="mdl-add-assn-config-nav-upload" class="nav-item nav-link" data-toggle="tab" href="#nav-profile" role="tab">Upload</a>
+                                                    </div>
+                                                </nav>
+                                                <div class="tab-content">
+                                                    <div class="tab-pane fade show active" id="nav-home" role="tabpanel">
+                                                        <textarea type="text" class="form-control" id="mdl-add-assn-config" name="config" rows="8"
+                                                                  style="font-family: monospace; border-top: none; border-top-left-radius: 0; border-top-right-radius: 0;"></textarea>
+                                                    </div>
+                                                    <div class="tab-pane fade" id="nav-profile" role="tabpanel" style="padding-top: 0.5em;">
+                                                        <div id="mdl-add-assn-config-upload-box" class="file-drop-box">
+                                                            Drag & drop or click to upload
+                                                        </div>
+                                                        <input type="file" id="mdl-add-assn-config-upload" class="form-control-file" style="display: none;">
+                                                    </div>
+                                                </div>
                                             </div>
                                             <span id="mdl-add-assn-error" class="form-text text-danger"></span>
                                         </form>

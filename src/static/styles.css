@@ -65,3 +65,24 @@ th.student-header {
 table.table-fit {
     width: auto !important;
 }
+
+.file-drop-box {
+    padding: 2em;
+    border: 2px dashed rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+    
+    text-align: center;
+    font-weight: bold;
+    cursor: pointer;
+
+    color: rgba(0, 0, 0, 0.3);
+
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+}
+
+.file-drop-box.on-drag {
+    border-color: rgba(0, 0, 0, 0.4);
+    color: rgba(0, 0, 0, 0.5);
+}
