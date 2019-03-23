@@ -38,12 +38,14 @@
 
             do_post();
         } else {
-            if (!$('#mdl-add-assn-config-upload')[0].files ||
-                !$('#mdl-add-assn-config-upload')[0].files[0] ||
-                !FileReader) {
+            if (!upload_config) {
+                addAssnErr("No file selected");
+                return;
+            }
+
+            if (!FileReader) {
                 addAssnErr("Unable to read file content, please use the text input instead");
             } else {
-                let config_file = $('#mdl-add-assn-config-upload')[0].files[0];
                 let reader = new FileReader();
 
                 reader.onload = function () {
@@ -51,7 +53,7 @@
                     do_post();
                 };
 
-                reader.readAsText(config_file);
+                reader.readAsText(upload_config);
 
                 $('#mdl-add-assn-save .loader').addClass("fa-spin");
             }
@@ -84,20 +86,29 @@
         }
     }
 
+    var upload_config = undefined;
+
     $(function () {
         $('#mdl-add-assn-config-upload-box').on("drag dragstart dragend dragover dragenter dragleave drop", function(e) {
             e.preventDefault();
             e.stopPropagation();
         });
-
-        $('#mdl-add-assn-config-upload-box').on("dragstart dragover dragenter", function(e) {
+        
+        $('#mdl-add-assn-config-upload-box').on("dragover", function (e) {
             $(this).addClass("on-drag");
-        }).on("dragend dragleave drop", function (e) {
+        }).on("dragleave drop", function (e) {
             $(this).removeClass("on-drag");
         });
 
         $('#mdl-add-assn-config-upload-box').on("drop", function (e) {
-            $('#mdl-add-assn-config-upload')[0].files = e.originalEvent.dataTransfer.files;
+            if (e.originalEvent.dataTransfer &&
+                e.originalEvent.dataTransfer.files &&
+                e.originalEvent.dataTransfer.files.length) {
+                upload_config = e.originalEvent.dataTransfer.files[0];
+                $('#mdl-add-assn-config-upload-box').text("File name: " + upload_config.name);
+            } else {
+                $('#mdl-add-assn-config-upload-box').text("Please drop files");;
+            }
         });
         
         $('#mdl-add-assn-config-upload-box').on("click", function () {
@@ -105,8 +116,12 @@
         });
 
         $('#mdl-add-assn-config-upload').on("change", function () {
-            let fake = $('#mdl-add-assn-config-upload').val().split(/\/|\\/g);
-            $('#mdl-add-assn-config-upload-box').text("File name: " + fake[fake.length - 1]);
+            let file = $('#mdl-add-assn-config-upload')[0].files[0];
+
+            if (file) {
+                upload_config = file;
+                $('#mdl-add-assn-config-upload-box').text("File name: " + upload_config.name);
+            }
         });
     });
 </script>
@@ -207,7 +222,7 @@
                                                                   style="font-family: monospace; border-top: none; border-top-left-radius: 0; border-top-right-radius: 0;"></textarea>
                                                     </div>
                                                     <div class="tab-pane fade" id="nav-profile" role="tabpanel" style="padding-top: 0.5em;">
-                                                        <div id="mdl-add-assn-config-upload-box" class="file-drop-box">
+                                                        <div id="mdl-add-assn-config-upload-box" class="file-drop-box" draggable="true">
                                                             Drag & drop or click to upload
                                                         </div>
                                                         <input type="file" id="mdl-add-assn-config-upload" class="form-control-file" style="display: none;">
