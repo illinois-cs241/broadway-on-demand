@@ -141,10 +141,21 @@
         }
     }
 
-    $(function () {
-        let old = normalizeJSON($('#mdl-edit-assn-config').val());
-        $('#mdl-edit-assn-config').data("old-config", old);
-    });
+    function loadOriginalConfig() {
+        $.ajax({
+            type: "GET",
+            url: "{{ url_for('.staff_get_assignment_config', cid=course._id, aid=assignment.assignment_id) }}",
+            dataType: "json",
+            success: function (result) {
+                let json = JSON.stringify(result);
+                let old = normalizeJSON(json);
+                $('#mdl-edit-assn-config').val(old).data("old-config", old).removeAttr("disabled");
+            },
+            error: function () {
+                $('#mdl-edit-assn-config').val("").removeAttr("disabled");
+            }
+        });
+    }
 </script>
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
@@ -194,7 +205,7 @@
                     <div class="card-body">
                         <h5 class="card-title">Assignment actions</h5>
                         
-                        <button type="button" class="btn btn-outline-primary mt-3" data-toggle="modal" data-target="#mdl-edit-assn">
+                        <button type="button" class="btn btn-outline-primary mt-3" data-toggle="modal" data-target="#mdl-edit-assn" onclick="loadOriginalConfig();">
                             <i class="fas fa-pen"></i> Edit assignment
                         </button>
                         <div class="modal fade" id="mdl-edit-assn" tabindex="-1" role="dialog" aria-labelledby="mdl-edit-assn-label" aria-hidden="true">
@@ -237,7 +248,10 @@
                                             </div>
                                             <div class="form-group">
                                                 <label for="start">Configuration</label>
-                                                <div><textarea type="text" class="form-control" id="mdl-edit-assn-config" name="config" rows="5" style="font-family: monospace;">{{ assignment_config if assignment_config else '' }}</textarea></div>
+                                                <div>
+                                                    
+                                                    <textarea type="text" class="form-control" id="mdl-edit-assn-config" name="config" rows="5" style="font-family: monospace;" disabled>loading...</textarea>
+                                                </div>
                                             </div>
                                             <span id="mdl-edit-assn-error" class="form-text text-danger"></span>
                                         </form>

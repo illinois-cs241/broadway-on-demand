@@ -99,7 +99,5 @@ def set_assignment_config(cid, aid, config):
 			return "{}: {}".format(resp.status_code, msg)
 		
 		return None
-	except JSONDecodeError:
-		return "Failed to decode server response"
-	except KeyError:
+	except:
 		return "Failed to decode server response"
