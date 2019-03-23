@@ -10,12 +10,14 @@ from src.util import verify_csrf_token, restore_csrf_token
 class StudentRoutes:
 	def __init__(self, blueprint):
 		@blueprint.route("/student/", methods=["GET"])
+		@util.disable_in_maintenance_mode
 		@auth.require_auth
 		def student_home(netid):
 			courses = db.get_courses_for_student(netid)
 			return render_template("student/home.html", netid=netid, courses=courses)
 
 		@blueprint.route("/student/course/<cid>/", methods=["GET"])
+		@util.disable_in_maintenance_mode
 		@auth.require_auth
 		def student_get_course(netid, cid):
 			if not verify_student(netid, cid):
@@ -26,6 +28,7 @@ class StudentRoutes:
 			return render_template("student/course.html", netid=netid, course=course, assignments=assignments, tzname=str(TZ))
 
 		@blueprint.route("/student/course/<cid>/<aid>/", methods=["GET"])
+		@util.disable_in_maintenance_mode
 		@auth.require_auth
 		def student_get_assignment(netid, cid, aid):
 			if not verify_student(netid, cid):
@@ -48,6 +51,7 @@ class StudentRoutes:
 			return render_template("student/assignment.html", netid=netid, course=course, assignment=assignment, commit=commit, runs=runs, num_available_runs=num_available_runs, num_extension_runs=num_extension_runs, tzname=str(TZ))
 
 		@blueprint.route("/student/course/<cid>/<aid>/run/", methods=["POST"])
+		@util.disable_in_maintenance_mode
 		@auth.require_auth
 		def student_grade_assignment(netid, cid, aid):
 			if not verify_student(netid, cid):
@@ -85,6 +89,7 @@ class StudentRoutes:
 			return "", 204
 
 		@blueprint.route("/student/course/<cid>/<aid>/<run_id>/status/", methods=["GET"])
+		@util.disable_in_maintenance_mode
 		@auth.require_auth
 		def student_get_run_status(netid, cid, aid, run_id):
 			if not verify_student(netid, cid):
