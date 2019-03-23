@@ -90,7 +90,7 @@ class StudentRoutes:
 			if not verify_student(netid, cid):
 				return abort(403)
 
-			status = bw_api.get_grading_run_status(cid, aid, run_id)
+			status = bw_api.get_grading_run_status(cid, run_id)
 			if status:
 				return status
 			return "", 400
