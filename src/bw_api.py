@@ -76,7 +76,7 @@ def get_assignment_config(cid, aid):
 			ret_data = resp.json()
 			return ret_data["data"]
 	except Exception as e:
-		logging.error("get_assignment_config failed with {}. cid={}, aid={}".format(type(e), cid, aid))
+		logging.error("get_assignment_config(cid={}, aid={}): {}".format(cid, aid, repr(e)))
 
 	return None
 
@@ -105,7 +105,7 @@ def set_assignment_config(cid, aid, config):
 		
 		return None
 	except Exception as e:
-		logging.error("set_assignment_config failed with {}. cid={}, aid={}, config={}".format(type(e), cid, aid, config))
+		logging.error("set_assignment_config(cid={}, aid={}, config={}): {}".format(cid, aid, config, repr(e)))
 
 		return "Failed to decode server response"
 
