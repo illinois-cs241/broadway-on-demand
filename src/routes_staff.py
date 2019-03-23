@@ -220,7 +220,18 @@ class StaffRoutes:
 			if not verify_staff(netid, cid):
 				return abort(403)
 
-			status = bw_api.get_grading_run_status(cid, aid, run_id)
+			status = bw_api.get_grading_run_status(cid, run_id)
 			if status:
-				return status
+				return status, 200
+			return "", 400
+
+		@blueprint.route("/staff/course/<cid>/<aid>/<run_id>/log/", methods=["GET"])
+		@auth.require_auth
+		def staff_get_run_log(netid, cid, aid, run_id):
+			if not verify_staff(netid, cid):
+				return abort(403)
+
+			log = bw_api.get_grading_run_log(cid, run_id)
+			if log:
+				return jsonify(log), 200
 			return "", 400

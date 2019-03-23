@@ -163,6 +163,25 @@
             }
         });
     }
+  
+    function getRunLog(runId) {
+        $('#mdl-view-log-stderr').html('');
+        $('#mdl-view-log-stdout').html('');
+        $.ajax(
+            {
+                url: "./" + runId + "/log/",
+                success: function (result) {
+                    $('#mdl-view-log-run-id').html(runId);
+                    $('#mdl-view-log-stderr').html(result['stderr']);
+                    $('#mdl-view-log-stdout').html(result['stdout']);
+                    $('#mdl-view-log').modal('show');
+                },
+                error: function () {
+                    $('#view-log-' + runId).html("<i class=\"fas fa-sync-alt\"></i> Failed. Click to try again.")
+                                         .attr("class", "btn btn-sm btn-warning");
+                }
+            })
+    }
 </script>
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
@@ -179,7 +198,7 @@
                 <tr>
                     <th scope="col">Run ID</th>
                     <th scope="col">Time</th>
-                    <th scope="col">Status</th>
+                    <th scope="col">Actions</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -192,7 +211,8 @@
                             <td>{{ run._id }}</td>
                             <td>{{ run.timestamp | round_timestamp | fmt_timestamp }}</td>
                             <td>
-                                <button class="btn btn-secondary btn-sm" type="button" onclick="getRunStatus('{{ run._id }}')" id="status-{{ run._id }}">Check status</button>
+                                <button class="btn btn-link btn-sm" type="button" data-toggle="tooltip" data-placement="top" title="Check status" onclick="getRunStatus('{{ run._id }}')" id="status-{{ run._id }}"><i class="fas fa-info-circle"></i>Status</button> 
+                                <button class="btn btn-link btn-sm" type="button" onclick="getRunLog('{{ run._id }}')" id="view-log-{{ run._id }}"><i class="fas fa-file-alt"></i>Log</button>
                             </td>
                         </tr>
                     {% endfor %}
@@ -205,6 +225,25 @@
                 </tbody>
             </table>
             <div class="text-secondary"> All times in {{ tzname }}</div>
+        </div>
+        <div class="modal fade" id="mdl-view-log" tabindex="-1" role="dialog" aria-labelledby="mdl-view-log-label" aria-hidden="true">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="mdl-view-log-label">View log: <span id="mdl-view-log-run-id"></span></h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <h5>stderr</h5>
+                        <pre id="mdl-view-log-stderr"></pre>
+                        <hr>
+                        <h5>stdout</h5>
+                        <pre id="mdl-view-log-stdout"></pre>
+                    </div>
+                </div>
+            </div>
         </div>
         {% if is_admin %}
             <div class="col-md-6 col-lg-4 col-xl-3">
@@ -322,11 +361,11 @@
                         <button type="button" class="btn btn-outline-primary mt-3" onclick="viewExtensions()">
                             <i class="fas fa-list"></i> View extensions
                         </button>
-                        <div class="modal fade" id="mdl-view-exts" tabindex="-1" role="dialog" aria-labelledby="mdl-view-exts" aria-hidden="true">
+                        <div class="modal fade" id="mdl-view-exts" tabindex="-1" role="dialog" aria-labelledby="mdl-view-exts-label" aria-hidden="true">
                             <div class="modal-dialog modal-lg" role="document">
                                 <div class="modal-content">
                                     <div class="modal-header">
-                                        <h5 class="modal-title" id="mdl-view-exts">View extensions</h5>
+                                        <h5 class="modal-title" id="mdl-view-exts-label">View extensions</h5>
                                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                             <span aria-hidden="true">&times;</span>
                                         </button>
@@ -344,7 +383,6 @@
                                                 </tr>
                                                 </thead>
                                                 <tbody id="mdl-view-exts-body">
-
                                                 </tbody>
                                             </table>
                                         </div>

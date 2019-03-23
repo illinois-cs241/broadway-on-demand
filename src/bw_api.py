@@ -28,18 +28,18 @@ def start_grading_run(cid, aid, netid, timestamp):
 		resp = requests.post(url="%s/grading_run/%s/%s" % (BROADWAY_API_URL, cid, aid), headers=HEADERS, json=data)
 		run_id = resp.json()["data"]["grading_run_id"]
 		return run_id
-	except requests.exceptions.RequestException:
-		logging.error("start_grading_run failed with RequestException. cid={}, aid={}, netid={}".format(cid, aid, netid))
+	except requests.exceptions.RequestException as e:
+		logging.error("start_grading_run(cid={}, aid={}, netid={}): {}".format(cid, aid, netid, repr(e)))
 		return None
-	except KeyError:
-		logging.error("start_grading_run failed with KeyError. cid={}, aid={}, netid={}".format(cid, aid, netid))
+	except KeyError as e:
+		logging.error("start_grading_run(cid={}, aid={}, netid={}): {}".format(cid, aid, netid, repr(e)))
 		return None
-	except JSONDecodeError:
-		logging.error("start_grading_run failed with JSONDecodeError. cid={}, aid={}, netid={}".format(cid, aid, netid))
+	except JSONDecodeError as e:
+		logging.error("start_grading_run(cid={}, aid={}, netid={}): {}".format(cid, aid, netid, repr(e)))
 		return None
 
 
-def get_grading_run_status(cid, aid, run_id):
+def get_grading_run_status(cid, run_id):
 	"""
 	Get the status of a grading run.
 	:param cid: the course ID.
@@ -48,16 +48,20 @@ def get_grading_run_status(cid, aid, run_id):
 	:return: a status string if successful, or None otherwise.
 	"""
 	try:
-		resp = requests.get(url="%s/grading_run/%s/%s/%s" % (BROADWAY_API_URL, cid, aid, run_id), headers=HEADERS)
-		return resp.json()["data"]["student_jobs_state"][0]
-	except requests.exceptions.RequestException:
+		resp = requests.get(url="%s/grading_run_status/%s/%s" % (BROADWAY_API_URL, cid, run_id), headers=HEADERS)
+		student_jobs_dict = resp.json()["data"]["student_jobs_state"]
+		return list(student_jobs_dict.values())[0]
+	except requests.exceptions.RequestException as e:
+		logging.error("get_grading_run_status(cid={}, run_id={}): {}".format(cid, run_id, repr(e)))
 		return None
-	except KeyError:
+	except KeyError as e:
+		logging.error("get_grading_run_status(cid={}, run_id={}): {}".format(cid, run_id, repr(e)))
 		return None
-	except JSONDecodeError:
+	except JSONDecodeError as e:
+		logging.error("get_grading_run_status(cid={}, run_id={}): {}".format(cid, run_id, repr(e)))
 		return None
 
-
+  
 def get_assignment_config(cid, aid):
 	"""
 	Get run config for an assignment
@@ -104,3 +108,44 @@ def set_assignment_config(cid, aid, config):
 		logging.error("set_assignment_config failed with {}. cid={}, aid={}, config={}".format(type(e), cid, aid, config))
 
 		return "Failed to decode server response"
+
+  
+def get_grading_run_job_id(cid, run_id):
+	try:
+		resp = requests.get(url="%s/grading_run_status/%s/%s" % (BROADWAY_API_URL, cid, run_id), headers=HEADERS)
+		student_jobs_dict = resp.json()["data"]["student_jobs_state"]
+		return list(student_jobs_dict.keys())[0]
+	except requests.exceptions.RequestException as e:
+		logging.error("get_grading_run_job_id(cid={}, run_id={}): {}".format(cid, run_id, repr(e)))
+		return None
+	except KeyError as e:
+		logging.error("get_grading_run_job_id(cid={}, run_id={}): {}".format(cid, run_id, repr(e)))
+		return None
+	except JSONDecodeError as e:
+		logging.error("get_grading_run_job_id(cid={}, run_id={}): {}".format(cid, run_id, repr(e)))
+		return None
+
+
+def get_grading_job_log(cid, job_id):
+	try:
+		resp = requests.get(url="%s/grading_job_log/%s/%s" % (BROADWAY_API_URL, cid, job_id), headers=HEADERS)
+		return resp.json()["data"]
+	except requests.exceptions.RequestException as e:
+		logging.error("get_grading_job_log(cid={}, job_id={}): {}".format(cid, job_id, repr(e)))
+		return None
+	except KeyError as e:
+		logging.error("get_grading_job_log(cid={}, job_id={}): {}".format(cid, job_id, repr(e)))
+		return None
+	except JSONDecodeError as e:
+		logging.error("get_grading_job_log(cid={}, job_id={}): {}".format(cid, job_id, repr(e)))
+		return None
+
+
+def get_grading_run_log(cid, run_id):
+	job_id = get_grading_run_job_id(cid, run_id)
+	if job_id is None:
+		return None
+	log = get_grading_job_log(cid, job_id)
+	if log is None:
+		return None
+	return log
