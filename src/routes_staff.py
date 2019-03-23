@@ -86,14 +86,6 @@ class StaffRoutes:
 			db.add_assignment(cid, aid, max_runs, quota, start, end)
 			return "", 204
 
-		@blueprint.route("/staff/config/<cid>/<aid>/", methods=["GET"])
-		@auth.require_auth
-		def staff_get_assignment_config(netid, cid, aid):
-			if not verify_staff(netid, cid):
-				return abort(403)
-
-			return jsonify(bw_api.get_assignment_config(cid, aid))
-
 		@blueprint.route("/staff/course/<cid>/<aid>/", methods=["GET"])
 		@auth.require_auth
 		def staff_get_assignment(netid, cid, aid):
@@ -108,6 +100,19 @@ class StaffRoutes:
 			return render_template("staff/assignment.html", netid=netid, course=course,
 								   assignment=assignment, student_runs=student_runs,
 								   tzname=str(TZ), is_admin=is_admin)
+
+		@blueprint.route("/staff/course/<cid>/<aid>/config", methods=["GET"])
+		@auth.require_auth
+		def staff_get_assignment_config(netid, cid, aid):
+			if not verify_staff(netid, cid):
+				return abort(403)
+
+			config = bw_api.get_assignment_config(cid, aid)
+
+			if config is None:
+				return abort(404)
+
+			return jsonify(config)
 
 		@blueprint.route("/staff/course/<cid>/<aid>/edit/", methods=["POST"])
 		@auth.require_auth

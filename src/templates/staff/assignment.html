@@ -23,16 +23,20 @@
             return;
         }
         
-        let config = normalizeJSON($('#mdl-edit-assn-config').val());
-        let old = $('#mdl-edit-assn-config').data("old-config")
+        let config = undefined;
+        let old = $('#mdl-edit-assn-config').data("old-config");
 
-        if (!config) {
-            editAssnErr("Invalid assignment config");
-            return;
-        }
+        if (!$('#mdl-edit-assn-config')[0].hasAttribute("disabled")) {
+            config = normalizeJSON($('#mdl-edit-assn-config').val());
 
-        if (config == old) {
-            config = undefined;
+            if (!config) {
+                editAssnErr("Invalid assignment config");
+                return;
+            }
+
+            if (config == old) {
+                config = undefined;
+            }
         }
 
         $.ajax({
@@ -142,6 +146,8 @@
     }
 
     function loadOriginalConfig() {
+        $('#mdl-edit-assn-config').val("Loading...").attr("disabled", "");
+
         $.ajax({
             type: "GET",
             url: "{{ url_for('.staff_get_assignment_config', cid=course._id, aid=assignment.assignment_id) }}",
@@ -152,7 +158,8 @@
                 $('#mdl-edit-assn-config').val(old).data("old-config", old).removeAttr("disabled");
             },
             error: function () {
-                $('#mdl-edit-assn-config').val("").removeAttr("disabled");
+                $('#mdl-edit-assn-config')
+                    .val("Config loading failed; you may proceed with editing other information");
             }
         });
     }
@@ -250,7 +257,7 @@
                                                 <label for="start">Configuration</label>
                                                 <div>
                                                     
-                                                    <textarea type="text" class="form-control" id="mdl-edit-assn-config" name="config" rows="5" style="font-family: monospace;" disabled>loading...</textarea>
+                                                    <textarea type="text" class="form-control" id="mdl-edit-assn-config" name="config" rows="5" style="font-family: monospace;"></textarea>
                                                 </div>
                                             </div>
                                             <span id="mdl-edit-assn-error" class="form-text text-danger"></span>
