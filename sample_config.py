@@ -1,5 +1,7 @@
 from pytz import timezone
 
+MAINTENANCE_MODE = False
+MAINTENANCE_MODE_MESSAGE = "Maintenance will conclude at __:__ on __/__."
 DEV_MODE = False
 DEV_MODE_LOGIN = "srpatil2"
 

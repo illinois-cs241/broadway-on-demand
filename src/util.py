@@ -6,7 +6,7 @@ from re import fullmatch
 from flask import request, session
 from pytz import utc
 
-from config import TZ
+from config import TZ, MAINTENANCE_MODE, MAINTENANCE_MODE_MESSAGE
 
 def commit_matches_author(commit, netid):
 	"""
@@ -61,6 +61,15 @@ def require_form(fields):
 			return func(*args, **kwargs)
 		return wrapper
 	return decorator_wrapper
+
+
+def disable_in_maintenance_mode(func):
+	@wraps(func)
+	def wrapper(*args, **kwargs):
+		if MAINTENANCE_MODE:
+			return "Broadway on Demand is currently under maintenance.\n{}".format(MAINTENANCE_MODE_MESSAGE), 503
+		return func(*args, **kwargs)
+	return wrapper
 
 
 def error(msg, status=400):

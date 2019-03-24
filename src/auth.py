@@ -28,7 +28,8 @@ def require_auth(func):
 	@wraps(func)
 	def wrapper(*args, **kwargs):
 		if UID_KEY in session:
-			return func(session[UID_KEY], *args, **kwargs)
+			kwargs[UID_KEY] = session[UID_KEY]
+			return func(*args, **kwargs)
 		return redirect(url_for(".login_page"))
 	return wrapper
 
