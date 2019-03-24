@@ -61,7 +61,55 @@ def get_grading_run_status(cid, run_id):
 		logging.error("get_grading_run_status(cid={}, run_id={}): {}".format(cid, run_id, repr(e)))
 		return None
 
+  
+def get_assignment_config(cid, aid):
+	"""
+	Get run config for an assignment
+	:param cid: the course ID.
+	:param aid: the assignment ID within the course.
+	"""
 
+	try:
+		resp = requests.get(url="%s/grading_config/%s/%s" % (BROADWAY_API_URL, cid, aid), headers=HEADERS)
+
+		if resp.status_code == 200:
+			ret_data = resp.json()
+			return ret_data["data"]
+	except Exception as e:
+		logging.error("get_assignment_config(cid={}, aid={}): {}".format(cid, aid, repr(e)))
+
+	return None
+
+
+def set_assignment_config(cid, aid, config):
+	"""
+	Set run config for an assignment. Return error message if failed
+	:param cid: the course ID.
+	:param aid: the assignment ID within the course.
+	:param config: assignemnt config(pre-processing pipeline, student pipelines, etc.)
+	"""
+
+	try:
+		resp = requests.post(url="%s/grading_config/%s/%s" % (BROADWAY_API_URL, cid, aid), headers=HEADERS,
+							 json=config)
+
+		if resp.status_code != 200:
+			ret_data = resp.json()
+			
+			if isinstance(ret_data["data"], str):
+				msg = ret_data["data"]
+			else:
+				msg = ret_data["data"]["message"]
+
+			return "{}: {}".format(resp.status_code, msg)
+		
+		return None
+	except Exception as e:
+		logging.error("set_assignment_config(cid={}, aid={}, config={}): {}".format(cid, aid, config, repr(e)))
+
+		return "Failed to decode server response"
+
+  
 def get_grading_run_job_id(cid, run_id):
 	try:
 		resp = requests.get(url="%s/grading_run_status/%s/%s" % (BROADWAY_API_URL, cid, run_id), headers=HEADERS)

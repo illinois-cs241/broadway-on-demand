@@ -22,16 +22,35 @@
             editAssnErr("Start and End are required.");
             return;
         }
+        
+        let config = undefined;
+        let old = $('#mdl-edit-assn-config').data("old-config");
+
+        if (!$('#mdl-edit-assn-config')[0].hasAttribute("disabled")) {
+            config = normalizeJSON($('#mdl-edit-assn-config').val());
+
+            if (!config) {
+                editAssnErr("Invalid assignment config");
+                return;
+            }
+
+            if (config == old) {
+                config = undefined;
+            }
+        }
+
         $.ajax({
             type: "POST",
             url: "{{ url_for('.staff_edit_assignment', cid=course._id, aid=assignment.assignment_id) }}",
-            data: {max_runs: maxRuns, quota: quota, start: start, end: end},
+            data: {max_runs: maxRuns, quota: quota, start: start, end: end, config: config},
             beforeSend: function () {
                 $('#mdl-edit-assn-error').html('').fadeOut();
+                $('#mdl-edit-assn-save .loader').addClass("fa-spin");
             },
             success: function () {
                 $('#mdl-edit-assn').modal('hide');
                 location.reload();
+                $('#mdl-edit-assn-save .loader').removeClass("fa-spin");
             },
             error: function (xhr) {
                 if (!xhr.responseText) {
@@ -39,6 +58,8 @@
                 } else {
                     $('#mdl-edit-assn-error').html(xhr.responseText).fadeIn();
                 }
+
+                $('#mdl-edit-assn-save .loader').removeClass("fa-spin");
             }
         })
     }
@@ -116,6 +137,33 @@
         });
     }
 
+    function normalizeJSON(json) {
+        try {
+            return JSON.stringify(JSON.parse(json));
+        } catch {
+            return null;
+        }
+    }
+
+    function loadOriginalConfig() {
+        $('#mdl-edit-assn-config').val("Loading...").attr("disabled", "");
+
+        $.ajax({
+            type: "GET",
+            url: "{{ url_for('.staff_get_assignment_config', cid=course._id, aid=assignment.assignment_id) }}",
+            dataType: "json",
+            success: function (result) {
+                let json = JSON.stringify(result);
+                let old = normalizeJSON(json);
+                $('#mdl-edit-assn-config').val(old).data("old-config", old).removeAttr("disabled");
+            },
+            error: function () {
+                $('#mdl-edit-assn-config')
+                    .val("Config loading failed; you may proceed with editing other information");
+            }
+        });
+    }
+  
     function getRunLog(runId) {
         $('#mdl-view-log-stderr').html('');
         $('#mdl-view-log-stdout').html('');
@@ -203,7 +251,7 @@
                     <div class="card-body">
                         <h5 class="card-title">Assignment actions</h5>
                         
-                        <button type="button" class="btn btn-outline-primary mt-3" data-toggle="modal" data-target="#mdl-edit-assn">
+                        <button type="button" class="btn btn-outline-primary mt-3" data-toggle="modal" data-target="#mdl-edit-assn" onclick="loadOriginalConfig();">
                             <i class="fas fa-pen"></i> Edit assignment
                         </button>
                         <div class="modal fade" id="mdl-edit-assn" tabindex="-1" role="dialog" aria-labelledby="mdl-edit-assn-label" aria-hidden="true">
@@ -244,11 +292,20 @@
                                                 <label for="start">End Date & Time</label> <span class="badge badge-secondary">{{ tzname }}</span>
                                                 <input type="datetime-local" class="form-control" id="mdl-edit-assn-end" name="end" value="{{ assignment.end|fmt_datetime_local }}">
                                             </div>
+                                            <div class="form-group">
+                                                <label for="start">Configuration</label>
+                                                <div>
+                                                    
+                                                    <textarea type="text" class="form-control" id="mdl-edit-assn-config" name="config" rows="5" style="font-family: monospace;"></textarea>
+                                                </div>
+                                            </div>
                                             <span id="mdl-edit-assn-error" class="form-text text-danger"></span>
                                         </form>
                                     </div>
                                     <div class="modal-footer">
-                                        <button type="button" class="btn btn-primary" id="mdl-edit-assn-save" onclick="attemptEditAssignment()">Save
+                                        <button type="button" class="btn btn-primary" id="mdl-edit-assn-save" onclick="attemptEditAssignment()">
+                                            <span class="fa fa-cog loader" style="margin-right: 0.2em;"></span>
+                                            Save
                                         </button>
                                     </div>
                                 </div>

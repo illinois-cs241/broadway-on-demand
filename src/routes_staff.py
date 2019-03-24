@@ -2,6 +2,9 @@ from subprocess import check_output, CalledProcessError
 
 from flask import render_template, request, abort, jsonify
 
+import json
+from json.decoder import JSONDecodeError
+
 from config import TZ
 from src import db, util, auth, bw_api
 from src.common import verify_staff, verify_admin, verify_student
@@ -42,7 +45,7 @@ class StaffRoutes:
 			def err(msg):
 				return msg, 400
 
-			missing = util.check_missing_fields(request.form, *["max_runs", "quota", "start", "end"])
+			missing = util.check_missing_fields(request.form, *["max_runs", "quota", "start", "end", "config"])
 			if missing:
 				return err("Missing fields (%s)." % (", ".join(missing)))
 
@@ -71,6 +74,15 @@ class StaffRoutes:
 			if start >= end:
 				return err("Start must be before End.")
 
+			try:
+				config = json.loads(request.form["config"])
+				msg = bw_api.set_assignment_config(cid, aid, config)
+
+				if msg:
+					return err("Failed to add assignment to Broadway: {}".format(msg))
+			except JSONDecodeError:
+				return err("Failed to decode config JSON")
+
 			db.add_assignment(cid, aid, max_runs, quota, start, end)
 			return "", 204
 
@@ -84,7 +96,23 @@ class StaffRoutes:
 			assignment = db.get_assignment(cid, aid)
 			student_runs = list(db.get_assignment_runs(cid, aid))
 			is_admin = verify_admin(netid, cid)
-			return render_template("staff/assignment.html", netid=netid, course=course, assignment=assignment, student_runs=student_runs, tzname=str(TZ), is_admin=is_admin)
+
+			return render_template("staff/assignment.html", netid=netid, course=course,
+								   assignment=assignment, student_runs=student_runs,
+								   tzname=str(TZ), is_admin=is_admin)
+
+		@blueprint.route("/staff/course/<cid>/<aid>/config", methods=["GET"])
+		@auth.require_auth
+		def staff_get_assignment_config(netid, cid, aid):
+			if not verify_staff(netid, cid):
+				return abort(403)
+
+			config = bw_api.get_assignment_config(cid, aid)
+
+			if config is None:
+				return abort(404)
+
+			return jsonify(config)
 
 		@blueprint.route("/staff/course/<cid>/<aid>/edit/", methods=["POST"])
 		@auth.require_auth
@@ -121,6 +149,18 @@ class StaffRoutes:
 				return err("Missing or invalid Start or End.")
 			if start >= end:
 				return err("Start must be before End.")
+
+			try:
+				config_str = request.form.get("config")
+
+				if config_str is not None: # skip update otherwise
+					config = json.loads(request.form["config"])
+					msg = bw_api.set_assignment_config(cid, aid, config)
+
+					if msg:
+						return err("Failed to add assignment to Broadway: {}".format(msg))
+			except JSONDecodeError:
+				return err("Failed to decode config JSON")
 
 			if not db.update_assignment(cid, aid, max_runs, quota, start, end):
 				return err("Save failed or no changes were made.")
