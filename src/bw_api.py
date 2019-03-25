@@ -61,7 +61,7 @@ def get_grading_run_status(cid, run_id):
 		logging.error("get_grading_run_status(cid={}, run_id={}): {}".format(cid, run_id, repr(e)))
 		return None
 
-  
+
 def get_assignment_config(cid, aid):
 	"""
 	Get run config for an assignment
@@ -106,22 +106,15 @@ def set_assignment_config(cid, aid, config):
 		return None
 	except Exception as e:
 		logging.error("set_assignment_config(cid={}, aid={}, config={}): {}".format(cid, aid, config, repr(e)))
-
 		return "Failed to decode server response"
 
-  
+
 def get_grading_run_job_id(cid, run_id):
 	try:
 		resp = requests.get(url="%s/grading_run_status/%s/%s" % (BROADWAY_API_URL, cid, run_id), headers=HEADERS)
 		student_jobs_dict = resp.json()["data"]["student_jobs_state"]
 		return list(student_jobs_dict.keys())[0]
-	except requests.exceptions.RequestException as e:
-		logging.error("get_grading_run_job_id(cid={}, run_id={}): {}".format(cid, run_id, repr(e)))
-		return None
-	except KeyError as e:
-		logging.error("get_grading_run_job_id(cid={}, run_id={}): {}".format(cid, run_id, repr(e)))
-		return None
-	except JSONDecodeError as e:
+	except Exception as e:
 		logging.error("get_grading_run_job_id(cid={}, run_id={}): {}".format(cid, run_id, repr(e)))
 		return None
 
@@ -130,13 +123,7 @@ def get_grading_job_log(cid, job_id):
 	try:
 		resp = requests.get(url="%s/grading_job_log/%s/%s" % (BROADWAY_API_URL, cid, job_id), headers=HEADERS)
 		return resp.json()["data"]
-	except requests.exceptions.RequestException as e:
-		logging.error("get_grading_job_log(cid={}, job_id={}): {}".format(cid, job_id, repr(e)))
-		return None
-	except KeyError as e:
-		logging.error("get_grading_job_log(cid={}, job_id={}): {}".format(cid, job_id, repr(e)))
-		return None
-	except JSONDecodeError as e:
+	except Exception as e:
 		logging.error("get_grading_job_log(cid={}, job_id={}): {}".format(cid, job_id, repr(e)))
 		return None
 
@@ -146,6 +133,13 @@ def get_grading_run_log(cid, run_id):
 	if job_id is None:
 		return None
 	log = get_grading_job_log(cid, job_id)
-	if log is None:
+	return log if log is not None else None
+
+
+def get_workers(cid):
+	try:
+		resp = requests.get(url="%s/worker/%s/all" % (BROADWAY_API_URL, cid), headers=HEADERS)
+		return resp.json()["worker_nodes"]
+	except Exception as e:
+		logging.error("get_workers(cid={}): {}".format(cid, repr(e)))
 		return None
-	return log

@@ -124,6 +124,39 @@
             }
         });
     });
+
+    function viewWorkerStatus() {
+        $.ajax({
+            type: "GET",
+            url: "{{ url_for('.staff_get_workers', cid=course._id) }}",
+            dataType: "json",
+            success: function (result) {
+                console.log(result);
+                let tbody = $('#mdl-worker-status-body');
+                tbody.empty();
+                if (result == undefined || result.length == 0) {
+                    tbody.append('<tr><td colspan="4">No workers</td></tr>')
+                } else {
+                    for (let i in result) {
+                        let aliveClass = result[i].alive ? "text-success" : "text-danger";
+                        let busyText = result[i].busy ? "Busy" : "";
+                        tbody.append(
+                            '<tr><td>' + result[i].hostname
+                            + '</td><td class="text-center">' + result[i].jobs_processed
+                            + '</td><td class="text-center"><i class="fas fa-circle ' + aliveClass + '"></i>'
+                            + '</td><td class="text-center">' + busyText
+                            + '</td></tr>\n');
+                    }
+                }
+                $('#mdl-worker-status').modal('show');
+            },
+            error: function (xhr) {
+                let tbody = $('#mdl-worker-status-body');
+                tbody.empty();
+                tbody.append('<tr><td colspan="4" class="text-danger">Failed to load worker status</td></tr>')
+            }
+        });
+    }
 </script>
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
@@ -237,6 +270,38 @@
                                             <span class="fa fa-cog loader" style="margin-right: 0.2em;"></span>
                                             Save
                                         </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="button" class="btn btn-outline-primary mt-3" data-toggle="modal" data-target="#mdl-worker-status" onclick="viewWorkerStatus()">
+                            <i class="fas fa-server"></i> Worker status
+                        </button>
+                        <div class="modal fade" id="mdl-worker-status" tabindex="-1" role="dialog" aria-labelledby="mdl-worker-status-label" aria-hidden="true">
+                            <div class="modal-dialog" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="mdl-view-worker-status-label">Worker status</h5>
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="table-responsive">
+                                            <table class="table table-fit table-hover">
+                                                <thead>
+                                                <tr>
+                                                    <th scope="col">Host</th>
+                                                    <th scope="col">Jobs Processed</th>
+                                                    <th scope="col">Alive</th>
+                                                    <th scope="col">Busy</th>
+                                                </tr>
+                                                </thead>
+                                                <tbody id="mdl-worker-status-body">
+                                                </tbody>
+                                            </table>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
