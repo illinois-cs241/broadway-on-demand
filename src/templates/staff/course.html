@@ -131,7 +131,6 @@
             url: "{{ url_for('.staff_get_workers', cid=course._id) }}",
             dataType: "json",
             success: function (result) {
-                console.log(result);
                 let tbody = $('#mdl-worker-status-body');
                 tbody.empty();
                 if (result == undefined || result.length == 0) {
@@ -139,11 +138,11 @@
                 } else {
                     for (let i in result) {
                         let aliveClass = result[i].alive ? "text-success" : "text-danger";
-                        let busyText = result[i].busy ? "Busy" : "";
+                        let busyText = result[i].busy ? '<span class="badge badge-warning">busy</span>' : "";
                         tbody.append(
                             '<tr><td>' + result[i].hostname
                             + '</td><td class="text-center">' + result[i].jobs_processed
-                            + '</td><td class="text-center"><i class="fas fa-circle ' + aliveClass + '"></i>'
+                            + '</td><td class="text-center"><i class="fas fa-circle ' + aliveClass + '" style="margin-right: 0;"></i>'
                             + '</td><td class="text-center">' + busyText
                             + '</td></tr>\n');
                     }
