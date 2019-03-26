@@ -235,3 +235,14 @@ class StaffRoutes:
 			if log:
 				return jsonify(log), 200
 			return "", 400
+
+		@blueprint.route("/staff/course/<cid>/workers/", methods=["GET"])
+		@auth.require_auth
+		def staff_get_workers(netid, cid):
+			if not verify_staff(netid, cid):
+				return abort(403)
+
+			workers = bw_api.get_workers(cid)
+			if workers:
+				return jsonify(workers), 200
+			return "", 400
