@@ -137,7 +137,7 @@
                     tbody.append('<tr><td colspan="4">No workers</td></tr>')
                 } else {
                     for (let i in result) {
-                        let aliveClass = result[i].alive ? "text-success" : "text-danger";
+                        let aliveClass = result[i].alive ? "text-info" : "text-danger";
                         let busyText = result[i].busy ? '<span class="badge badge-warning">busy</span>' : "";
                         tbody.append(
                             '<tr><td>' + result[i].hostname
