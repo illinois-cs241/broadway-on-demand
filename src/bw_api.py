@@ -139,7 +139,7 @@ def get_grading_run_log(cid, run_id):
 def get_workers(cid):
 	try:
 		resp = requests.get(url="%s/worker/%s/all" % (BROADWAY_API_URL, cid), headers=HEADERS)
-		return resp.json()["worker_nodes"]
+		return resp.json()["data"]["worker_nodes"]
 	except Exception as e:
 		logging.error("get_workers(cid={}): {}".format(cid, repr(e)))
 		return None
