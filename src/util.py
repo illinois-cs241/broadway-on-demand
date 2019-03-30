@@ -8,24 +8,6 @@ from pytz import utc
 
 from config import TZ, MAINTENANCE_MODE, MAINTENANCE_MODE_MESSAGE
 
-def commit_matches_author(commit, netid):
-	"""
-	Checks that a given commit has the proper author (the given netid)
-	:param commit: a dict of commit information
-	:param netid: a str of the desired netid
-	:return: whether or not the commit matches
-	"""
-	if 'author' in commit:
-		author = commit['author']
-		if author is None:
-			# there is no author, so this is probably a student
-			return True
-		if 'ldap_dn' in author:
-			ldap_dn = author['ldap_dn']
-			if any(attr == 'CN=' + netid for attr in ldap_dn.split(',')):
-				return True
-	return False
-
 
 def check_missing_fields(data, *args):
 	"""
