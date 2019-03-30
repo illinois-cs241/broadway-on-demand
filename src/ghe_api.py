@@ -53,9 +53,10 @@ def get_latest_commit(netid, access_token, course):
 	try:
 		release_commits_result = requests.get(release_commits_url, params={"access_token": access_token})
 	except requests.exceptions.RequestException as ex:
+		logger.error("Failed to fetch release commits\n{}".format(str(ex)))
 		return latest_commit
 	if release_commits_result.status_code != 200:
-		logger.error("Failed to fetch release commits")
+		logger.error("Failed to fetch release commits\n{}".format(release_commits_result.text))
 		return latest_commit
 
 	release_commits_sha = set()
@@ -71,8 +72,8 @@ def get_latest_commit(netid, access_token, course):
 	try:
 		response = requests.get(commits_url, params={"access_token": access_token})
 	except requests.exceptions.RequestException as ex:
+		logger.error("Failed to fetch student commits\n{}".format(str(ex)))
 		return latest_commit
-
 	if response.status_code == 404 or response.status_code == 409:
 		# failure due to student error
 		latest_commit["message"] = (
