@@ -1,7 +1,8 @@
 import logging
-from json.decoder import JSONDecodeError
-
 import requests
+
+from ansi2html import Ansi2HTMLConverter
+from json.decoder import JSONDecodeError
 
 from config import BROADWAY_API_TOKEN, BROADWAY_API_URL
 from src.util import timestamp_to_bw_api_format
@@ -95,14 +96,14 @@ def set_assignment_config(cid, aid, config):
 
 		if resp.status_code != 200:
 			ret_data = resp.json()
-			
+
 			if isinstance(ret_data["data"], str):
 				msg = ret_data["data"]
 			else:
 				msg = ret_data["data"]["message"]
 
 			return "{}: {}".format(resp.status_code, msg)
-		
+
 		return None
 	except Exception as e:
 		logging.error("set_assignment_config(cid={}, aid={}, config={}): {}".format(cid, aid, config, repr(e)))
@@ -122,7 +123,12 @@ def get_grading_run_job_id(cid, run_id):
 def get_grading_job_log(cid, job_id):
 	try:
 		resp = requests.get(url="%s/grading_job_log/%s/%s" % (BROADWAY_API_URL, cid, job_id), headers=HEADERS)
-		return resp.json()["data"]
+		log = resp.json()["data"]
+		if log:
+			converter = Ansi2HTMLConverter()
+			log["stdout"] = converter.convert(log.get("stdout"), full=False)
+			log["stderr"] = converter.convert(log.get("stderr"), full=False)
+		return log
 	except Exception as e:
 		logging.error("get_grading_job_log(cid={}, job_id={}): {}".format(cid, job_id, repr(e)))
 		return None
