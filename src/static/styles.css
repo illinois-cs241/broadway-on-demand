@@ -70,7 +70,7 @@ table.table-fit {
     padding: 2em;
     border: 2px dashed rgba(0, 0, 0, 0.2);
     border-radius: 4px;
-    
+
     text-align: center;
     font-weight: bold;
     cursor: pointer;
@@ -86,3 +86,17 @@ table.table-fit {
     border-color: rgba(0, 0, 0, 0.4);
     color: rgba(0, 0, 0, 0.5);
 }
+
+/* ansi2html styling */
+
+.ansi2html-content { display: inline; white-space: pre-wrap; word-wrap: break-word; }
+.body_foreground { color: #AAAAAA; }
+.body_background { background-color: #000000; }
+.body_foreground > .bold,.bold > .body_foreground, body.body_foreground > pre > .bold {
+    color: #FFFFFF; font-weight: normal;
+}
+.inv_foreground { color: #000000; }
+.inv_background { background-color: #AAAAAA; }
+.ansi1 { font-weight: bold; }
+.ansi32 { color: #00aa00; }
+.ansi35 { color: #E850A8; }
