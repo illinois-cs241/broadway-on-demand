@@ -49,8 +49,8 @@ def get_latest_commit(netid, access_token, course):
 
 	# retrieve all student repo commits (to master)
 	commits_url = "{}/repos/{}/{}/commits".format(GHE_API_URL, course, netid)
-	commits_url += "?sha=master"
-
+	commits_url += "?until=" + dt.now(tz=TZ).isoformat()
+	commits_url += "&sha=master"
 	try:
 		response = requests.get(commits_url, params={"access_token": access_token})
 	except requests.exceptions.RequestException as ex:
