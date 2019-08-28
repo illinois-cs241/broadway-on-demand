@@ -3,7 +3,7 @@
 {% include 'status.html' %}
 <script type="application/javascript">
     function confirmGradeNow() {
-        let proceed = window.confirm("The current latest commit in your repository will be graded, using 1 available run. Are you sure you want to proceed?");
+        let proceed = window.confirm("The current latest commit in your repository will be graded, using 1 available run.\nIn addition, by proceeding you certify that you have read and understand the course policies regarding plagarism and academic integrity and that the work you are submitting is your own and original unless explicitly allowed otherwise.\nAre you sure you want to proceed?" );
         if (!proceed) {
             return;
         }
