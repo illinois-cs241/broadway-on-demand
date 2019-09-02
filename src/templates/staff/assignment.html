@@ -39,10 +39,12 @@
             }
         }
 
+        let visibility = $('input[name=visibility]:checked', '#edit-assn').val();
+
         $.ajax({
             type: "POST",
             url: "{{ url_for('.staff_edit_assignment', cid=course._id, aid=assignment.assignment_id) }}",
-            data: {max_runs: maxRuns, quota: quota, start: start, end: end, config: config},
+            data: {max_runs: maxRuns, quota: quota, start: start, end: end, visibility: visibility, config: config},
             beforeSend: function () {
                 $('#mdl-edit-assn-error').html('').fadeOut();
                 $('#mdl-edit-assn-save .loader').addClass("fa-spin");
@@ -291,6 +293,17 @@
                                             <div class="form-group">
                                                 <label for="start">End Date & Time</label> <span class="badge badge-secondary">{{ tzname }}</span>
                                                 <input type="datetime-local" class="form-control" id="mdl-edit-assn-end" name="end" value="{{ assignment.end|fmt_datetime_local }}">
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="form-check-label">Visibility</label><br>
+                                                <div class="form-check form-check-inline">
+                                                    <input class="form-check-input" type="radio" name="visibility" id="mdl-edit-assn-visibility" value="hidden" {% if not assignment.visibility %}checked{% endif %}>
+                                                    <label class="form-check-label" for="mdl-edit-assn-visibility">Not visible</label>
+                                                </div>
+                                                <div class="form-check form-check-inline">
+                                                    <input class="form-check-input" type="radio" name="visibility" id="mdl-edit-assn-visibility" value="visible" {% if assignment.visibility %}checked{% endif %}>
+                                                    <label class="form-check-label" for="mdl-edit-assn-visibility">Visible</label>
+                                                </div>
                                             </div>
                                             <div class="form-group">
                                                 <label for="start">Configuration</label>

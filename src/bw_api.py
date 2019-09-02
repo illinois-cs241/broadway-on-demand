@@ -114,6 +114,7 @@ def get_grading_run_job_id(cid, run_id):
 	try:
 		resp = requests.get(url="%s/grading_run_status/%s/%s" % (BROADWAY_API_URL, cid, run_id), headers=HEADERS)
 		student_jobs_dict = resp.json()["data"]["student_jobs_state"]
+		# TODO: might return an empty dict
 		return list(student_jobs_dict.keys())[0]
 	except Exception as e:
 		logging.error("get_grading_run_job_id(cid={}, run_id={}): {}".format(cid, run_id, repr(e)))

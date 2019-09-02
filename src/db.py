@@ -53,15 +53,18 @@ def get_course(cid):
 	return mongo.db.courses.find_one({"_id": cid})
 
 
-def get_assignments_for_course(cid):
-	return list(mongo.db.assignments.find({"course_id": cid}))
+def get_assignments_for_course(cid, visible_only=True):
+	if visible_only:
+		return list(mongo.db.assignments.find({"course_id": cid, "visibility": True}))
+	else:
+		return list(mongo.db.assignments.find({"course_id": cid}))
 
 
 def get_assignment(cid, aid):
 	return mongo.db.assignments.find_one({"course_id": cid, "assignment_id": aid})
 
 
-def add_assignment(cid, aid, max_runs, quota, start, end):
+def add_assignment(cid, aid, max_runs, quota, start, end, visibility):
 	"""
 	Add a new assignment.
 	:param cid: a course ID.
@@ -70,19 +73,20 @@ def add_assignment(cid, aid, max_runs, quota, start, end):
 	:param quota: a quota type as defined in Quota.
 	:param start: a UNIX timestamp specifying the start of the grading period.
 	:param end: a UNIX timestamp specifying the end of the grading period.
+	:param visibility: a boolean value to indicate if the assignment is visible to students or not
 	"""
 	if quota not in [Quota.DAILY, Quota.TOTAL]:
 		raise RuntimeError("Invalid quota type for assignment.")
 	mongo.db.assignments.insert_one(
-		{"course_id": cid, "assignment_id": aid, "max_runs": max_runs, "quota": quota, "start": start, "end": end})
+		{"course_id": cid, "assignment_id": aid, "max_runs": max_runs, "quota": quota, "start": start, "end": end, "visibility": visibility})
 
 
-def update_assignment(cid, aid, max_runs, quota, start, end):
+def update_assignment(cid, aid, max_runs, quota, start, end, visibility):
 	if quota not in [Quota.DAILY, Quota.TOTAL]:
 		raise RuntimeError("Invalid quota type for assignment.")
 	res = mongo.db.assignments.update(
 		{"course_id": cid, "assignment_id": aid},
-		{"$set": {"max_runs": max_runs, "quota": quota, "start": start, "end": end}}
+		{"$set": {"max_runs": max_runs, "quota": quota, "start": start, "end": end, "visibility": visibility}}
 	)
 	return res["n"] == 1 and 0 <= res["nModified"] <= 1
 

@@ -23,6 +23,7 @@ class StaffRoutes:
 					version_code = git_hash[0:8]
 			except CalledProcessError:
 				pass
+
 			return render_template("staff/home.html", netid=netid, courses=courses, version_code=version_code)
 
 		@blueprint.route("/staff/course/<cid>/", methods=["GET"])
@@ -32,7 +33,7 @@ class StaffRoutes:
 				return abort(403)
 
 			course = db.get_course(cid)
-			assignments = list(db.get_assignments_for_course(cid))
+			assignments = db.get_assignments_for_course(cid, visible_only=False)
 			is_admin = verify_admin(netid, cid)
 			return render_template("staff/course.html", netid=netid, course=course, assignments=assignments, tzname=str(TZ), is_admin=is_admin, error=None)
 
@@ -45,7 +46,7 @@ class StaffRoutes:
 			def err(msg):
 				return msg, 400
 
-			missing = util.check_missing_fields(request.form, *["max_runs", "quota", "start", "end", "config"])
+			missing = util.check_missing_fields(request.form, *["max_runs", "quota", "start", "end", "config", "visibility"])
 			if missing:
 				return err("Missing fields (%s)." % (", ".join(missing)))
 
@@ -83,7 +84,9 @@ class StaffRoutes:
 			except JSONDecodeError:
 				return err("Failed to decode config JSON")
 
-			db.add_assignment(cid, aid, max_runs, quota, start, end)
+			visibility = request.form["visibility"] == "visible"
+
+			db.add_assignment(cid, aid, max_runs, quota, start, end, visibility)
 			return "", 204
 
 		@blueprint.route("/staff/course/<cid>/<aid>/", methods=["GET"])
@@ -128,7 +131,7 @@ class StaffRoutes:
 			def err(msg):
 				return msg, 400
 
-			missing = util.check_missing_fields(request.form, *["max_runs", "quota", "start", "end"])
+			missing = util.check_missing_fields(request.form, *["max_runs", "quota", "start", "end", "visibility"])
 			if missing:
 				return err("Missing fields (%s)." % (", ".join(missing)))
 
@@ -162,7 +165,9 @@ class StaffRoutes:
 			except JSONDecodeError:
 				return err("Failed to decode config JSON")
 
-			if not db.update_assignment(cid, aid, max_runs, quota, start, end):
+			visibility = request.form["visibility"] == "visible"
+
+			if not db.update_assignment(cid, aid, max_runs, quota, start, end, visibility):
 				return err("Save failed or no changes were made.")
 			return "", 204
 

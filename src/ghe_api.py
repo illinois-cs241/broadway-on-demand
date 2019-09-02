@@ -97,7 +97,7 @@ def get_latest_commit(netid, access_token, course):
 			break
 
 	if latest_raw_commit is None:
-		latest_commit["commit"]["message"] = (
+		latest_commit["message"] = (
 			"No commits found."
 		)
 	else:
