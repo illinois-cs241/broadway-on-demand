@@ -13,5 +13,5 @@ pymongo==3.7.2
 pytz==2018.9
 requests==2.21.0
 urllib3==1.24.2
-Werkzeug==0.14.1
+werkzeug==0.15.3
 ansi2html==1.5.2
