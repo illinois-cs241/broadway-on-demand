@@ -1,0 +1,13 @@
+[Unit]
+Description=Gunicorn instance serving broadway-on-demand
+After=network.target
+
+[Service]
+User=andy2
+Group=www-data
+WorkingDirectory=/srv/cs241/broadway-on-demand
+Environment="PATH=/srv/cs241/broadway-on-demand/env/bin"
+ExecStart=/srv/cs241/broadway-on-demand/env/bin/gunicorn --workers 3 --bind unix:broadway-on-demand.sock -m 007 wsgi:app
+
+[Install]
+WantedBy=multi-user.target
