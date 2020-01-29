@@ -31,10 +31,13 @@ def require_auth(func):
 	def wrapper(*args, **kwargs):
 		if DEV_MODE:
 			user = request.args.get("user")
-			# default to admin user
 			if user is None:
-				user = "admin"
-			set_uid(user)
+				if UID_KEY in session: # already logged in, use session
+					pass
+				else: # have not logged in, default to admin
+					set_uid("admin")
+			else:
+				set_uid(user)
 			kwargs[UID_KEY] = session[UID_KEY]
 			return func(*args, **kwargs)
 		elif UID_KEY in session:
