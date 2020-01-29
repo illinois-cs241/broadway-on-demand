@@ -13,8 +13,6 @@ RELEASE_REPO = "_release"
 
 
 def get_access_token(code):
-	if DEV_MODE:
-		return code
 	data = {
 		"client_id": GHE_CLIENT_ID,
 		"client_secret": GHE_CLIENT_SECRET,
@@ -30,8 +28,6 @@ def get_access_token(code):
 
 
 def get_login(access_token):
-	if DEV_MODE:
-		return access_token
 	try:
 		resp = requests.get("%s/user" % GHE_API_URL, params={"access_token": access_token})
 		return resp.json()["login"]

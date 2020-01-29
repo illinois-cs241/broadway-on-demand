@@ -1,6 +1,8 @@
 from functools import wraps
 
-from flask import session, redirect, url_for
+from flask import session, redirect, url_for, request
+from config import DEV_MODE
+
 
 UID_KEY = "netid"
 
@@ -27,7 +29,15 @@ def require_auth(func):
 	"""
 	@wraps(func)
 	def wrapper(*args, **kwargs):
-		if UID_KEY in session:
+		if DEV_MODE:
+			user = request.args.get("user")
+			# default to admin user
+			if user is None:
+				user = "admin"
+			set_uid(user)
+			kwargs[UID_KEY] = session[UID_KEY]
+			return func(*args, **kwargs)
+		elif UID_KEY in session:
 			kwargs[UID_KEY] = session[UID_KEY]
 			return func(*args, **kwargs)
 		return redirect(url_for(".login_page"))
