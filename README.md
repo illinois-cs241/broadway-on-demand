@@ -11,7 +11,7 @@
 - Install dependencies: `pip install -r requirements.txt`.
 - Run the development server: `FLASK_APP=src FLASK_ENV=development flask run`. The server will run at `localhost:5000` by default.
 - To add test data to the database, unzip and restore the given dump: `unzip test_data.zip && mongorestore test_data && rm -rf test_data`
-- To log in, navigate to <http://localhost:5000/on-demand?user=USER>. You will be logged in as the user in the `USER` string. In the test database there are three users:
+- To log in, navigate to <http://localhost:5000/on-demand?user=USER>. You will be logged in as the user in the `USER` string. You can add `?user=USER` at the end of any URL to change user. In the test database there are three users:
     - student (student of the test course)
     - non_admin (a staff, but not an admin of the test course)
     - admin (staff and admin of the test course)
