@@ -1,4 +1,4 @@
-from flask import Flask, Blueprint, url_for, send_from_directory, render_template, request, redirect
+from flask import Flask, Blueprint, url_for, send_from_directory, render_template, request, redirect, abort
 from flask_session import Session
 from werkzeug.urls import url_parse
 
@@ -50,7 +50,7 @@ def login_as():
 	"""
 	This function allows developers to be logged in as any user.
 	"""
-	if not DEV_MODE:
+	if app.config['ENV'] != "development":
 		return abort(403)
 	path = request.args.get("path")
 	if not path or url_parse(path).netloc != "":
