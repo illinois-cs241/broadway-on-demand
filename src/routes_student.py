@@ -25,6 +25,19 @@ class StudentRoutes:
 
 			course = db.get_course(cid)
 			assignments = db.get_assignments_for_course(cid)
+			now = util.now_timestamp()
+
+			for assignment in assignments:
+
+				num_extension_runs = get_active_extensions(cid, assignment["assignment_id"], netid, now)
+				num_available_runs = get_available_runs(cid, assignment["assignment_id"], netid, now)
+				total_runs = num_extension_runs[1] + num_available_runs
+
+				if verify_staff(netid, cid):
+					total_runs = max(total_runs, 1)
+
+				assignment.update({"total_runs": total_runs})
+				
 			return render_template("student/course.html", netid=netid, course=course, assignments=assignments, tzname=str(TZ))
 
 		@blueprint.route("/student/course/<cid>/<aid>/", methods=["GET"])
