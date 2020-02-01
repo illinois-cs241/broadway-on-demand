@@ -19,9 +19,9 @@
                 </thead>
                 <tbody>
                 {% for assignment in assignments | reverse %}
-                <tr {% if assignment.total_runs <= 0 %} class="assignment-no-runs" {% endif %}>
+                <tr {% if assignment.total_available_runs <= 0 %} class="assignment-no-runs" {% endif %}>
                     <td>
-                        <a href="{{ url_for('.student_get_assignment', cid=course._id, aid=assignment.assignment_id) }}" {% if assignment.total_runs <= 0 %} style="color:slategray;" {% endif %}>{{assignment.assignment_id}}</a>
+                        <a href="{{ url_for('.student_get_assignment', cid=course._id, aid=assignment.assignment_id) }}" {% if assignment.total_available_runs <= 0 %} style="color:slategray;" {% endif %}>{{assignment.assignment_id}}</a>
                     </td>
                     <td>{{assignment.start|fmt_timestamp}}</td>
                     <td>{{assignment.end|fmt_timestamp}}</td>

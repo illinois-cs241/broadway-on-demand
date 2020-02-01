@@ -29,15 +29,15 @@ class StudentRoutes:
 
 			for assignment in assignments:
 
-				num_extension_runs = get_active_extensions(cid, assignment["assignment_id"], netid, now)
 				num_available_runs = get_available_runs(cid, assignment["assignment_id"], netid, now)
-				total_runs = num_extension_runs[1] + num_available_runs
+				active_extensions, num_extension_runs = get_active_extensions(cid, assignment["assignment_id"], netid, now)
+				total_available_runs = num_extension_runs + num_available_runs
 
 				if verify_staff(netid, cid):
-					total_runs = max(total_runs, 1)
+					total_available_runs = max(total_available_runs, 1)
 
-				assignment.update({"total_runs": total_runs})
-				
+				assignment.update({"total_available_runs": total_available_runs})
+
 			return render_template("student/course.html", netid=netid, course=course, assignments=assignments, tzname=str(TZ))
 
 		@blueprint.route("/student/course/<cid>/<aid>/", methods=["GET"])
