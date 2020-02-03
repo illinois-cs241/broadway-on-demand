@@ -7,8 +7,6 @@ MAINTENANCE_MODE_MESSAGE = "Maintenance will conclude at __:__ on __/__."
 
 # When true, GitHub Enterprise login can be bypassed to log in as the username below.
 DEV_MODE = False
-# The user ID to log in as when using the dev mode bypass.
-DEV_MODE_LOGIN = "srpatil2"
 
 # Server time zone, used for displaying times and specifying due date for Broadway API.
 TZ = timezone("America/Chicago")

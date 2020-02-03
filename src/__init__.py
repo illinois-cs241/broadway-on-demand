@@ -1,5 +1,6 @@
-from flask import Flask, Blueprint, url_for, send_from_directory, render_template, request, redirect
+from flask import Flask, Blueprint, url_for, send_from_directory, render_template, request, redirect, abort
 from flask_session import Session
+from werkzeug.urls import url_parse
 
 from config import *
 from src import db, bw_api, auth, ghe_api, util, common
@@ -42,6 +43,21 @@ def login_ghe_callback():
 	db.set_user_access_token(netid, access_token)
 	auth.set_uid(netid)
 	return redirect(url_for(".root"))
+
+
+@blueprint.route("/loginas/", methods=["POST"])
+def login_as():
+	"""
+	This function allows developers to be logged in as any user.
+	"""
+	if app.config['ENV'] != "development":
+		return abort(403)
+	path = request.args.get("path")
+	if not path or url_parse(path).netloc != "":
+		path = url_for(".root")
+	netid = request.form.get("loginNetId")
+	auth.set_uid(netid)
+	return redirect(path)
 
 
 @blueprint.route("/logout/", methods=["GET"])
