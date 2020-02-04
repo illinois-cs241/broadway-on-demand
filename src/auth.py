@@ -1,10 +1,11 @@
 from functools import wraps
 
-from flask import session, redirect, url_for, request
-from config import DEV_MODE
+from flask import session, redirect, url_for, abort
+from src.common import verify_staff, verify_admin
 
 
 UID_KEY = "netid"
+CID_KEY = "cid"
 
 
 def require_no_auth(func):
@@ -33,6 +34,23 @@ def require_auth(func):
 			kwargs[UID_KEY] = session[UID_KEY]
 			return func(*args, **kwargs)
 		return redirect(url_for(".login_page"))
+	return wrapper
+
+
+def require_admin_status(func):
+	"""
+	A route decorator that give Forbidden error if the user is not an admin of this
+	course.
+	:param func: a route function that takes NetID and course id as the first two positional
+		arguments.
+	"""
+	@wraps(func)
+	def wrapper(*args, **kwargs):
+		netid = kwargs[UID_KEY]
+		cid = kwargs[CID_KEY]
+		if not verify_staff(netid, cid) or not verify_admin(netid, cid):
+			return abort(403)
+		return func(*args, **kwargs)
 	return wrapper
 
 

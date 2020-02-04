@@ -1,0 +1,253 @@
+{% set title = "%s Roster (staff) (%s)" % (course.name, netid) %}
+{% include 'header.html' %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{{ url_for('.staff_home') }}">Staff Home</a></li>
+    <li class="breadcrumb-item"><a href="{{ url_for('.staff_get_course', cid=course._id) }}">{{ course.name }}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Roster</li>
+  </ol>
+</nav>
+<div class="container-fluid">
+  <!-- Staff Roster -->
+  <div class="row">
+    <div class="col-md-6 offset-md-3">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="card-title mb-0"><i class="fas fa-user-tie"></i> Manage Staff
+            <a href="#" class="clickable fas fa-question-circle float-right text-secondary" data-toggle="popover" role="button"
+               data-html="true" data-placement="bottom" data-trigger="focus" data-title="Legend" data-content="
+               <p style='line-height: 2;' class='mb-0'>
+                 <i class='fas fa-lg fa-trash-alt text-danger'></i>: delete a staff <br>
+                 <i class='fas fa-lg fa-arrow-circle-up text-success'></i>: make a staff an admin <br>
+                 <i class='fas fa-lg demote-admin fa-arrow-circle-down text-info'></i>: make an admin not longer admin
+               </p>
+               ">
+            </a>
+          </h5>
+        </div>
+        <div class="card-body px-md-4">
+          <div class="form-group">
+            <form autocomplete="off" class="d-flex align-items-center" style="flex-wrap: nowrap;">
+              <input id="staff-id" name="netid" placeholder="Enter a NetID" type="text" class="mr-3 form-control"
+                     value="" required>
+              <button type="button" class="btn btn-primary d-block" id="add-staff">Add staff</button>
+            </form>
+          </div>
+          <div id="add-staff-error" class="alert alert-danger" style="display: none;">
+            Error!
+          </div>
+          <ul id="staff-table" class="list-group list-group-flush"></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Student Roster -->
+  <div class="row">
+    <div class="col-md-6 offset-md-3">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="card-title mb-0 d-inline"><i class="fas fa-users"></i> Manage Student</h5>
+        </div>
+        <div class="card-body px-md-4">
+          <div class="form-group">
+            <form autocomplete="off" class="d-flex align-items-center" style="flex-wrap: nowrap;">
+              <input id="student-id" name="netid" placeholder="Enter a NetID" type="text" class="mr-3 form-control"
+                     value="" required>
+              <button type="button" class="btn btn-primary d-block" id="add-student">Add student</button>
+            </form>
+          </div>
+          <div id="add-student-error" class="alert alert-danger" style="display: none;">
+            Error!
+          </div>
+          <ul id="student-table" class="list-group list-group-flush"></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script type="text/javascript">
+  const staff_alert = "#add-staff-error";
+  const student_alert = "#add-student-error";
+  let student_ids = undefined;
+
+  /**
+   * This function updates the staff table. It first get all admin_ids and
+   * staff_ids, then empty the current table, and insert admins and staffs into
+   * the table.
+   */
+  function updateStaffTable() {
+    $.get("{{ url_for('.get_course_staff_roster', cid=course._id) }}", (data) => {
+      $("#staff-table").empty()
+      $(staff_alert).hide()
+      // Add admins to table first
+      let admin_ids = data.admin_ids;
+      for (let i = 0; i < admin_ids.length; i++) {
+        let firstItemOnlyClass = i === 0 ? 'border-top-0' : '';
+        let demoteDisableOrNotClass = admin_ids[i] === data.user ? 'text-muted' : 'clickable text-info demote-admin';
+        let deleteDisableOrNotClass = admin_ids[i] === data.user ? 'text-muted' : 'clickable text-danger remove-staff';
+        $("#staff-table").append(`
+          <li class="list-group-item ${firstItemOnlyClass}">
+            <h6 class="font-weight-bold font-italic d-inline">${admin_ids[i]}</h6>
+            <div class="float-right">
+              <i class="${demoteDisableOrNotClass} fas fa-lg fa-arrow-circle-down mr-2"
+                 data-netid="${admin_ids[i]}"></i>
+              <i class="${deleteDisableOrNotClass} fas fa-lg fa-trash-alt" data-netid="${admin_ids[i]}"></i>
+            </div>
+          </li>`
+        )
+      }
+      // Add staffs to table second
+      let staff_ids = data.staff_ids;
+      for (let i = 0; i < staff_ids.length; i++) {
+        if (admin_ids.includes(staff_ids[i])) {
+          continue;
+        }
+        $("#staff-table").append(`
+          <li class="list-group-item">${staff_ids[i]}
+            <div class="float-right">
+              <i class="clickable fas fa-lg promote-staff fa-arrow-circle-up text-success mr-2"
+                 data-netid="${staff_ids[i]}"></i>
+              <i class="clickable remove-staff fas fa-lg fa-trash-alt text-danger" data-netid="${staff_ids[i]}"></i>
+            </div>
+          </li>
+        `)
+      }
+      // Add event listeners
+      $(".remove-staff").click(removeStaff)
+      $(".promote-staff").click(promoteStaff)
+      $(".demote-admin").click(demoteAdmin)
+    }).fail((jqXHR) => {
+      console.log(jqXHR)
+      showError("Something went wrong, please refresh the page.", staff_alert)
+    })
+  }
+
+  /**
+   * Update student table in a way similar to updateStaffTable.
+   */
+  function updateStudentTable() {
+    $.get("{{ url_for('.get_course_student_roster', cid=course._id) }}", (students) => {
+      $("#student-table").empty()
+      $(student_alert).hide()
+      for (let i = 0; i < students.length; i++) {
+        let firstItemOnlyClass = i === 0 ? 'border-top-0' : '';
+        $("#student-table").append(`
+          <li class="list-group-item ${firstItemOnlyClass}">${students[i]}
+            <div class="float-right">
+              <i class="clickable remove-student fas fa-lg fa-trash-alt text-danger" data-netid="${students[i]}"></i>
+            </div>
+          </li>
+        `)
+      }
+      $(".remove-student").click(removeStudent)
+      // update the "global" array for search
+      student_ids = students
+    }).fail((jqXHR) => {
+      console.log(jqXHR)
+      showError("Something went wrong, please refresh the page.", student_alert)
+    })
+  }
+
+  /**
+   * Show error message (first parameter) at the location specified by selector
+   * @param msg The error message to show
+   * @param alert_selector The HTML element selector to show the error
+   */
+  function showError(msg, alert_selector) {
+    $(alert_selector).text(msg).show()
+  }
+
+  /**
+   * Add either a student or staff with this method.
+   * @param input_selector Where to get the input value (netid)
+   * @param url The url to send a POST request in order to add student/staff
+   * @param alert_selector The alert selector in case an error occurs
+   * @param callback The function to call after success. Usually to update table
+   */
+  function addStuff(input_selector, url, alert_selector, callback) {
+    var netid = $(input_selector).val()
+    if (!netid) {
+      return
+    }
+    var data = {
+      "netid": netid,
+    }
+    $.post(url, data, () => {
+      $(input_selector).val("")
+      callback();
+    }).fail((jqXHR) => {
+      showError(jqXHR.responseText, alert_selector)
+    })
+  }
+
+  function addStaff() {
+    addStuff("#staff-id", "{{ url_for('.add_course_staff', cid=course._id) }}", staff_alert, updateStaffTable)
+  }
+
+  function addStudent() {
+    addStuff("#student-id", "{{ url_for('.add_course_student', cid=course._id) }}", student_alert, updateStudentTable)
+  }
+
+  /**
+   * Modify either a student or staff.
+   * @param target The event target that was triggered. Usually an icon (such as trash icon to delete)
+   * @param url The url to make the POST request.
+   * @param alert_selector The alert selector to show error if any.
+   * @param callback The function to call after success, usually to update table.
+   */
+  function modifyStuff(target, url, alert_selector, callback) {
+    var data = {
+      "netid": $(target).data("netid"),
+    }
+    $.post(url, data, () => {
+      callback();
+    }).fail((jqXHR) => {
+      showError(jqXHR.responseText, alert_selector)
+    })
+  }
+
+  function removeStaff(event) {
+    modifyStuff(event.target, "{{ url_for('.remove_course_staff', cid=course._id) }}", staff_alert, updateStaffTable)
+  }
+
+  function promoteStaff(event) {
+    modifyStuff(event.target, "{{ url_for('.promote_course_staff', cid=course._id) }}", staff_alert, updateStaffTable)
+  }
+
+  function demoteAdmin(event) {
+    modifyStuff(event.target, "{{ url_for('.demote_course_admin', cid=course._id) }}", staff_alert, updateStaffTable)
+  }
+
+  function removeStudent(event) {
+    modifyStuff(event.target, "{{ url_for('.remove_course_student', cid=course._id) }}", student_alert, updateStudentTable)
+  }
+
+  $(() => {
+    updateStaffTable()
+    updateStudentTable()
+    $("#add-staff").click(addStaff)
+    $("#add-student").click(addStudent)
+    $('[data-toggle="popover"]').popover()
+
+    // modify behavior when user press enter
+    $(window).keydown(function(event){
+      if(event.keyCode === 13) {
+        event.preventDefault();
+        switch (event.target.id) {
+          case "student-id":
+            $("#add-student").click()
+            break;
+          case "staff-id":
+            $("#add-staff").click()
+            break;
+        }
+        return false;
+      }
+    });
+  })
+</script>
+<style>
+  .clickable {
+    cursor: pointer;
+  }
+</style>

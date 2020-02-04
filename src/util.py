@@ -61,7 +61,17 @@ def error(msg, status=400):
 	:param msg: A description of the error encountered.
 	:param status: An HTTP status code for the response; 400 if not specified.
 	"""
-	return "%s\n" % msg, status
+	return msg, status
+
+
+def success(msg, status=204):
+	"""
+	Builds a response pair with given error message and status code. The 204 No Content (doesn't have to go away from
+	current page) status is used if none is provided.
+	:param msg: A description of the successful operation.
+	:param status: An HTTP status code for the response; 204 if not specified
+	"""
+	return msg, status
 
 
 def generate_csrf_token():
