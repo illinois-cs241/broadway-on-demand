@@ -1,4 +1,5 @@
 from functools import wraps
+from http import HTTPStatus
 
 from flask import session, redirect, url_for, abort
 from src.common import verify_staff, verify_admin
@@ -49,7 +50,7 @@ def require_admin_status(func):
 		netid = kwargs[UID_KEY]
 		cid = kwargs[CID_KEY]
 		if not verify_staff(netid, cid) or not verify_admin(netid, cid):
-			return abort(403)
+			return abort(HTTPStatus.FORBIDDEN)
 		return func(*args, **kwargs)
 	return wrapper
 

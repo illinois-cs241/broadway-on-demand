@@ -1,10 +1,13 @@
 from subprocess import check_output, CalledProcessError
-
+from http import HTTPStatus
+import logging
 from flask import render_template, abort, jsonify
 
 from config import TZ
 from src import db, util, auth, bw_api
 from src.common import verify_staff, verify_admin
+
+logger = logging.getLogger(__name__)
 
 
 class StaffRoutes:
@@ -18,8 +21,10 @@ class StaffRoutes:
                 git_hash = check_output('git rev-parse --short=8 HEAD'.split(' ')).decode('utf-8')
                 if len(git_hash) >= 8:
                     version_code = git_hash[0:8]
-            except CalledProcessError:
-                pass
+
+            except CalledProcessError as e:
+                logger.error(f"Failed to get git hash; return code: {e.returncode}, command ran: {e.cmd}, output of "
+                             f"process: {e.output}")
 
             return render_template("staff/home.html", netid=netid, courses=courses, version_code=version_code)
 
@@ -27,7 +32,7 @@ class StaffRoutes:
         @auth.require_auth
         def staff_get_course(netid, cid):
             if not verify_staff(netid, cid):
-                return abort(403)
+                return abort(HTTPStatus.FORBIDDEN)
 
             course = db.get_course(cid)
             assignments = db.get_assignments_for_course(cid, visible_only=False)
@@ -39,7 +44,7 @@ class StaffRoutes:
         @auth.require_auth
         def staff_get_assignment(netid, cid, aid):
             if not verify_staff(netid, cid):
-                return abort(403)
+                return abort(HTTPStatus.FORBIDDEN)
 
             course = db.get_course(cid)
             assignment = db.get_assignment(cid, aid)
@@ -54,7 +59,7 @@ class StaffRoutes:
         @auth.require_auth
         def staff_get_assignment_config(netid, cid, aid):
             if not verify_staff(netid, cid):
-                return abort(403)
+                return abort(HTTPStatus.FORBIDDEN)
 
             config = bw_api.get_assignment_config(cid, aid)
 
@@ -67,31 +72,31 @@ class StaffRoutes:
         @auth.require_auth
         def staff_get_run_status(netid, cid, aid, run_id):
             if not verify_staff(netid, cid):
-                return abort(403)
+                return abort(HTTPStatus.FORBIDDEN)
 
             status = bw_api.get_grading_run_status(cid, run_id)
             if status:
-                return status, 200
+                return util.success(status, HTTPStatus.OK)
             return util.error("")
 
         @blueprint.route("/staff/course/<cid>/<aid>/<run_id>/log/", methods=["GET"])
         @auth.require_auth
         def staff_get_run_log(netid, cid, aid, run_id):
             if not verify_staff(netid, cid):
-                return abort(403)
+                return abort(HTTPStatus.FORBIDDEN)
 
             log = bw_api.get_grading_run_log(cid, run_id)
             if log:
-                return jsonify(log), 200
+                return util.success(jsonify(log), HTTPStatus.OK)
             return util.error("")
 
         @blueprint.route("/staff/course/<cid>/workers/", methods=["GET"])
         @auth.require_auth
         def staff_get_workers(netid, cid):
             if not verify_staff(netid, cid):
-                return abort(403)
+                return abort(HTTPStatus.FORBIDDEN)
 
             workers = bw_api.get_workers(cid)
             if workers:
-                return jsonify(workers), 200
+                return util.success(jsonify(workers), HTTPStatus.OK)
             return util.error("")

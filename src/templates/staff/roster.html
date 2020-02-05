@@ -14,7 +14,8 @@
       <div class="card">
         <div class="card-header">
           <h5 class="card-title mb-0"><i class="fas fa-user-tie"></i> Manage Staff
-            <a href="#" class="clickable fas fa-question-circle float-right text-secondary" data-toggle="popover" role="button"
+            <a href="#" class="clickable fas fa-question-circle float-right text-secondary" data-toggle="popover"
+               role="button"
                data-html="true" data-placement="bottom" data-trigger="focus" data-title="Legend" data-content="
                <p style='line-height: 2;' class='mb-0'>
                  <i class='fas fa-lg fa-trash-alt text-danger'></i>: delete a staff <br>
@@ -77,8 +78,8 @@
    */
   function updateStaffTable() {
     $.get("{{ url_for('.get_course_staff_roster', cid=course._id) }}", (data) => {
-      $("#staff-table").empty()
-      $(staff_alert).hide()
+      $("#staff-table").empty();
+      $(staff_alert).hide();
       // Add admins to table first
       let admin_ids = data.admin_ids;
       for (let i = 0; i < admin_ids.length; i++) {
@@ -113,11 +114,11 @@
         `)
       }
       // Add event listeners
-      $(".remove-staff").click(removeStaff)
-      $(".promote-staff").click(promoteStaff)
+      $(".remove-staff").click(removeStaff);
+      $(".promote-staff").click(promoteStaff);
       $(".demote-admin").click(demoteAdmin)
     }).fail((jqXHR) => {
-      console.log(jqXHR)
+      console.log(jqXHR);
       showError("Something went wrong, please refresh the page.", staff_alert)
     })
   }
@@ -127,8 +128,8 @@
    */
   function updateStudentTable() {
     $.get("{{ url_for('.get_course_student_roster', cid=course._id) }}", (students) => {
-      $("#student-table").empty()
-      $(student_alert).hide()
+      $("#student-table").empty();
+      $(student_alert).hide();
       for (let i = 0; i < students.length; i++) {
         let firstItemOnlyClass = i === 0 ? 'border-top-0' : '';
         $("#student-table").append(`
@@ -139,11 +140,11 @@
           </li>
         `)
       }
-      $(".remove-student").click(removeStudent)
+      $(".remove-student").click(removeStudent);
       // update the "global" array for search
       student_ids = students
     }).fail((jqXHR) => {
-      console.log(jqXHR)
+      console.log(jqXHR);
       showError("Something went wrong, please refresh the page.", student_alert)
     })
   }
@@ -164,16 +165,16 @@
    * @param alert_selector The alert selector in case an error occurs
    * @param callback The function to call after success. Usually to update table
    */
-  function addStuff(input_selector, url, alert_selector, callback) {
-    var netid = $(input_selector).val()
+  function addToRoster(input_selector, url, alert_selector, callback) {
+    var netid = $(input_selector).val();
     if (!netid) {
       return
     }
     var data = {
       "netid": netid,
-    }
+    };
     $.post(url, data, () => {
-      $(input_selector).val("")
+      $(input_selector).val("");
       callback();
     }).fail((jqXHR) => {
       showError(jqXHR.responseText, alert_selector)
@@ -181,11 +182,11 @@
   }
 
   function addStaff() {
-    addStuff("#staff-id", "{{ url_for('.add_course_staff', cid=course._id) }}", staff_alert, updateStaffTable)
+    addToRoster("#staff-id", "{{ url_for('.add_course_staff', cid=course._id) }}", staff_alert, updateStaffTable)
   }
 
   function addStudent() {
-    addStuff("#student-id", "{{ url_for('.add_course_student', cid=course._id) }}", student_alert, updateStudentTable)
+    addToRoster("#student-id", "{{ url_for('.add_course_student', cid=course._id) }}", student_alert, updateStudentTable)
   }
 
   /**
@@ -198,7 +199,7 @@
   function modifyStuff(target, url, alert_selector, callback) {
     var data = {
       "netid": $(target).data("netid"),
-    }
+    };
     $.post(url, data, () => {
       callback();
     }).fail((jqXHR) => {
@@ -223,22 +224,22 @@
   }
 
   $(() => {
-    updateStaffTable()
-    updateStudentTable()
-    $("#add-staff").click(addStaff)
-    $("#add-student").click(addStudent)
-    $('[data-toggle="popover"]').popover()
+    updateStaffTable();
+    updateStudentTable();
+    $("#add-staff").click(addStaff);
+    $("#add-student").click(addStudent);
+    $('[data-toggle="popover"]').popover();
 
     // modify behavior when user press enter
-    $(window).keydown(function(event){
-      if(event.keyCode === 13) {
+    $(window).keydown(function (event) {
+      if (event.keyCode === 13) {
         event.preventDefault();
         switch (event.target.id) {
           case "student-id":
-            $("#add-student").click()
+            $("#add-student").click();
             break;
           case "staff-id":
-            $("#add-staff").click()
+            $("#add-staff").click();
             break;
         }
         return false;

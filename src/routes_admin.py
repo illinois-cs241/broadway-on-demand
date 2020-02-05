@@ -1,14 +1,20 @@
 from flask import render_template, abort, request, jsonify
+from http import HTTPStatus
 import json
 
 from src import db, util, auth, bw_api
 from src.common import verify_staff, verify_admin, verify_student
 
+MIN_PREDEADLINE_RUNS = 1  # Minimum pre-deadline runs for every assignment
 
 
 class AdminRoutes:
     def __init__(self, blueprint):
         def none_modified(result):
+            """
+            Return true if the database was NOT modified as a result of the API call.
+            :param result: A WriteResult returned by mongo db update calls
+            """
             return result["nModified"] == 0
 
         @blueprint.route("/staff/course/<cid>/roster", methods=["GET"])
@@ -39,7 +45,7 @@ class AdminRoutes:
             new_staff_id = request.form.get('netid')
             if new_staff_id is None:
                 return util.error("Cannot find netid field")
-            result = db.add_staff_to_course(cid, new_staff_id)
+            result = db.add_staff_to_course(cid, str(new_staff_id))
             if none_modified(result):
                 return util.error(f"'{new_staff_id}' is already a course staff")
             return util.success(f"Successfully added {new_staff_id}")
@@ -83,7 +89,7 @@ class AdminRoutes:
             new_student_id = request.form.get('netid')
             if new_student_id is None:
                 return util.error("Cannot find netid field")
-            result = db.add_student_to_course(cid, new_student_id)
+            result = db.add_student_to_course(cid, str(new_student_id))
             if none_modified(result):
                 return util.error(f"'{new_student_id}' is already a student")
             return util.success(f"Successfully added {new_student_id}")
@@ -116,8 +122,8 @@ class AdminRoutes:
 
             try:
                 max_runs = int(request.form["max_runs"])
-                if max_runs < 1:
-                    return util.error("Max Runs must be a positive integer.")
+                if max_runs < MIN_PREDEADLINE_RUNS:
+                    return util.error(f"Max Runs must be at least {MIN_PREDEADLINE_RUNS}.")
             except ValueError:
                 return util.error("Max Runs must be a positive integer.")
 
@@ -137,14 +143,14 @@ class AdminRoutes:
                 msg = bw_api.set_assignment_config(cid, aid, config)
 
                 if msg:
-                    return util.error("Failed to add assignment to Broadway: {}".format(msg))
+                    return util.error(f"Failed to add assignment to Broadway: {msg}")
             except json.decoder.JSONDecodeError:
                 return util.error("Failed to decode config JSON")
 
             visibility = request.form["visibility"] == "visible"
 
             db.add_assignment(cid, aid, max_runs, quota, start, end, visibility)
-            return "", 204
+            return util.success("")
 
         @blueprint.route("/staff/course/<cid>/<aid>/edit/", methods=["POST"])
         @auth.require_auth
@@ -153,7 +159,7 @@ class AdminRoutes:
             course = db.get_course(cid)
             assignment = db.get_assignment(cid, aid)
             if course is None or assignment is None:
-                return abort(404)
+                return abort(HTTPStatus.NOT_FOUND)
 
             missing = util.check_missing_fields(request.form, *["max_runs", "quota", "start", "end", "visibility"])
             if missing:
@@ -161,8 +167,8 @@ class AdminRoutes:
 
             try:
                 max_runs = int(request.form["max_runs"])
-                if max_runs < 1:
-                    return util.error("Max Runs must be a positive integer.")
+                if max_runs < MIN_PREDEADLINE_RUNS:
+                    return util.error(f"Max Runs must be at least {MIN_PREDEADLINE_RUNS}.")
             except ValueError:
                 return util.error("Max Runs must be a positive integer.")
 
@@ -185,7 +191,7 @@ class AdminRoutes:
                     msg = bw_api.set_assignment_config(cid, aid, config)
 
                     if msg:
-                        return util.error("Failed to add assignment to Broadway: {}".format(msg))
+                        return util.error(f"Failed to add assignment to Broadway: {msg}")
             except json.decoder.JSONDecodeError:
                 return util.error("Failed to decode config JSON")
 
@@ -193,7 +199,7 @@ class AdminRoutes:
 
             if not db.update_assignment(cid, aid, max_runs, quota, start, end, visibility):
                 return util.error("Save failed or no changes were made.")
-            return "", 204
+            return util.success("")
 
         @blueprint.route("/staff/course/<cid>/<aid>/extensions/", methods=["GET"])
         @auth.require_auth
@@ -202,7 +208,7 @@ class AdminRoutes:
             extensions = list(db.get_extensions(cid, aid))
             for ext in extensions:
                 ext["_id"] = str(ext["_id"])
-            return jsonify(extensions), 200
+            return util.success(jsonify(extensions), HTTPStatus.OK)
 
         @blueprint.route("/staff/course/<cid>/<aid>/extensions/", methods=["POST"])
         @auth.require_auth

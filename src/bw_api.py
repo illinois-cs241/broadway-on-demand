@@ -1,5 +1,6 @@
 import logging
 import requests
+from http import HTTPStatus
 
 from ansi2html import Ansi2HTMLConverter
 from json.decoder import JSONDecodeError
@@ -73,7 +74,7 @@ def get_assignment_config(cid, aid):
 	try:
 		resp = requests.get(url="%s/grading_config/%s/%s" % (BROADWAY_API_URL, cid, aid), headers=HEADERS)
 
-		if resp.status_code == 200:
+		if resp.status_code == HTTPStatus.OK:
 			ret_data = resp.json()
 			return ret_data["data"]
 	except Exception as e:
@@ -94,7 +95,7 @@ def set_assignment_config(cid, aid, config):
 		resp = requests.post(url="%s/grading_config/%s/%s" % (BROADWAY_API_URL, cid, aid), headers=HEADERS,
 							 json=config)
 
-		if resp.status_code != 200:
+		if resp.status_code != HTTPStatus.OK:
 			ret_data = resp.json()
 
 			if isinstance(ret_data["data"], str):
