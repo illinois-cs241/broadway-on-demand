@@ -111,7 +111,7 @@ class AdminRoutes:
             missing = util.check_missing_fields(request.form,
                                                 *["max_runs", "quota", "start", "end", "config", "visibility"])
             if missing:
-                return util.error("Missing fields (%s)." % (", ".join(missing)))
+                return util.error(f"Missing fields ({', '.join(missing)}).")
 
             if not util.valid_id(aid):
                 return util.error("Invalid Assignment ID. Allowed characters: a-z A-Z _ - .")
@@ -163,7 +163,7 @@ class AdminRoutes:
 
             missing = util.check_missing_fields(request.form, *["max_runs", "quota", "start", "end", "visibility"])
             if missing:
-                return util.error("Missing fields (%s)." % (", ".join(missing)))
+                return util.error(f"Missing fields ({', '.join(missing)}).")
 
             try:
                 max_runs = int(request.form["max_runs"])
@@ -224,7 +224,7 @@ class AdminRoutes:
             student_netids = request.form["netids"].replace(" ", "").split(",")
             for student_netid in student_netids:
                 if not util.valid_id(student_netid) or not verify_student(student_netid, cid):
-                    return util.error("Invalid or non-existent student NetID: %s" % student_netid)
+                    return util.error(f"Invalid or non-existent student NetID: {student_netid}")
 
             try:
                 max_runs = int(request.form["max_runs"])

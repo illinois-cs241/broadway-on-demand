@@ -8,7 +8,7 @@ from json.decoder import JSONDecodeError
 from config import BROADWAY_API_TOKEN, BROADWAY_API_URL
 from src.util import timestamp_to_bw_api_format
 
-HEADERS = {"Authorization": "Bearer %s" % BROADWAY_API_TOKEN}
+HEADERS = {"Authorization": f"Bearer {BROADWAY_API_TOKEN}" }
 
 
 def start_grading_run(cid, aid, netid, timestamp):
@@ -27,17 +27,17 @@ def start_grading_run(cid, aid, netid, timestamp):
 		}]
 	}
 	try:
-		resp = requests.post(url="%s/grading_run/%s/%s" % (BROADWAY_API_URL, cid, aid), headers=HEADERS, json=data)
+		resp = requests.post(url=f"{BROADWAY_API_URL}/grading_run/{cid}/{aid}", headers=HEADERS, json=data)
 		run_id = resp.json()["data"]["grading_run_id"]
 		return run_id
 	except requests.exceptions.RequestException as e:
-		logging.error("start_grading_run(cid={}, aid={}, netid={}): {}".format(cid, aid, netid, repr(e)))
+		logging.error(f"start_grading_run(cid={cid}, aid={aid}, netid={netid}): {repr(e)}")
 		return None
 	except KeyError as e:
-		logging.error("start_grading_run(cid={}, aid={}, netid={}): {}".format(cid, aid, netid, repr(e)))
+		logging.error(f"start_grading_run(cid={cid}, aid={aid}, netid={netid}): {repr(e)}")
 		return None
 	except JSONDecodeError as e:
-		logging.error("start_grading_run(cid={}, aid={}, netid={}): {}".format(cid, aid, netid, repr(e)))
+		logging.error(f"start_grading_run(cid={cid}, aid={aid}, netid={netid}): {repr(e)}")
 		return None
 
 
@@ -50,17 +50,17 @@ def get_grading_run_status(cid, run_id):
 	:return: a status string if successful, or None otherwise.
 	"""
 	try:
-		resp = requests.get(url="%s/grading_run_status/%s/%s" % (BROADWAY_API_URL, cid, run_id), headers=HEADERS)
+		resp = requests.get(url=f"{BROADWAY_API_URL}/grading_run_status/{cid}/{run_id}", headers=HEADERS)
 		student_jobs_dict = resp.json()["data"]["student_jobs_state"]
 		return list(student_jobs_dict.values())[0]
 	except requests.exceptions.RequestException as e:
-		logging.error("get_grading_run_status(cid={}, run_id={}): {}".format(cid, run_id, repr(e)))
+		logging.error(f"get_grading_run_status(cid={cid}, run_id={run_id}): {repr(e)}")
 		return None
 	except KeyError as e:
-		logging.error("get_grading_run_status(cid={}, run_id={}): {}".format(cid, run_id, repr(e)))
+		logging.error(f"get_grading_run_status(cid={cid}, run_id={run_id}): {repr(e)}")
 		return None
 	except JSONDecodeError as e:
-		logging.error("get_grading_run_status(cid={}, run_id={}): {}".format(cid, run_id, repr(e)))
+		logging.error(f"get_grading_run_status(cid={cid}, run_id={run_id}): {repr(e)}")
 		return None
 
 
@@ -72,13 +72,13 @@ def get_assignment_config(cid, aid):
 	"""
 
 	try:
-		resp = requests.get(url="%s/grading_config/%s/%s" % (BROADWAY_API_URL, cid, aid), headers=HEADERS)
+		resp = requests.get(url=f"{BROADWAY_API_URL}/grading_config/{cid}/{aid}", headers=HEADERS)
 
 		if resp.status_code == HTTPStatus.OK:
 			ret_data = resp.json()
 			return ret_data["data"]
 	except Exception as e:
-		logging.error("get_assignment_config(cid={}, aid={}): {}".format(cid, aid, repr(e)))
+		logging.error(f"get_assignment_config(cid={cid}, aid={aid}): {repr(e)}")
 
 	return None
 
@@ -92,8 +92,7 @@ def set_assignment_config(cid, aid, config):
 	"""
 
 	try:
-		resp = requests.post(url="%s/grading_config/%s/%s" % (BROADWAY_API_URL, cid, aid), headers=HEADERS,
-							 json=config)
+		resp = requests.post(url=f"{BROADWAY_API_URL}/grading_config/{cid}/{aid}", headers=HEADERS, json=config)
 
 		if resp.status_code != HTTPStatus.OK:
 			ret_data = resp.json()
@@ -103,28 +102,28 @@ def set_assignment_config(cid, aid, config):
 			else:
 				msg = ret_data["data"]["message"]
 
-			return "{}: {}".format(resp.status_code, msg)
+			return f"{resp.status_code}: {msg}"
 
 		return None
 	except Exception as e:
-		logging.error("set_assignment_config(cid={}, aid={}, config={}): {}".format(cid, aid, config, repr(e)))
+		logging.error(f"set_assignment_config(cid={cid}, aid={aid}, config={config}): {repr(e)}")
 		return "Failed to decode server response"
 
 
 def get_grading_run_job_id(cid, run_id):
 	try:
-		resp = requests.get(url="%s/grading_run_status/%s/%s" % (BROADWAY_API_URL, cid, run_id), headers=HEADERS)
+		resp = requests.get(url=f"{BROADWAY_API_URL}/grading_run_status/{cid}/{run_id}", headers=HEADERS)
 		student_jobs_dict = resp.json()["data"]["student_jobs_state"]
 		# TODO: might return an empty dict
 		return list(student_jobs_dict.keys())[0]
 	except Exception as e:
-		logging.error("get_grading_run_job_id(cid={}, run_id={}): {}".format(cid, run_id, repr(e)))
+		logging.error(f"get_grading_run_job_id(cid={cid}, run_id={run_id}): {repr(e)}")
 		return None
 
 
 def get_grading_job_log(cid, job_id):
 	try:
-		resp = requests.get(url="%s/grading_job_log/%s/%s" % (BROADWAY_API_URL, cid, job_id), headers=HEADERS)
+		resp = requests.get(url=f"{BROADWAY_API_URL}/grading_job_log/{cid}/{job_id}", headers=HEADERS)
 		log = resp.json()["data"]
 		if log:
 			converter = Ansi2HTMLConverter()
@@ -132,7 +131,7 @@ def get_grading_job_log(cid, job_id):
 			log["stderr"] = converter.convert(log.get("stderr"), full=False)
 		return log
 	except Exception as e:
-		logging.error("get_grading_job_log(cid={}, job_id={}): {}".format(cid, job_id, repr(e)))
+		logging.error(f"get_grading_job_log(cid={cid}, job_id={job_id}): {repr(e)}")
 		return None
 
 
@@ -146,8 +145,8 @@ def get_grading_run_log(cid, run_id):
 
 def get_workers(cid):
 	try:
-		resp = requests.get(url="%s/worker/%s/all" % (BROADWAY_API_URL, cid), headers=HEADERS)
+		resp = requests.get(url=f"{BROADWAY_API_URL}/worker/{cid}/all", headers=HEADERS)
 		return resp.json()["data"]["worker_nodes"]
 	except Exception as e:
-		logging.error("get_workers(cid={}): {}".format(cid, repr(e)))
+		logging.error(f"get_workers(cid={cid}): {repr(e)}")
 		return None
