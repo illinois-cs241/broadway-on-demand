@@ -70,8 +70,8 @@
         function do_post() {
             $.ajax({
                 type: "POST",
-                url: "{{ url_for('.staff_get_course', cid=course._id) }}" + aid + '/',
-                data: {max_runs: maxRuns, quota: quota, start: start, end: end, visibility: visibility, config: config},
+                url: "{{ url_for('.add_assignment', cid=course._id) }}",
+                data: {aid: aid, max_runs: maxRuns, quota: quota, start: start, end: end, visibility: visibility, config: config},
                 beforeSend: function () {
                     $('#mdl-add-assn-error').html('').fadeOut();
                     $('#mdl-add-assn-save .loader').addClass("fa-spin");

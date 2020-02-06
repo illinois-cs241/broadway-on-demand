@@ -104,15 +104,16 @@ class AdminRoutes:
                 return util.error(f"'{netid}' is not a student")
             return util.success(f"Successfully removed '{netid}'")
 
-        @blueprint.route("/staff/course/<cid>/<aid>/", methods=["POST"])
+        @blueprint.route("/staff/course/<cid>/add_assignment/", methods=["POST"])
         @auth.require_auth
         @auth.require_admin_status
-        def staff_add_assignment(netid, cid, aid):
+        def add_assignment(netid, cid):
             missing = util.check_missing_fields(request.form,
-                                                *["max_runs", "quota", "start", "end", "config", "visibility"])
+                                                *["aid", "max_runs", "quota", "start", "end", "config", "visibility"])
             if missing:
                 return util.error(f"Missing fields ({', '.join(missing)}).")
 
+            aid = request.form["aid"]
             if not util.valid_id(aid):
                 return util.error("Invalid Assignment ID. Allowed characters: a-z A-Z _ - .")
 
@@ -155,7 +156,7 @@ class AdminRoutes:
         @blueprint.route("/staff/course/<cid>/<aid>/edit/", methods=["POST"])
         @auth.require_auth
         @auth.require_admin_status
-        def staff_edit_assignment(netid, cid, aid):
+        def edit_assignment(netid, cid, aid):
             course = db.get_course(cid)
             assignment = db.get_assignment(cid, aid)
             if course is None or assignment is None:
