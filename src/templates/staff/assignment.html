@@ -22,7 +22,7 @@
             editAssnErr("Start and End are required.");
             return;
         }
-        
+
         let config = undefined;
         let old = $('#mdl-edit-assn-config').data("old-config");
 
@@ -43,7 +43,7 @@
 
         $.ajax({
             type: "POST",
-            url: "{{ url_for('.staff_edit_assignment', cid=course._id, aid=assignment.assignment_id) }}",
+            url: "{{ url_for('.edit_assignment', cid=course._id, aid=assignment.assignment_id) }}",
             data: {max_runs: maxRuns, quota: quota, start: start, end: end, visibility: visibility, config: config},
             beforeSend: function () {
                 $('#mdl-edit-assn-error').html('').fadeOut();
@@ -65,7 +65,7 @@
             }
         })
     }
-    
+
     function addExtErr(msg) {
         $('#mdl-add-ext-error').html(msg).show();
     }
@@ -165,7 +165,7 @@
             }
         });
     }
-  
+
     function getRunLog(runId) {
         $('#mdl-view-log-stderr').html('');
         $('#mdl-view-log-stdout').html('');
@@ -252,7 +252,7 @@
                 <div class="card">
                     <div class="card-body">
                         <h5 class="card-title">Assignment actions</h5>
-                        
+
                         <button type="button" class="btn btn-outline-primary mt-3" data-toggle="modal" data-target="#mdl-edit-assn" onclick="loadOriginalConfig();">
                             <i class="fas fa-pen"></i> Edit assignment
                         </button>
@@ -308,7 +308,7 @@
                                             <div class="form-group">
                                                 <label for="start">Configuration</label>
                                                 <div>
-                                                    
+
                                                     <textarea type="text" class="form-control" id="mdl-edit-assn-config" name="config" rows="5" style="font-family: monospace;"></textarea>
                                                 </div>
                                             </div>

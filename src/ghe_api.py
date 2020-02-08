@@ -1,5 +1,6 @@
 import logging
 import requests
+from http import HTTPStatus
 from datetime import datetime as dt
 
 from config import (
@@ -51,7 +52,7 @@ def get_latest_commit(netid, access_token, course):
 	except requests.exceptions.RequestException as ex:
 		logger.error("Failed to fetch release commits\n{}".format(str(ex)))
 		return latest_commit
-	if release_commits_result.status_code != 200:
+	if release_commits_result.status_code != HTTPStatus.OK:
 		logger.error("Failed to fetch release commits\n{}".format(release_commits_result.text))
 		return latest_commit
 
@@ -70,13 +71,13 @@ def get_latest_commit(netid, access_token, course):
 	except requests.exceptions.RequestException as ex:
 		logger.error("Failed to fetch student commits\n{}".format(str(ex)))
 		return latest_commit
-	if response.status_code == 404 or response.status_code == 409:
+	if response.status_code == HTTPStatus.NOT_FOUND or response.status_code == HTTPStatus.CONFLICT:
 		# failure due to student error
 		latest_commit["message"] = (
 			"No commits found. Is your repo configured properly?"
 		)
 		return latest_commit
-	if response.status_code != 200:
+	if response.status_code != HTTPStatus.OK:
 		logger.error("Failed to fetch latest commit for %s:\n%s", netid, response.text)
 		return latest_commit
 

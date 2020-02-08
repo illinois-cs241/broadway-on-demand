@@ -53,6 +53,35 @@ def get_course(cid):
 	return mongo.db.courses.find_one({"_id": cid})
 
 
+def add_staff_to_course(cid, new_staff_id):
+	return mongo.db.courses.update({"_id": cid}, {"$addToSet": {"staff_ids": new_staff_id }})
+
+
+def remove_staff_from_course(cid, staff_id):
+	return mongo.db.courses.update({"_id": cid}, {
+		"$pull": {
+			"staff_ids": staff_id,
+			"admin_ids": staff_id,
+		}
+	})
+
+
+def add_student_to_course(cid, new_student_id):
+	return mongo.db.courses.update({"_id": cid}, {"$addToSet": {"student_ids": new_student_id }})
+
+
+def remove_student_from_course(cid, student_id):
+	return mongo.db.courses.update({"_id": cid}, {"$pull": {"student_ids": student_id}})
+
+
+def add_admin_to_course(cid, staff_id):
+	return mongo.db.courses.update({"_id": cid}, {"$addToSet": {"admin_ids": staff_id}})
+
+
+def remove_admin_from_course(cid, staff_id):
+	return mongo.db.courses.update({"_id": cid}, {"$pull": {"admin_ids": staff_id}})
+
+
 def get_assignments_for_course(cid, visible_only=True):
 	if visible_only:
 		return list(mongo.db.assignments.find({"course_id": cid, "visibility": True}))

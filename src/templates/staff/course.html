@@ -70,8 +70,8 @@
         function do_post() {
             $.ajax({
                 type: "POST",
-                url: "{{ url_for('.staff_get_course', cid=course._id) }}" + aid + '/',
-                data: {max_runs: maxRuns, quota: quota, start: start, end: end, visibility: visibility, config: config},
+                url: "{{ url_for('.add_assignment', cid=course._id) }}",
+                data: {aid: aid, max_runs: maxRuns, quota: quota, start: start, end: end, visibility: visibility, config: config},
                 beforeSend: function () {
                     $('#mdl-add-assn-error').html('').fadeOut();
                     $('#mdl-add-assn-save .loader').addClass("fa-spin");
@@ -101,7 +101,7 @@
             e.preventDefault();
             e.stopPropagation();
         });
-        
+
         $('#mdl-add-assn-config-upload-box').on("dragover", function (e) {
             $(this).addClass("on-drag");
         }).on("dragleave drop", function (e) {
@@ -118,7 +118,7 @@
                 $('#mdl-add-assn-config-upload-box').text("Please drop files");
             }
         });
-        
+
         $('#mdl-add-assn-config-upload-box').on("click", function () {
             $('#mdl-add-assn-config-upload').click();
         });
@@ -201,12 +201,11 @@
             </table>
             <div class="text-secondary"> All times in {{ tzname }}</div>
         </div>
-        {% if is_admin %}
-            <div class="col-md-6 col-lg-4 col-xl-3">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">Course actions</h5>
-
+        <div class="col-md-6 col-lg-4 col-xl-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Course actions</h5>
+                    {% if is_admin %}
                         <button type="button" class="btn btn-outline-primary mt-3" data-toggle="modal" data-target="#mdl-add-assn">
                             <i class="fas fa-calendar-plus"></i> Add assignment
                         </button>
@@ -292,34 +291,39 @@
                                 </div>
                             </div>
                         </div>
+                        <a href="{{ url_for('.get_course_roster_page', cid=course._id) }}">
+                            <button type="button" class="btn btn-outline-primary mt-3">
+                                <i class="fas fa-table"></i> Modify roster
+                            </button>
+                        </a>
+                    {% endif %}
 
-                        <button type="button" class="btn btn-outline-primary mt-3" data-toggle="modal" data-target="#mdl-worker-status" onclick="viewWorkerStatus()">
-                            <i class="fas fa-server"></i> Worker status
-                        </button>
-                        <div class="modal fade" id="mdl-worker-status" tabindex="-1" role="dialog" aria-labelledby="mdl-worker-status-label" aria-hidden="true">
-                            <div class="modal-dialog" role="document">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title" id="mdl-view-worker-status-label">Worker status</h5>
-                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                            <span aria-hidden="true">&times;</span>
-                                        </button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <div class="table-responsive">
-                                            <table class="table table-fit table-hover">
-                                                <thead>
-                                                <tr>
-                                                    <th scope="col">Host</th>
-                                                    <th scope="col">Jobs Processed</th>
-                                                    <th scope="col">Alive</th>
-                                                    <th scope="col">Busy</th>
-                                                </tr>
-                                                </thead>
-                                                <tbody id="mdl-worker-status-body">
-                                                </tbody>
-                                            </table>
-                                        </div>
+                    <button type="button" class="btn btn-outline-primary mt-3" data-toggle="modal" data-target="#mdl-worker-status" onclick="viewWorkerStatus()">
+                        <i class="fas fa-server"></i> Worker status
+                    </button>
+                    <div class="modal fade" id="mdl-worker-status" tabindex="-1" role="dialog" aria-labelledby="mdl-worker-status-label" aria-hidden="true">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="mdl-view-worker-status-label">Worker status</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-fit table-hover">
+                                            <thead>
+                                            <tr>
+                                                <th scope="col">Host</th>
+                                                <th scope="col">Jobs Processed</th>
+                                                <th scope="col">Alive</th>
+                                                <th scope="col">Busy</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody id="mdl-worker-status-body">
+                                            </tbody>
+                                        </table>
                                     </div>
                                 </div>
                             </div>
@@ -327,7 +331,7 @@
                     </div>
                 </div>
             </div>
-        {% endif %}
+        </div>
     </div>
 </div>
 {% include 'footer.html' %}
