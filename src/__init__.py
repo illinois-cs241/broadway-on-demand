@@ -55,6 +55,7 @@ def login_as():
 	"""
 	if app.config['ENV'] != "development":
 		return abort(HTTPStatus.FORBIDDEN)
+
 	path = request.args.get("path")
 	if not path or url_parse(path).netloc != "":
 		path = url_for(".root")

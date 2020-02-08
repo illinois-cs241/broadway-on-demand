@@ -66,6 +66,10 @@ table.table-fit {
     width: auto !important;
 }
 
+tr.assignment-no-runs {
+    background-color: rgb(247, 247, 247);
+}
+
 .file-drop-box {
     padding: 2em;
     border: 2px dashed rgba(0, 0, 0, 0.2);
