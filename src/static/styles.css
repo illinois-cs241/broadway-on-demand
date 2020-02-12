@@ -87,6 +87,10 @@ table.table-fit {
     color: rgba(0, 0, 0, 0.5);
 }
 
+.file-drop-box.on-full {
+    color: rgba(0, 0, 0, 0.7);
+}
+
 /* ansi2html styling */
 
 .ansi2html-content { display: inline; white-space: pre-wrap; word-wrap: break-word; }

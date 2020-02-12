@@ -82,6 +82,10 @@ def remove_admin_from_course(cid, staff_id):
 	return mongo.db.courses.update({"_id": cid}, {"$pull": {"admin_ids": staff_id}})
 
 
+def overwrite_student_roster(cid, student_ids):
+	return mongo.db.courses.update({"_id": cid}, {"$set": {"student_ids": student_ids}})
+
+
 def get_assignments_for_course(cid, visible_only=True):
 	if visible_only:
 		return list(mongo.db.assignments.find({"course_id": cid, "visibility": True}))
