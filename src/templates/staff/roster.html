@@ -48,6 +48,10 @@
       <div class="card">
         <div class="card-header">
           <h5 class="card-title mb-0 d-inline"><i class="fas fa-users"></i> Manage Student</h5>
+          <button class="btn btn-outline-secondary btn-sm float-right" data-toggle="modal"
+                  data-target="#uploadRosterModal">
+            <i class="fas fa-file-upload"></i> Upload File
+          </button>
         </div>
         <div class="card-body px-md-4">
           <div class="form-group">
@@ -66,10 +70,41 @@
     </div>
   </div>
 </div>
-<script type="text/javascript">
+<div class="modal fade" id="uploadRosterModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Upload Roster File</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>
+          Upload a <b>.txt</b> file that contains <b>newline separated NetIDs</b>.
+        </p>
+        <div id="roster-upload-box" class="file-drop-box mb-1" draggable="true">
+          Drag & drop or click to upload
+        </div>
+        <input type="file" id="roster-upload" accept="text/plain" class="form-control-file" style="display: none;">
+        <small class="text-danger">Warning: This upload will replace all current students.<br></small>
+        <small class="text-danger" id="roster-error" style="display: none;">Error!</small>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" id="upload-roster-btn">
+          <span class="fa fa-cog loader mr-1" id="roster-spinner"></span>
+          Upload
+        </button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="{{ url_for('static', filename='file_drag_drop_upload.js') }}"></script>
+<script>
   const staff_alert = "#add-staff-error";
   const student_alert = "#add-student-error";
-  let student_ids = undefined;
+  const roster_alert = "#roster-error";
 
   /**
    * This function updates the staff table. It first get all admin_ids and
@@ -141,11 +176,9 @@
         `)
       }
       $(".remove-student").click(removeStudent);
-      // update the "global" array for search
-      student_ids = students
     }).fail((jqXHR) => {
       console.log(jqXHR);
-      showError("Something went wrong, please refresh the page.", student_alert)
+      showError("Something went wrong, please refresh the page.", student_alert);
     })
   }
 
@@ -155,7 +188,7 @@
    * @param alert_selector The HTML element selector to show the error
    */
   function showError(msg, alert_selector) {
-    $(alert_selector).text(msg).show()
+    $(alert_selector).text("Error: " + msg).show();
   }
 
   /**
@@ -168,7 +201,7 @@
   function addToRoster(input_selector, url, alert_selector, callback) {
     var netid = $(input_selector).val();
     if (!netid) {
-      return
+      return;
     }
     var data = {
       "netid": netid,
@@ -223,11 +256,52 @@
     modifyStuff(event.target, "{{ url_for('.remove_course_student', cid=course._id) }}", student_alert, updateStudentTable)
   }
 
+  function uploadRoster() {
+    if (!get_file()) {
+      showError("No file selected.", roster_alert);
+      return;
+    }
+
+    if (!FileReader) {
+      showError("Browser doesn't support file upload.", roster_alert);
+    } else {
+      let reader = new FileReader();
+
+      reader.onload = function () {
+        if (reader.result === null) {
+          showError("Read file failed, please try again", roster_alert);
+        } else {
+          postRoster(reader.result);
+        }
+      };
+
+      reader.readAsText(get_file());
+
+      $('#roster-spinner').addClass("fa-spin");
+    }
+  }
+
+  function postRoster(file_content) {
+    let data = {
+      'content': file_content
+    };
+    $.post('{{ url_for('.upload_roster_file', cid=course._id) }}', data, () => {
+      location.reload();
+    }).fail((jqXHR) => {
+      showError(jqXHR.responseText, roster_alert);
+    }).always(() => {
+      $('#roster-spinner').removeClass("fa-spin");
+    });
+  }
+
+  var get_file = undefined;
+
   $(() => {
     updateStaffTable();
     updateStudentTable();
     $("#add-staff").click(addStaff);
     $("#add-student").click(addStudent);
+    $("#upload-roster-btn").click(uploadRoster);
     $('[data-toggle="popover"]').popover();
 
     // modify behavior when user press enter
@@ -244,6 +318,12 @@
         }
         return false;
       }
+    });
+
+    get_file = fileDragDrop('#roster-upload-box', '#roster-upload', '.txt');
+
+    $("#roster-upload-box").on("drag dragstart dragend dragover dragenter dragleave drop click", () => {
+      $(roster_alert).hide();
     });
   })
 </script>

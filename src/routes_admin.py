@@ -1,6 +1,6 @@
 from flask import render_template, abort, request, jsonify
 from http import HTTPStatus
-import json
+import json, re
 
 from src import db, util, auth, bw_api
 from src.common import verify_staff, verify_admin, verify_student
@@ -16,6 +16,13 @@ class AdminRoutes:
             :param result: A WriteResult returned by mongo db update calls
             """
             return result["nModified"] == 0
+
+        def is_valid_netid(netid):
+            """
+            Return true if the NetID passed in is a valid NetId
+            :param netid: A netid string to be tested
+            """
+            return re.fullmatch("[a-zA-Z0-9]+", netid) is not None
 
         @blueprint.route("/staff/course/<cid>/roster", methods=["GET"])
         @auth.require_auth
@@ -45,6 +52,8 @@ class AdminRoutes:
             new_staff_id = request.form.get('netid')
             if new_staff_id is None:
                 return util.error("Cannot find netid field")
+            if not is_valid_netid(new_staff_id):
+                return util.error(f"Poorly formatted NetID: '{new_staff_id}'")
             result = db.add_staff_to_course(cid, str(new_staff_id))
             if none_modified(result):
                 return util.error(f"'{new_staff_id}' is already a course staff")
@@ -89,6 +98,8 @@ class AdminRoutes:
             new_student_id = request.form.get('netid')
             if new_student_id is None:
                 return util.error("Cannot find netid field")
+            if not is_valid_netid(new_student_id):
+                return util.error(f"Poorly formatted NetID: '{new_student_id}'")
             result = db.add_student_to_course(cid, str(new_student_id))
             if none_modified(result):
                 return util.error(f"'{new_student_id}' is already a student")
@@ -98,11 +109,26 @@ class AdminRoutes:
         @auth.require_auth
         @auth.require_admin_status
         def remove_course_student(netid, cid):
-            netid = request.form.get('netid')
-            result = db.remove_student_from_course(cid, netid)
+            student_id = request.form.get('netid')
+            result = db.remove_student_from_course(cid, student_id)
             if none_modified(result):
-                return util.error(f"'{netid}' is not a student")
-            return util.success(f"Successfully removed '{netid}'")
+                return util.error(f"'{student_id}' is not a student")
+            return util.success(f"Successfully removed '{student_id}'")
+
+        @blueprint.route("/staff/course/<cid>/upload_roster_file", methods=["POST"])
+        @auth.require_auth
+        @auth.require_admin_status
+        def upload_roster_file(netid, cid):
+            file_content = request.form.get('content')
+            netids = file_content.strip().split('\n')
+            for i, student_id in enumerate(netids):
+                if not is_valid_netid(student_id):
+                    return util.error(f"Poorly formatted NetID on line {i + 1}: '{student_id}'")
+
+            result = db.overwrite_student_roster(cid, netids)
+            if none_modified(result):
+                return util.error("The new roster is the same as the current one.")
+            return util.success("Successfully updated roster.")
 
         @blueprint.route("/staff/course/<cid>/add_assignment/", methods=["POST"])
         @auth.require_auth
