@@ -11,9 +11,6 @@ DEV_MODE = False
 # Server time zone, used for displaying times and specifying due date for Broadway API.
 TZ = timezone("America/Chicago")
 
-# The base URL used for all routes in the app.
-BASE_URL = "/on-demand"
-
 # Flask-Session configuration. See https://pythonhosted.org/Flask-Session/
 SESSION_TYPE = "mongodb"
 SESSION_MONGODB = "localhost:27017"

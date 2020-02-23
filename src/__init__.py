@@ -20,7 +20,7 @@ app.jinja_env.globals['csrf_token'] = generate_csrf_token
 db.init(app)
 Session(app)
 
-blueprint = Blueprint('on-demand', __name__, url_prefix=BASE_URL)
+blueprint = Blueprint('on-demand', __name__)
 StudentRoutes(blueprint)
 StaffRoutes(blueprint)
 AdminRoutes(blueprint)
