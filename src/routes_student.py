@@ -25,7 +25,11 @@ class StudentRoutes:
 				return abort(HTTPStatus.FORBIDDEN)
 
 			course = db.get_course(cid)
-			assignments = db.get_assignments_for_course(cid)
+			if verify_staff(netid, cid):
+				assignments = db.get_assignments_for_course(cid)
+			else:
+				assignments = db.get_assignments_for_course(cid, visible_only=True)
+
 			now = util.now_timestamp()
 
 			for assignment in assignments:
@@ -39,7 +43,8 @@ class StudentRoutes:
 
 				assignment.update({"total_available_runs": total_available_runs})
 
-			return render_template("student/course.html", netid=netid, course=course, assignments=assignments, tzname=str(TZ))
+			return render_template("student/course.html", netid=netid, course=course, assignments=assignments, now=now,
+								   tzname=str(TZ))
 
 		@blueprint.route("/student/course/<cid>/<aid>/", methods=["GET"])
 		@util.disable_in_maintenance_mode

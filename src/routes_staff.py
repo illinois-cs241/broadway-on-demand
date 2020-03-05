@@ -35,10 +35,11 @@ class StaffRoutes:
                 return abort(HTTPStatus.FORBIDDEN)
 
             course = db.get_course(cid)
-            assignments = db.get_assignments_for_course(cid, visible_only=False)
+            assignments = db.get_assignments_for_course(cid)
             is_admin = verify_admin(netid, cid)
+            now = util.now_timestamp()
             return render_template("staff/course.html", netid=netid, course=course, assignments=assignments,
-                                   tzname=str(TZ), is_admin=is_admin, error=None)
+                                   tzname=str(TZ), is_admin=is_admin, now=now, visibility=db.Visibility, error=None)
 
         @blueprint.route("/staff/course/<cid>/<aid>/", methods=["GET"])
         @auth.require_auth
@@ -53,7 +54,7 @@ class StaffRoutes:
 
             return render_template("staff/assignment.html", netid=netid, course=course,
                                    assignment=assignment, student_runs=student_runs,
-                                   tzname=str(TZ), is_admin=is_admin)
+                                   tzname=str(TZ), is_admin=is_admin, visibility=db.Visibility)
 
         @blueprint.route("/staff/course/<cid>/<aid>/config", methods=["GET"])
         @auth.require_auth
