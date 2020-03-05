@@ -66,8 +66,12 @@ table.table-fit {
     width: auto !important;
 }
 
-tr.assignment-no-runs {
+tr.assignment-no-runs, tr.assignment-past-deadline {
     background-color: rgb(247, 247, 247);
+}
+
+tr.assignment-no-runs a {
+    color: slategray;
 }
 
 .file-drop-box {

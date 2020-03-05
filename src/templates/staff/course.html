@@ -152,8 +152,8 @@
                 </tr>
                 </thead>
                 <tbody>
-                {% for assignment in assignments %}
-                    <tr>
+                {% for assignment in assignments | sort(attribute='start') | reverse %}
+                    <tr {% if assignment.end < now %} class="assignment-past-deadline" {% endif %}>
                         <td><a href="{{ url_for('.staff_get_assignment', cid=course._id, aid=assignment.assignment_id) }}">{{ assignment.assignment_id }}</a></td>
                         <td>{{ assignment.max_runs }} ({{ assignment.quota }})</td>
                         <td>{{ assignment.start|fmt_timestamp }}</td>
@@ -218,12 +218,16 @@
                                             <div class="form-group">
                                                 <label class="form-check-label">Visibility</label><br>
                                                 <div class="form-check form-check-inline">
-                                                    <input class="form-check-input" type="radio" name="visibility" id="mdl-add-assn-visibility" value="hidden" checked>
-                                                    <label class="form-check-label" for="mdl-add-assn-visibility">Not visible</label>
+                                                    <input class="form-check-input" type="radio" name=visibility" id="mdl-add-assn-not-visible" value="{{ visibility.HIDDEN }}">
+                                                    <label class="form-check-label" for="mdl-add-assn-not-visible">Not visible</label>
                                                 </div>
                                                 <div class="form-check form-check-inline">
-                                                    <input class="form-check-input" type="radio" name="visibility" id="mdl-add-assn-visibility" value="visible">
-                                                    <label class="form-check-label" for="mdl-add-assn-visibility">Visible</label>
+                                                    <input class="form-check-input" type="radio" name="visibility" id="mdl-add-assn-visible" value="{{ visibility.VISIBLE }}">
+                                                    <label class="form-check-label" for="mdl-add-assn-visible">Visible</label>
+                                                </div>
+                                                <div class="form-check form-check-inline">
+                                                    <input class="form-check-input" type="radio" name="visibility" id="mdl-add-assn-visible-from-start-date" value="{{ visibility.VISIBLE_FROM_START }}" checked>
+                                                    <label class="form-check-label" for="mdl-add-assn-visible-from-start-date">Visible from start date</label>
                                                 </div>
                                             </div>
                                             <div class="form-group">

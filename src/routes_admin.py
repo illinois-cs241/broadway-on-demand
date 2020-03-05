@@ -174,7 +174,7 @@ class AdminRoutes:
             except json.decoder.JSONDecodeError:
                 return util.error("Failed to decode config JSON")
 
-            visibility = request.form["visibility"] == "visible"
+            visibility = request.form["visibility"]
 
             db.add_assignment(cid, aid, max_runs, quota, start, end, visibility)
             return util.success("")
@@ -222,7 +222,7 @@ class AdminRoutes:
             except json.decoder.JSONDecodeError:
                 return util.error("Failed to decode config JSON")
 
-            visibility = request.form["visibility"] == "visible"
+            visibility = request.form["visibility"]
 
             if not db.update_assignment(cid, aid, max_runs, quota, start, end, visibility):
                 return util.error("Save failed or no changes were made.")
