@@ -22,7 +22,7 @@ class AdminRoutes:
             Return true if the NetID passed in is a valid NetId
             :param netid: A netid string to be tested
             """
-            return re.fullmatch("[a-zA-Z0-9]+", netid) is not None
+            return re.fullmatch("[a-zA-Z0-9\-]+", netid) is not None
 
         @blueprint.route("/staff/course/<cid>/roster", methods=["GET"])
         @auth.require_auth
