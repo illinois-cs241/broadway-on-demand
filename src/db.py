@@ -21,7 +21,7 @@ class Quota:
 class Visibility:
 	HIDDEN = "hidden"
 	VISIBLE = "visible"
-	VISIBLE_FROM_START = "visible_from_start" # visible from start date of the assignment
+	VISIBLE_FROM_START = "visible_from_start"  # visible from start date of the assignment
 
 
 def init(app):
@@ -97,25 +97,21 @@ def overwrite_student_roster(cid, student_ids):
 def get_assignments_for_course(cid, visible_only=False):
 	if visible_only:
 		now = util.now_timestamp()
-		return list(mongo.db.assignments.find({
-			"course_id": cid,
-			"$or": [
-				# if visible from start date, and start date has past
-				{
-					"visibility": Visibility.VISIBLE_FROM_START,
-					"start": {
-						"$lte": now
-					}
-				},
-				{
-					"visibility": Visibility.VISIBLE
-				},
-				# TODO take this out after database shift
-				{
-					"visibility": True
-				}
-			]
-		}))
+		# if visible from start date, and start date has past
+		visible_from_start_date = {
+			"visibility": Visibility.VISIBLE_FROM_START,
+			"start": {"$lte": now}
+		}
+		# if always visible
+		visible_always = {
+			"visibility": Visibility.VISIBLE
+		}
+		# TODO take this out after database shift
+		visible_backward_compatible = {
+			"visibility": True
+		}
+		return list(mongo.db.assignments.find({"course_id": cid,"$or": [visible_from_start_date, visible_always,
+																		visible_backward_compatible]}))
 	else:
 		return list(mongo.db.assignments.find({"course_id": cid}))
 
