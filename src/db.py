@@ -106,12 +106,7 @@ def get_assignments_for_course(cid, visible_only=False):
 		visible_always = {
 			"visibility": Visibility.VISIBLE
 		}
-		# TODO take this out after database shift
-		visible_backward_compatible = {
-			"visibility": True
-		}
-		return list(mongo.db.assignments.find({"course_id": cid,"$or": [visible_from_start_date, visible_always,
-																		visible_backward_compatible]}))
+		return list(mongo.db.assignments.find({"course_id": cid,"$or": [visible_from_start_date, visible_always]}))
 	else:
 		return list(mongo.db.assignments.find({"course_id": cid}))
 
