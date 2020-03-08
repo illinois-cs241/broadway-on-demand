@@ -5,10 +5,14 @@ from http import HTTPStatus
 from ansi2html import Ansi2HTMLConverter
 from json.decoder import JSONDecodeError
 
-from config import BROADWAY_API_TOKEN, BROADWAY_API_URL
+from config import BROADWAY_API_URL
+from src import db
 from src.util import timestamp_to_bw_api_format
 
-HEADERS = {"Authorization": f"Bearer {BROADWAY_API_TOKEN}" }
+
+def build_header(cid):
+	token = db.get_course(cid)["token"]
+	return {"Authorization": f"Bearer {token}"}
 
 
 def start_grading_run(cid, aid, netid, timestamp):
@@ -27,7 +31,7 @@ def start_grading_run(cid, aid, netid, timestamp):
 		}]
 	}
 	try:
-		resp = requests.post(url=f"{BROADWAY_API_URL}/grading_run/{cid}/{aid}", headers=HEADERS, json=data)
+		resp = requests.post(url=f"{BROADWAY_API_URL}/grading_run/{cid}/{aid}", headers=build_header(cid), json=data)
 		run_id = resp.json()["data"]["grading_run_id"]
 		return run_id
 	except requests.exceptions.RequestException as e:
@@ -50,7 +54,7 @@ def get_grading_run_status(cid, run_id):
 	:return: a status string if successful, or None otherwise.
 	"""
 	try:
-		resp = requests.get(url=f"{BROADWAY_API_URL}/grading_run_status/{cid}/{run_id}", headers=HEADERS)
+		resp = requests.get(url=f"{BROADWAY_API_URL}/grading_run_status/{cid}/{run_id}", headers=build_header(cid))
 		student_jobs_dict = resp.json()["data"]["student_jobs_state"]
 		return list(student_jobs_dict.values())[0]
 	except requests.exceptions.RequestException as e:
@@ -72,7 +76,7 @@ def get_assignment_config(cid, aid):
 	"""
 
 	try:
-		resp = requests.get(url=f"{BROADWAY_API_URL}/grading_config/{cid}/{aid}", headers=HEADERS)
+		resp = requests.get(url=f"{BROADWAY_API_URL}/grading_config/{cid}/{aid}", headers=build_header(cid))
 
 		if resp.status_code == HTTPStatus.OK:
 			ret_data = resp.json()
@@ -92,7 +96,7 @@ def set_assignment_config(cid, aid, config):
 	"""
 
 	try:
-		resp = requests.post(url=f"{BROADWAY_API_URL}/grading_config/{cid}/{aid}", headers=HEADERS, json=config)
+		resp = requests.post(url=f"{BROADWAY_API_URL}/grading_config/{cid}/{aid}", headers=build_header(cid), json=config)
 
 		if resp.status_code != HTTPStatus.OK:
 			ret_data = resp.json()
@@ -112,7 +116,7 @@ def set_assignment_config(cid, aid, config):
 
 def get_grading_run_job_id(cid, run_id):
 	try:
-		resp = requests.get(url=f"{BROADWAY_API_URL}/grading_run_status/{cid}/{run_id}", headers=HEADERS)
+		resp = requests.get(url=f"{BROADWAY_API_URL}/grading_run_status/{cid}/{run_id}", headers=build_header(cid))
 		student_jobs_dict = resp.json()["data"]["student_jobs_state"]
 		# TODO: might return an empty dict
 		return list(student_jobs_dict.keys())[0]
@@ -123,7 +127,7 @@ def get_grading_run_job_id(cid, run_id):
 
 def get_grading_job_log(cid, job_id):
 	try:
-		resp = requests.get(url=f"{BROADWAY_API_URL}/grading_job_log/{cid}/{job_id}", headers=HEADERS)
+		resp = requests.get(url=f"{BROADWAY_API_URL}/grading_job_log/{cid}/{job_id}", headers=build_header(cid))
 		log = resp.json()["data"]
 		if log:
 			converter = Ansi2HTMLConverter()
@@ -145,7 +149,7 @@ def get_grading_run_log(cid, run_id):
 
 def get_workers(cid):
 	try:
-		resp = requests.get(url=f"{BROADWAY_API_URL}/worker/{cid}/all", headers=HEADERS)
+		resp = requests.get(url=f"{BROADWAY_API_URL}/worker/{cid}/all", headers=build_header(cid))
 		return resp.json()["data"]["worker_nodes"]
 	except Exception as e:
 		logging.error(f"get_workers(cid={cid}): {repr(e)}")
