@@ -1,4 +1,5 @@
 from flask_pymongo import PyMongo, ASCENDING, DESCENDING
+from src import util
 
 mongo = PyMongo()
 
@@ -14,6 +15,13 @@ class Quota:
 	@classmethod
 	def is_valid(cls, quota):
 		return quota in [cls.DAILY, cls.TOTAL]
+
+
+# Assignment visibility to students
+class Visibility:
+	HIDDEN = "hidden"
+	VISIBLE = "visible"
+	VISIBLE_FROM_START = "visible_from_start"  # visible from start date of the assignment
 
 
 def init(app):
@@ -54,7 +62,7 @@ def get_course(cid):
 
 
 def add_staff_to_course(cid, new_staff_id):
-	return mongo.db.courses.update({"_id": cid}, {"$addToSet": {"staff_ids": new_staff_id }})
+	return mongo.db.courses.update({"_id": cid}, {"$addToSet": {"staff_ids": new_staff_id}})
 
 
 def remove_staff_from_course(cid, staff_id):
@@ -67,7 +75,7 @@ def remove_staff_from_course(cid, staff_id):
 
 
 def add_student_to_course(cid, new_student_id):
-	return mongo.db.courses.update({"_id": cid}, {"$addToSet": {"student_ids": new_student_id }})
+	return mongo.db.courses.update({"_id": cid}, {"$addToSet": {"student_ids": new_student_id}})
 
 
 def remove_student_from_course(cid, student_id):
@@ -86,9 +94,19 @@ def overwrite_student_roster(cid, student_ids):
 	return mongo.db.courses.update({"_id": cid}, {"$set": {"student_ids": student_ids}})
 
 
-def get_assignments_for_course(cid, visible_only=True):
+def get_assignments_for_course(cid, visible_only=False):
 	if visible_only:
-		return list(mongo.db.assignments.find({"course_id": cid, "visibility": True}))
+		now = util.now_timestamp()
+		# if visible from start date, and start date has past
+		visible_from_start_date = {
+			"visibility": Visibility.VISIBLE_FROM_START,
+			"start": {"$lte": now}
+		}
+		# if always visible
+		visible_always = {
+			"visibility": Visibility.VISIBLE
+		}
+		return list(mongo.db.assignments.find({"course_id": cid,"$or": [visible_from_start_date, visible_always]}))
 	else:
 		return list(mongo.db.assignments.find({"course_id": cid}))
 

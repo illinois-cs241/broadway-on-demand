@@ -22,7 +22,7 @@ class AdminRoutes:
             Return true if the NetID passed in is a valid NetId
             :param netid: A netid string to be tested
             """
-            return re.fullmatch("[a-zA-Z0-9]+", netid) is not None
+            return re.fullmatch("[a-zA-Z0-9\-]+", netid) is not None
 
         @blueprint.route("/staff/course/<cid>/roster", methods=["GET"])
         @auth.require_auth
@@ -174,7 +174,7 @@ class AdminRoutes:
             except json.decoder.JSONDecodeError:
                 return util.error("Failed to decode config JSON")
 
-            visibility = request.form["visibility"] == "visible"
+            visibility = request.form["visibility"]
 
             db.add_assignment(cid, aid, max_runs, quota, start, end, visibility)
             return util.success("")
@@ -222,7 +222,7 @@ class AdminRoutes:
             except json.decoder.JSONDecodeError:
                 return util.error("Failed to decode config JSON")
 
-            visibility = request.form["visibility"] == "visible"
+            visibility = request.form["visibility"]
 
             if not db.update_assignment(cid, aid, max_runs, quota, start, end, visibility):
                 return util.error("Save failed or no changes were made.")
