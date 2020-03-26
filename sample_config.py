@@ -24,7 +24,6 @@ MONGO_URI = "mongodb://localhost:27017/broadway_on_demand"
 
 # Broadway API configuration.
 BROADWAY_API_URL = "http://some-broadway-api-server.example/api/v1"
-BROADWAY_API_TOKEN = "some_token"
 
 # API token used to authenticate /system/ routes. Currently unused.
 SYSTEM_API_TOKEN = "some_token"
