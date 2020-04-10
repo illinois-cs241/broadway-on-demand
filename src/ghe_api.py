@@ -9,7 +9,6 @@ from config import (
 logger = logging.getLogger(__name__)
 
 ACCEPT_JSON = {"Accept": "application/json"}
-RELEASE_REPO = "_release"
 
 
 def get_access_token(code):
@@ -67,8 +66,11 @@ def get_latest_commit(netid, access_token, course):
 		return latest_commit
 
 	commits = response.json()
-	latest_raw_commit = commits[0]
-	latest_commit["message"] = latest_raw_commit["commit"]["message"]
-	latest_commit["sha"] = latest_raw_commit["sha"]
-	latest_commit["url"] = latest_raw_commit["html_url"]
+	if len(commits) == 0:
+		latest_commit["message"] = "No commits found"
+	else:
+		latest_raw_commit = commits[0]
+		latest_commit["message"] = latest_raw_commit["commit"]["message"]
+		latest_commit["sha"] = latest_raw_commit["sha"]
+		latest_commit["url"] = latest_raw_commit["html_url"]
 	return latest_commit
