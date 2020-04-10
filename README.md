@@ -15,3 +15,16 @@
     - student (student of the test course)
     - non_admin (a staff, but not an admin of the test course)
     - admin (staff and admin of the test course)
+
+### New Course Setup
+- Ask on-demand managers to add your course to the on-demand database with at least one admin.
+  - Admins are able to modify roster and add assignments from the user interface.
+- Generate a token and add it to both broadway-on-demand and broadway's database for your course.
+- Create docker images for grading a single student
+  - On-demand will pass in the student's netid as `STUDENT_ID` and the timestamp as `DUE_DATE` to the all grader processes.
+- Add an assignment with the UI
+  - Assignment ID will be displayed and can not be changed once set.
+  - Max Runs along with Quota Type determine how many runs student get per day or total. Note that staff members always have one run for all assignments.
+  - Configuration is a json config provided to broadway. Refer to [broadway's Wiki](https://github.com/illinois-cs241/broadway/wiki/Configs). (The assignment config shouldn't have `STUDENT_ID` or `DUE_DATE` because those will be provided).
+- Test out the assignment by going to student view and start a grading run for yourself.
+  - Make sure you are added as a student to the course in order to do this.
