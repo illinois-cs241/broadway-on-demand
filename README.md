@@ -22,6 +22,7 @@
 - Generate a token and add it to both broadway-on-demand and broadway's database for your course.
 - Create docker images for grading a single student
   - On-demand will pass in the student's netid as `STUDENT_ID` and the timestamp as `DUE_DATE` to the all grader processes.
+  - The `DUE_DATE` is in the string format `YYYY-MM-DD hh:mm` in UTC time zone.
 - Add an assignment with the UI
   - Assignment ID will be displayed and can not be changed once set.
   - Max Runs along with Quota Type determine how many runs student get per day or total. Note that staff members always have one run for all assignments.
