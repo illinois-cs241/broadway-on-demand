@@ -10,7 +10,6 @@ from config import (
 logger = logging.getLogger(__name__)
 
 ACCEPT_JSON = {"Accept": "application/json"}
-RELEASE_REPO = "_release"
 
 
 def get_access_token(code):
@@ -44,28 +43,10 @@ def get_latest_commit(netid, access_token, course):
 
 	latest_commit = {"message": "An error occurred", "sha": "", "url": ""}
 
-	# retrieve all release repo commits (to master) SHAs
-	release_commits_url = "{}/repos/{}/{}/commits".format(GHE_API_URL, course, RELEASE_REPO)
-	release_commits_url += "?sha=master"
-	try:
-		release_commits_result = requests.get(release_commits_url, params={"access_token": access_token})
-	except requests.exceptions.RequestException as ex:
-		logger.error("Failed to fetch release commits\n{}".format(str(ex)))
-		return latest_commit
-	if release_commits_result.status_code != HTTPStatus.OK:
-		logger.error("Failed to fetch release commits\n{}".format(release_commits_result.text))
-		return latest_commit
-
-	release_commits_sha = set()
-	release_commits = release_commits_result.json()
-	for release_commit in release_commits:
-		release_commits_sha.add(release_commit["sha"])
-
 	# retrieve all student repo commits (to master)
 	commits_url = "{}/repos/{}/{}/commits".format(GHE_API_URL, course, netid)
 	commits_url += "?until=" + dt.now(tz=TZ).isoformat()
 	commits_url += "&sha=master"
-
 	try:
 		response = requests.get(commits_url, params={"access_token": access_token})
 	except requests.exceptions.RequestException as ex:
@@ -82,22 +63,10 @@ def get_latest_commit(netid, access_token, course):
 		return latest_commit
 
 	commits = response.json()
-	latest_raw_commit = None
-	if len(commits) == 1:
-		# student has only one commit before now, so we'll use that
-		latest_raw_commit = commits[0]
-	for commit in commits:
-		# the student has multiple commits, make sure
-		# we don't grade one of the deploy commits
-		if commit["sha"] not in release_commits_sha:
-			latest_raw_commit = commit
-			break
-
-	if latest_raw_commit is None:
-		latest_commit["message"] = (
-			"No commits found."
-		)
+	if len(commits) == 0:
+		latest_commit["message"] = "No commits found"
 	else:
+		latest_raw_commit = commits[0]
 		latest_commit["message"] = latest_raw_commit["commit"]["message"]
 		latest_commit["sha"] = latest_raw_commit["sha"]
 		latest_commit["url"] = latest_raw_commit["html_url"]
