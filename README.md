@@ -17,6 +17,8 @@
     - admin (staff and admin of the test course)
 
 ### New Course Setup
+
+#### Steps
 - Ask on-demand managers to add your course to the on-demand database with at least one admin.
   - Admins are able to modify roster and add assignments from the user interface.
 - Generate a token and add it to both broadway-on-demand and broadway's database for your course.
@@ -29,3 +31,6 @@
   - Configuration is a json config provided to broadway. Refer to [broadway's Wiki](https://github.com/illinois-cs241/broadway/wiki/Configs). (The assignment config shouldn't have `STUDENT_ID` or `DUE_DATE` because those will be provided).
 - Test out the assignment by going to student view and start a grading run for yourself.
   - Make sure you are added as a student to the course in order to do this.
+
+#### Important Notes
+- broadway-on-demand assumes that a student's netid is the same as the studne'ts repository name. It uses that to get a student's latest commit.
