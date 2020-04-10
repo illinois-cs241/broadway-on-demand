@@ -1,4 +1,5 @@
 from flask_pymongo import PyMongo, ASCENDING, DESCENDING
+from src import util
 
 mongo = PyMongo()
 
@@ -14,6 +15,13 @@ class Quota:
 	@classmethod
 	def is_valid(cls, quota):
 		return quota in [cls.DAILY, cls.TOTAL]
+
+
+# Assignment visibility to students
+class Visibility:
+	HIDDEN = "hidden"
+	VISIBLE = "visible"
+	VISIBLE_FROM_START = "visible_from_start"  # visible from start date of the assignment
 
 
 def init(app):
@@ -53,15 +61,61 @@ def get_course(cid):
 	return mongo.db.courses.find_one({"_id": cid})
 
 
-def get_assignments_for_course(cid):
-	return list(mongo.db.assignments.find({"course_id": cid}))
+def add_staff_to_course(cid, new_staff_id):
+	return mongo.db.courses.update({"_id": cid}, {"$addToSet": {"staff_ids": new_staff_id}})
+
+
+def remove_staff_from_course(cid, staff_id):
+	return mongo.db.courses.update({"_id": cid}, {
+		"$pull": {
+			"staff_ids": staff_id,
+			"admin_ids": staff_id,
+		}
+	})
+
+
+def add_student_to_course(cid, new_student_id):
+	return mongo.db.courses.update({"_id": cid}, {"$addToSet": {"student_ids": new_student_id}})
+
+
+def remove_student_from_course(cid, student_id):
+	return mongo.db.courses.update({"_id": cid}, {"$pull": {"student_ids": student_id}})
+
+
+def add_admin_to_course(cid, staff_id):
+	return mongo.db.courses.update({"_id": cid}, {"$addToSet": {"admin_ids": staff_id}})
+
+
+def remove_admin_from_course(cid, staff_id):
+	return mongo.db.courses.update({"_id": cid}, {"$pull": {"admin_ids": staff_id}})
+
+
+def overwrite_student_roster(cid, student_ids):
+	return mongo.db.courses.update({"_id": cid}, {"$set": {"student_ids": student_ids}})
+
+
+def get_assignments_for_course(cid, visible_only=False):
+	if visible_only:
+		now = util.now_timestamp()
+		# if visible from start date, and start date has past
+		visible_from_start_date = {
+			"visibility": Visibility.VISIBLE_FROM_START,
+			"start": {"$lte": now}
+		}
+		# if always visible
+		visible_always = {
+			"visibility": Visibility.VISIBLE
+		}
+		return list(mongo.db.assignments.find({"course_id": cid,"$or": [visible_from_start_date, visible_always]}))
+	else:
+		return list(mongo.db.assignments.find({"course_id": cid}))
 
 
 def get_assignment(cid, aid):
 	return mongo.db.assignments.find_one({"course_id": cid, "assignment_id": aid})
 
 
-def add_assignment(cid, aid, max_runs, quota, start, end):
+def add_assignment(cid, aid, max_runs, quota, start, end, visibility):
 	"""
 	Add a new assignment.
 	:param cid: a course ID.
@@ -70,19 +124,20 @@ def add_assignment(cid, aid, max_runs, quota, start, end):
 	:param quota: a quota type as defined in Quota.
 	:param start: a UNIX timestamp specifying the start of the grading period.
 	:param end: a UNIX timestamp specifying the end of the grading period.
+	:param visibility: a boolean value to indicate if the assignment is visible to students or not
 	"""
 	if quota not in [Quota.DAILY, Quota.TOTAL]:
 		raise RuntimeError("Invalid quota type for assignment.")
 	mongo.db.assignments.insert_one(
-		{"course_id": cid, "assignment_id": aid, "max_runs": max_runs, "quota": quota, "start": start, "end": end})
+		{"course_id": cid, "assignment_id": aid, "max_runs": max_runs, "quota": quota, "start": start, "end": end, "visibility": visibility})
 
 
-def update_assignment(cid, aid, max_runs, quota, start, end):
+def update_assignment(cid, aid, max_runs, quota, start, end, visibility):
 	if quota not in [Quota.DAILY, Quota.TOTAL]:
 		raise RuntimeError("Invalid quota type for assignment.")
 	res = mongo.db.assignments.update(
 		{"course_id": cid, "assignment_id": aid},
-		{"$set": {"max_runs": max_runs, "quota": quota, "start": start, "end": end}}
+		{"$set": {"max_runs": max_runs, "quota": quota, "start": start, "end": end, "visibility": visibility}}
 	)
 	return res["n"] == 1 and 0 <= res["nModified"] <= 1
 

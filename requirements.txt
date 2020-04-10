@@ -7,11 +7,12 @@ Flask-Session==0.3.1
 humanize==0.5.1
 idna==2.8
 itsdangerous==1.1.0
-Jinja2==2.10
+Jinja2==2.10.1
 MarkupSafe==1.1.0
 pymongo==3.7.2
 pytz==2018.9
 requests==2.21.0
-urllib3==1.24.1
-Werkzeug==0.14.1
+urllib3==1.24.2
+werkzeug==0.15.3
 ansi2html==1.5.2
+gunicorn==20.0.4

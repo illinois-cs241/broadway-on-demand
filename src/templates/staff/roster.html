@@ -1,0 +1,334 @@
+{% set title = "%s Roster (staff) (%s)" % (course.name, netid) %}
+{% include 'header.html' %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{{ url_for('.staff_home') }}">Staff Home</a></li>
+    <li class="breadcrumb-item"><a href="{{ url_for('.staff_get_course', cid=course._id) }}">{{ course.name }}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Roster</li>
+  </ol>
+</nav>
+<div class="container-fluid">
+  <!-- Staff Roster -->
+  <div class="row">
+    <div class="col-md-6 offset-md-3">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="card-title mb-0"><i class="fas fa-user-tie"></i> Manage Staff
+            <a href="#" class="clickable fas fa-question-circle float-right text-secondary" data-toggle="popover"
+               role="button"
+               data-html="true" data-placement="bottom" data-trigger="focus" data-title="Legend" data-content="
+               <p style='line-height: 2;' class='mb-0'>
+                 <i class='fas fa-lg fa-trash-alt text-danger'></i>: delete a staff <br>
+                 <i class='fas fa-lg fa-arrow-circle-up text-success'></i>: make a staff an admin <br>
+                 <i class='fas fa-lg demote-admin fa-arrow-circle-down text-info'></i>: make an admin not longer admin
+               </p>
+               ">
+            </a>
+          </h5>
+        </div>
+        <div class="card-body px-md-4">
+          <div class="form-group">
+            <form autocomplete="off" class="d-flex align-items-center" style="flex-wrap: nowrap;">
+              <input id="staff-id" name="netid" placeholder="Enter a NetID" type="text" class="mr-3 form-control"
+                     value="" required>
+              <button type="button" class="btn btn-primary d-block" id="add-staff">Add staff</button>
+            </form>
+          </div>
+          <div id="add-staff-error" class="alert alert-danger" style="display: none;">
+            Error!
+          </div>
+          <ul id="staff-table" class="list-group list-group-flush"></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Student Roster -->
+  <div class="row">
+    <div class="col-md-6 offset-md-3">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="card-title mb-0 d-inline"><i class="fas fa-users"></i> Manage Student</h5>
+          <button class="btn btn-outline-secondary btn-sm float-right" data-toggle="modal"
+                  data-target="#uploadRosterModal">
+            <i class="fas fa-file-upload"></i> Upload File
+          </button>
+        </div>
+        <div class="card-body px-md-4">
+          <div class="form-group">
+            <form autocomplete="off" class="d-flex align-items-center" style="flex-wrap: nowrap;">
+              <input id="student-id" name="netid" placeholder="Enter a NetID" type="text" class="mr-3 form-control"
+                     value="" required>
+              <button type="button" class="btn btn-primary d-block" id="add-student">Add student</button>
+            </form>
+          </div>
+          <div id="add-student-error" class="alert alert-danger" style="display: none;">
+            Error!
+          </div>
+          <ul id="student-table" class="list-group list-group-flush"></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal fade" id="uploadRosterModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Upload Roster File</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>
+          Upload a <b>.txt</b> file that contains <b>newline separated NetIDs</b>.
+        </p>
+        <div id="roster-upload-box" class="file-drop-box mb-1" draggable="true">
+          Drag & drop or click to upload
+        </div>
+        <input type="file" id="roster-upload" accept="text/plain" class="form-control-file" style="display: none;">
+        <small class="text-danger">Warning: This upload will replace all current students.<br></small>
+        <small class="text-danger" id="roster-error" style="display: none;">Error!</small>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" id="upload-roster-btn">
+          <span class="fa fa-cog loader mr-1" id="roster-spinner"></span>
+          Upload
+        </button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="{{ url_for('static', filename='file_drag_drop_upload.js') }}"></script>
+<script>
+  const staff_alert = "#add-staff-error";
+  const student_alert = "#add-student-error";
+  const roster_alert = "#roster-error";
+
+  /**
+   * This function updates the staff table. It first get all admin_ids and
+   * staff_ids, then empty the current table, and insert admins and staffs into
+   * the table.
+   */
+  function updateStaffTable() {
+    $.get("{{ url_for('.get_course_staff_roster', cid=course._id) }}", (data) => {
+      $("#staff-table").empty();
+      $(staff_alert).hide();
+      // Add admins to table first
+      let admin_ids = data.admin_ids;
+      for (let i = 0; i < admin_ids.length; i++) {
+        let firstItemOnlyClass = i === 0 ? 'border-top-0' : '';
+        let demoteDisableOrNotClass = admin_ids[i] === data.user ? 'text-muted' : 'clickable text-info demote-admin';
+        let deleteDisableOrNotClass = admin_ids[i] === data.user ? 'text-muted' : 'clickable text-danger remove-staff';
+        $("#staff-table").append(`
+          <li class="list-group-item ${firstItemOnlyClass}">
+            <h6 class="font-weight-bold font-italic d-inline">${admin_ids[i]}</h6>
+            <div class="float-right">
+              <i class="${demoteDisableOrNotClass} fas fa-lg fa-arrow-circle-down mr-2"
+                 data-netid="${admin_ids[i]}"></i>
+              <i class="${deleteDisableOrNotClass} fas fa-lg fa-trash-alt" data-netid="${admin_ids[i]}"></i>
+            </div>
+          </li>`
+        )
+      }
+      // Add staffs to table second
+      let staff_ids = data.staff_ids;
+      for (let i = 0; i < staff_ids.length; i++) {
+        if (admin_ids.includes(staff_ids[i])) {
+          continue;
+        }
+        $("#staff-table").append(`
+          <li class="list-group-item">${staff_ids[i]}
+            <div class="float-right">
+              <i class="clickable fas fa-lg promote-staff fa-arrow-circle-up text-success mr-2"
+                 data-netid="${staff_ids[i]}"></i>
+              <i class="clickable remove-staff fas fa-lg fa-trash-alt text-danger" data-netid="${staff_ids[i]}"></i>
+            </div>
+          </li>
+        `)
+      }
+      // Add event listeners
+      $(".remove-staff").click(removeStaff);
+      $(".promote-staff").click(promoteStaff);
+      $(".demote-admin").click(demoteAdmin)
+    }).fail((jqXHR) => {
+      console.log(jqXHR);
+      showError("Something went wrong, please refresh the page.", staff_alert)
+    })
+  }
+
+  /**
+   * Update student table in a way similar to updateStaffTable.
+   */
+  function updateStudentTable() {
+    $.get("{{ url_for('.get_course_student_roster', cid=course._id) }}", (students) => {
+      $("#student-table").empty();
+      $(student_alert).hide();
+      for (let i = 0; i < students.length; i++) {
+        let firstItemOnlyClass = i === 0 ? 'border-top-0' : '';
+        $("#student-table").append(`
+          <li class="list-group-item ${firstItemOnlyClass}">${students[i]}
+            <div class="float-right">
+              <i class="clickable remove-student fas fa-lg fa-trash-alt text-danger" data-netid="${students[i]}"></i>
+            </div>
+          </li>
+        `)
+      }
+      $(".remove-student").click(removeStudent);
+    }).fail((jqXHR) => {
+      console.log(jqXHR);
+      showError("Something went wrong, please refresh the page.", student_alert);
+    })
+  }
+
+  /**
+   * Show error message (first parameter) at the location specified by selector
+   * @param msg The error message to show
+   * @param alert_selector The HTML element selector to show the error
+   */
+  function showError(msg, alert_selector) {
+    $(alert_selector).text("Error: " + msg).show();
+  }
+
+  /**
+   * Add either a student or staff with this method.
+   * @param input_selector Where to get the input value (netid)
+   * @param url The url to send a POST request in order to add student/staff
+   * @param alert_selector The alert selector in case an error occurs
+   * @param callback The function to call after success. Usually to update table
+   */
+  function addToRoster(input_selector, url, alert_selector, callback) {
+    var netid = $(input_selector).val();
+    if (!netid) {
+      return;
+    }
+    var data = {
+      "netid": netid,
+    };
+    $.post(url, data, () => {
+      $(input_selector).val("");
+      callback();
+    }).fail((jqXHR) => {
+      showError(jqXHR.responseText, alert_selector)
+    })
+  }
+
+  function addStaff() {
+    addToRoster("#staff-id", "{{ url_for('.add_course_staff', cid=course._id) }}", staff_alert, updateStaffTable)
+  }
+
+  function addStudent() {
+    addToRoster("#student-id", "{{ url_for('.add_course_student', cid=course._id) }}", student_alert, updateStudentTable)
+  }
+
+  /**
+   * Modify either a student or staff.
+   * @param target The event target that was triggered. Usually an icon (such as trash icon to delete)
+   * @param url The url to make the POST request.
+   * @param alert_selector The alert selector to show error if any.
+   * @param callback The function to call after success, usually to update table.
+   */
+  function modifyStuff(target, url, alert_selector, callback) {
+    var data = {
+      "netid": $(target).data("netid"),
+    };
+    $.post(url, data, () => {
+      callback();
+    }).fail((jqXHR) => {
+      showError(jqXHR.responseText, alert_selector)
+    })
+  }
+
+  function removeStaff(event) {
+    modifyStuff(event.target, "{{ url_for('.remove_course_staff', cid=course._id) }}", staff_alert, updateStaffTable)
+  }
+
+  function promoteStaff(event) {
+    modifyStuff(event.target, "{{ url_for('.promote_course_staff', cid=course._id) }}", staff_alert, updateStaffTable)
+  }
+
+  function demoteAdmin(event) {
+    modifyStuff(event.target, "{{ url_for('.demote_course_admin', cid=course._id) }}", staff_alert, updateStaffTable)
+  }
+
+  function removeStudent(event) {
+    modifyStuff(event.target, "{{ url_for('.remove_course_student', cid=course._id) }}", student_alert, updateStudentTable)
+  }
+
+  function uploadRoster() {
+    if (!get_file()) {
+      showError("No file selected.", roster_alert);
+      return;
+    }
+
+    if (!FileReader) {
+      showError("Browser doesn't support file upload.", roster_alert);
+    } else {
+      let reader = new FileReader();
+
+      reader.onload = function () {
+        if (reader.result === null) {
+          showError("Read file failed, please try again", roster_alert);
+        } else {
+          postRoster(reader.result);
+        }
+      };
+
+      reader.readAsText(get_file());
+
+      $('#roster-spinner').addClass("fa-spin");
+    }
+  }
+
+  function postRoster(file_content) {
+    let data = {
+      'content': file_content
+    };
+    $.post('{{ url_for('.upload_roster_file', cid=course._id) }}', data, () => {
+      location.reload();
+    }).fail((jqXHR) => {
+      showError(jqXHR.responseText, roster_alert);
+    }).always(() => {
+      $('#roster-spinner').removeClass("fa-spin");
+    });
+  }
+
+  var get_file = undefined;
+
+  $(() => {
+    updateStaffTable();
+    updateStudentTable();
+    $("#add-staff").click(addStaff);
+    $("#add-student").click(addStudent);
+    $("#upload-roster-btn").click(uploadRoster);
+    $('[data-toggle="popover"]').popover();
+
+    // modify behavior when user press enter
+    $(window).keydown(function (event) {
+      if (event.keyCode === 13) {
+        event.preventDefault();
+        switch (event.target.id) {
+          case "student-id":
+            $("#add-student").click();
+            break;
+          case "staff-id":
+            $("#add-staff").click();
+            break;
+        }
+        return false;
+      }
+    });
+
+    get_file = fileDragDrop('#roster-upload-box', '#roster-upload', '.txt');
+
+    $("#roster-upload-box").on("drag dragstart dragend dragover dragenter dragleave drop click", () => {
+      $(roster_alert).hide();
+    });
+  })
+</script>
+<style>
+  .clickable {
+    cursor: pointer;
+  }
+</style>

@@ -2,6 +2,7 @@ import uuid
 from datetime import datetime
 from functools import wraps
 from re import fullmatch
+from http import HTTPStatus
 
 from flask import request, session
 from pytz import utc
@@ -54,14 +55,24 @@ def disable_in_maintenance_mode(func):
 	return wrapper
 
 
-def error(msg, status=400):
+def error(content, status=HTTPStatus.BAD_REQUEST):
 	"""
-	Builds a response pair with the given error message and status code. The 400 Bad Request status is used if none is
+	Builds a response pair with the error content and status code. The Bad Request status is used if none is
 	provided.
-	:param msg: A description of the error encountered.
-	:param status: An HTTP status code for the response; 400 if not specified.
+	:param content: The content of response, could be a string description.
+	:param status: An HTTP status code for the response; Bad Request if not specified.
 	"""
-	return "%s\n" % msg, status
+	return content, status
+
+
+def success(content, status=HTTPStatus.NO_CONTENT):
+	"""
+	Builds a response pair with given response content and status code. The No Content (doesn't have to go away from
+	current page) status is used if none is provided.
+	:param content: The content of response, could be json data or string description
+	:param status: An HTTP status code for the response; No Content if not specified
+	"""
+	return content, status
 
 
 def generate_csrf_token():

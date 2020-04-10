@@ -1,5 +1,6 @@
 import logging
 import requests
+from http import HTTPStatus
 from datetime import datetime as dt
 
 from config import (
@@ -12,8 +13,6 @@ ACCEPT_JSON = {"Accept": "application/json"}
 
 
 def get_access_token(code):
-	if DEV_MODE:
-		return "some_token"
 	data = {
 		"client_id": GHE_CLIENT_ID,
 		"client_secret": GHE_CLIENT_SECRET,
@@ -29,8 +28,6 @@ def get_access_token(code):
 
 
 def get_login(access_token):
-	if DEV_MODE:
-		return DEV_MODE_LOGIN
 	try:
 		resp = requests.get("%s/user" % GHE_API_URL, params={"access_token": access_token})
 		return resp.json()["login"]
@@ -55,13 +52,13 @@ def get_latest_commit(netid, access_token, course):
 	except requests.exceptions.RequestException as ex:
 		logger.error("Failed to fetch student commits\n{}".format(str(ex)))
 		return latest_commit
-	if response.status_code == 404 or response.status_code == 409:
+	if response.status_code == HTTPStatus.NOT_FOUND or response.status_code == HTTPStatus.CONFLICT:
 		# failure due to student error
 		latest_commit["message"] = (
 			"No commits found. Is your repo configured properly?"
 		)
 		return latest_commit
-	if response.status_code != 200:
+	if response.status_code != HTTPStatus.OK:
 		logger.error("Failed to fetch latest commit for %s:\n%s", netid, response.text)
 		return latest_commit
 

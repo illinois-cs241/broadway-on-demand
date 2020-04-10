@@ -32,14 +32,25 @@
         <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
-        <a href="{{ url_for('.logout') }}" class="nav-item">
-            <span class="nav-link text-danger">Log Out</span>
-        </a>
-        <a href="https://github.com/illinois-cs241/broadway-on-demand" class="nav-item" target="_blank">
-            <span class="nav-link text-white-50">Contribute</span>
-        </a>
-        <a href="https://github.com/illinois-cs241/broadway-on-demand/issues/new" class="nav-item" target="_blank">
-            <span class="nav-link text-white-50">Report issue</span>
-        </a>
+        <div class="navbar-nav mr-auto">
+            <a href="{{ url_for('.logout') }}" class="nav-item">
+                <span class="nav-link text-danger">Log Out</span>
+            </a>
+            <a href="https://github.com/illinois-cs241/broadway-on-demand" class="nav-item" target="_blank">
+                <span class="nav-link text-white-50">Contribute</span>
+            </a>
+            <a href="https://github.com/illinois-cs241/broadway-on-demand/issues/new" class="nav-item" target="_blank">
+                <span class="nav-link text-white-50">Report issue</span>
+            </a>
+        </div>
+        {% if config.ENV == "development" %}
+            <form action="{{ url_for('.login_as', path=request.path) }}" method="POST">
+                <div class="d-flex align-items-center w-100">
+                    <input type="text" name="path" value="{{ request.path }}" hidden>
+                    <input type="text" name="loginNetId" class="form-control mr-1 bg-dark border-secondary text-light" placeholder="(Dev only) Enter NetID" required autocomplete="off">
+                    <button type="submit" name="devLoginButton" class="btn btn-outline-primary">Switch User</button>
+                </div>
+            </form>
+        {% endif %}
     </div>
 </nav>
