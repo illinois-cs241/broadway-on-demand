@@ -7,8 +7,6 @@ MAINTENANCE_MODE_MESSAGE = "Maintenance will conclude at __:__ on __/__."
 
 # When true, GitHub Enterprise login can be bypassed to log in as the username below.
 DEV_MODE = False
-# The user ID to log in as when using the dev mode bypass.
-DEV_MODE_LOGIN = "srpatil2"
 
 # Server time zone, used for displaying times and specifying due date for Broadway API.
 TZ = timezone("America/Chicago")
@@ -26,7 +24,6 @@ MONGO_URI = "mongodb://localhost:27017/broadway_on_demand"
 
 # Broadway API configuration.
 BROADWAY_API_URL = "http://some-broadway-api-server.example/api/v1"
-BROADWAY_API_TOKEN = "some_token"
 
 # API token used to authenticate /system/ routes. Currently unused.
 SYSTEM_API_TOKEN = "some_token"

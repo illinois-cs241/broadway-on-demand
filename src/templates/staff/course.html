@@ -1,5 +1,6 @@
 {% set title = "%s (staff) (%s)" % (course.name, netid) %}
 {% include 'header.html' %}
+<script type="application/javascript" src="{{ url_for('static', filename='file_drag_drop_upload.js') }}"></script>
 <script type="application/javascript">
     function addAssnErr(msg) {
         $('#mdl-add-assn-error').html(msg).show();
@@ -35,6 +36,8 @@
 
         let config = undefined;
 
+        let visibility = $('input[name=visibility]:checked', '#add-assn').val();
+
         if ($('#mdl-add-assn-config-nav-text').hasClass("active")) {
             config = $('#mdl-add-assn-config').val();
             if (!config) {
@@ -44,7 +47,7 @@
 
             do_post();
         } else {
-            if (!upload_config) {
+            if (!get_file()) {
                 addAssnErr("No file selected");
                 return;
             }
@@ -59,7 +62,7 @@
                     do_post();
                 };
 
-                reader.readAsText(upload_config);
+                reader.readAsText(get_file());
 
                 $('#mdl-add-assn-save .loader').addClass("fa-spin");
             }
@@ -68,8 +71,8 @@
         function do_post() {
             $.ajax({
                 type: "POST",
-                url: "{{ url_for('.staff_get_course', cid=course._id) }}" + aid + '/',
-                data: {max_runs: maxRuns, quota: quota, start: start, end: end, config: config},
+                url: "{{ url_for('.add_assignment', cid=course._id) }}",
+                data: {aid: aid, max_runs: maxRuns, quota: quota, start: start, end: end, visibility: visibility, config: config},
                 beforeSend: function () {
                     $('#mdl-add-assn-error').html('').fadeOut();
                     $('#mdl-add-assn-save .loader').addClass("fa-spin");
@@ -92,43 +95,10 @@
         }
     }
 
-    var upload_config = undefined;
+    var get_file = undefined;
 
     $(function () {
-        $('#mdl-add-assn-config-upload-box').on("drag dragstart dragend dragover dragenter dragleave drop", function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-        });
-        
-        $('#mdl-add-assn-config-upload-box').on("dragover", function (e) {
-            $(this).addClass("on-drag");
-        }).on("dragleave drop", function (e) {
-            $(this).removeClass("on-drag");
-        });
-
-        $('#mdl-add-assn-config-upload-box').on("drop", function (e) {
-            if (e.originalEvent.dataTransfer &&
-                e.originalEvent.dataTransfer.files &&
-                e.originalEvent.dataTransfer.files.length) {
-                upload_config = e.originalEvent.dataTransfer.files[0];
-                $('#mdl-add-assn-config-upload-box').text("File name: " + upload_config.name);
-            } else {
-                $('#mdl-add-assn-config-upload-box').text("Please drop files");
-            }
-        });
-        
-        $('#mdl-add-assn-config-upload-box').on("click", function () {
-            $('#mdl-add-assn-config-upload').click();
-        });
-
-        $('#mdl-add-assn-config-upload').on("change", function () {
-            let file = $('#mdl-add-assn-config-upload')[0].files[0];
-
-            if (file) {
-                upload_config = file;
-                $('#mdl-add-assn-config-upload-box').text("File name: " + upload_config.name);
-            }
-        });
+        get_file = fileDragDrop('#mdl-add-assn-config-upload-box', '#mdl-add-assn-config-upload')
     });
 
     function viewWorkerStatus() {
@@ -182,8 +152,8 @@
                 </tr>
                 </thead>
                 <tbody>
-                {% for assignment in assignments %}
-                    <tr>
+                {% for assignment in assignments | sort(attribute='start') | reverse %}
+                    <tr {% if assignment.end < now %} class="assignment-past-deadline" {% endif %}>
                         <td><a href="{{ url_for('.staff_get_assignment', cid=course._id, aid=assignment.assignment_id) }}">{{ assignment.assignment_id }}</a></td>
                         <td>{{ assignment.max_runs }} ({{ assignment.quota }})</td>
                         <td>{{ assignment.start|fmt_timestamp }}</td>
@@ -199,12 +169,11 @@
             </table>
             <div class="text-secondary"> All times in {{ tzname }}</div>
         </div>
-        {% if is_admin %}
-            <div class="col-md-6 col-lg-4 col-xl-3">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">Course actions</h5>
-
+        <div class="col-md-6 col-lg-4 col-xl-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Course actions</h5>
+                    {% if is_admin %}
                         <button type="button" class="btn btn-outline-primary mt-3" data-toggle="modal" data-target="#mdl-add-assn">
                             <i class="fas fa-calendar-plus"></i> Add assignment
                         </button>
@@ -247,6 +216,21 @@
                                                 <input type="datetime-local" class="form-control" id="mdl-add-assn-end" name="end">
                                             </div>
                                             <div class="form-group">
+                                                <label class="form-check-label">Visibility</label><br>
+                                                <div class="form-check form-check-inline">
+                                                    <input class="form-check-input" type="radio" name=visibility" id="mdl-add-assn-not-visible" value="{{ visibility.HIDDEN }}">
+                                                    <label class="form-check-label" for="mdl-add-assn-not-visible">Not visible</label>
+                                                </div>
+                                                <div class="form-check form-check-inline">
+                                                    <input class="form-check-input" type="radio" name="visibility" id="mdl-add-assn-visible" value="{{ visibility.VISIBLE }}">
+                                                    <label class="form-check-label" for="mdl-add-assn-visible">Visible</label>
+                                                </div>
+                                                <div class="form-check form-check-inline">
+                                                    <input class="form-check-input" type="radio" name="visibility" id="mdl-add-assn-visible-from-start-date" value="{{ visibility.VISIBLE_FROM_START }}" checked>
+                                                    <label class="form-check-label" for="mdl-add-assn-visible-from-start-date">Visible from start date</label>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
                                                 <label for="start">Configuration</label>
                                                 <nav>
                                                     <div class="nav nav-tabs" role="tablist">
@@ -279,34 +263,39 @@
                                 </div>
                             </div>
                         </div>
+                        <a href="{{ url_for('.get_course_roster_page', cid=course._id) }}">
+                            <button type="button" class="btn btn-outline-primary mt-3">
+                                <i class="fas fa-table"></i> Modify roster
+                            </button>
+                        </a>
+                    {% endif %}
 
-                        <button type="button" class="btn btn-outline-primary mt-3" data-toggle="modal" data-target="#mdl-worker-status" onclick="viewWorkerStatus()">
-                            <i class="fas fa-server"></i> Worker status
-                        </button>
-                        <div class="modal fade" id="mdl-worker-status" tabindex="-1" role="dialog" aria-labelledby="mdl-worker-status-label" aria-hidden="true">
-                            <div class="modal-dialog" role="document">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title" id="mdl-view-worker-status-label">Worker status</h5>
-                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                            <span aria-hidden="true">&times;</span>
-                                        </button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <div class="table-responsive">
-                                            <table class="table table-fit table-hover">
-                                                <thead>
-                                                <tr>
-                                                    <th scope="col">Host</th>
-                                                    <th scope="col">Jobs Processed</th>
-                                                    <th scope="col">Alive</th>
-                                                    <th scope="col">Busy</th>
-                                                </tr>
-                                                </thead>
-                                                <tbody id="mdl-worker-status-body">
-                                                </tbody>
-                                            </table>
-                                        </div>
+                    <button type="button" class="btn btn-outline-primary mt-3" data-toggle="modal" data-target="#mdl-worker-status" onclick="viewWorkerStatus()">
+                        <i class="fas fa-server"></i> Worker status
+                    </button>
+                    <div class="modal fade" id="mdl-worker-status" tabindex="-1" role="dialog" aria-labelledby="mdl-worker-status-label" aria-hidden="true">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="mdl-view-worker-status-label">Worker status</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-fit table-hover">
+                                            <thead>
+                                            <tr>
+                                                <th scope="col">Host</th>
+                                                <th scope="col">Jobs Processed</th>
+                                                <th scope="col">Alive</th>
+                                                <th scope="col">Busy</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody id="mdl-worker-status-body">
+                                            </tbody>
+                                        </table>
                                     </div>
                                 </div>
                             </div>
@@ -314,7 +303,7 @@
                     </div>
                 </div>
             </div>
-        {% endif %}
+        </div>
     </div>
 </div>
 {% include 'footer.html' %}
