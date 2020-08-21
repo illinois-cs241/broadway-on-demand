@@ -1,7 +1,8 @@
 from functools import wraps
 from http import HTTPStatus
 
-from flask import session, redirect, url_for, abort
+from flask import session, redirect, url_for, abort, request
+from src import db
 from src.common import verify_staff, verify_admin
 
 
@@ -35,6 +36,23 @@ def require_auth(func):
 			kwargs[UID_KEY] = session[UID_KEY]
 			return func(*args, **kwargs)
 		return redirect(url_for(".login_page"))
+	return wrapper
+
+
+def require_token_auth(func):
+	"""
+	A route decorator check user's username and Authorization token for login. 
+	This is useful for api calls to this site. A session is not created for such access.
+	"""
+	@wraps(func)
+	def wrapper(*arg, **kwargs):
+		netid = request.form["netid"]
+		token = request.headers["Authorization"]
+		user = db.get_user(netid)
+		if user is None or user["personal_token"] != token:
+			return abort(HTTPStatus.FORBIDDEN)
+		kwargs[UID_KEY] = netid
+		return func(*arg, **kwargs)
 	return wrapper
 
 

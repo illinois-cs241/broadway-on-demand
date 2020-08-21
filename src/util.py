@@ -117,3 +117,10 @@ def timestamp_to_bw_api_format(timestamp):
 
 def now_timestamp():
 	return datetime.utcnow().replace(tzinfo=utc).timestamp()
+
+def is_valid_netid(netid):
+	"""
+	Return true if the NetID passed in is a valid NetId
+	:param netid: A netid string to be tested
+	"""
+	return fullmatch(r"[a-zA-Z0-9\-]+", netid) is not None
