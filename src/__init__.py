@@ -7,6 +7,7 @@ from config import *
 from src import db, bw_api, auth, ghe_api, util, common
 from src.routes_admin import AdminRoutes
 from src.routes_staff import StaffRoutes
+from src.routes_api import ApiRoutes
 from src.routes_student import StudentRoutes
 from src.routes_system import SystemRoutes
 from src.template_filters import TemplateFilters
@@ -24,6 +25,7 @@ blueprint = Blueprint('on-demand', __name__, url_prefix=BASE_URL)
 StudentRoutes(blueprint)
 StaffRoutes(blueprint)
 AdminRoutes(blueprint)
+ApiRoutes(blueprint)
 
 
 @blueprint.route("/login/", methods=["GET"])
@@ -79,10 +81,9 @@ def static_file(path):
 def root(netid):
 	is_student = common.is_student(netid)
 	is_staff = common.is_staff(netid)
+	# if a person is not a staff for any course, should skip the "staff" option
 	if is_student and not is_staff:
 		return redirect(url_for(".student_home"))
-	if is_staff and not is_student:
-		return redirect(url_for(".staff_home"))
 	return render_template("home.html", netid=netid)
 
 

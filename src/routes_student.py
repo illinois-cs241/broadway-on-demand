@@ -3,7 +3,7 @@ from http import HTTPStatus
 
 from config import TZ
 from src import bw_api, auth, util, db
-from src.common import verify_student, verify_staff, get_available_runs, get_active_extensions
+from src.common import verify_student_or_staff, verify_staff, get_available_runs, get_active_extensions
 from src.ghe_api import get_latest_commit
 from src.util import verify_csrf_token, restore_csrf_token
 
@@ -14,14 +14,15 @@ class StudentRoutes:
 		@util.disable_in_maintenance_mode
 		@auth.require_auth
 		def student_home(netid):
-			courses = db.get_courses_for_student(netid)
+			# staff should be able to see course as a student
+			courses = db.get_courses_for_student_or_staff(netid)
 			return render_template("student/home.html", netid=netid, courses=courses)
 
 		@blueprint.route("/student/course/<cid>/", methods=["GET"])
 		@util.disable_in_maintenance_mode
 		@auth.require_auth
 		def student_get_course(netid, cid):
-			if not verify_student(netid, cid):
+			if not verify_student_or_staff(netid, cid):
 				return abort(HTTPStatus.FORBIDDEN)
 
 			course = db.get_course(cid)
@@ -50,7 +51,7 @@ class StudentRoutes:
 		@util.disable_in_maintenance_mode
 		@auth.require_auth
 		def student_get_assignment(netid, cid, aid):
-			if not verify_student(netid, cid):
+			if not verify_student_or_staff(netid, cid):
 				return abort(HTTPStatus.FORBIDDEN)
 
 			course = db.get_course(cid)
@@ -73,7 +74,7 @@ class StudentRoutes:
 		@util.disable_in_maintenance_mode
 		@auth.require_auth
 		def student_grade_assignment(netid, cid, aid):
-			if not verify_student(netid, cid):
+			if not verify_student_or_staff(netid, cid):
 				return abort(HTTPStatus.FORBIDDEN)
 			if not verify_csrf_token(request.form.get("csrf_token")):
 				return abort(HTTPStatus.BAD_REQUEST)
@@ -108,7 +109,7 @@ class StudentRoutes:
 		@util.disable_in_maintenance_mode
 		@auth.require_auth
 		def student_get_run_status(netid, cid, aid, run_id):
-			if not verify_student(netid, cid):
+			if not verify_student_or_staff(netid, cid):
 				return abort(HTTPStatus.FORBIDDEN)
 
 			status = bw_api.get_grading_run_status(cid, run_id)
