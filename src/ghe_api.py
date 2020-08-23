@@ -4,7 +4,7 @@ from http import HTTPStatus
 from datetime import datetime as dt
 
 from config import (
-	GHE_OAUTH_URL, GHE_API_URL, GHE_CLIENT_ID, GHE_CLIENT_SECRET, DEV_MODE, DEV_MODE_LOGIN, TZ
+	GHE_OAUTH_URL, GHE_API_URL, GHE_CLIENT_ID, GHE_CLIENT_SECRET, DEV_MODE, TZ
 )
 
 logger = logging.getLogger(__name__)
