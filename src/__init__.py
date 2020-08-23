@@ -81,10 +81,9 @@ def static_file(path):
 def root(netid):
 	is_student = common.is_student(netid)
 	is_staff = common.is_staff(netid)
+	# if a person is not a staff for any course, should skip the "staff" option
 	if is_student and not is_staff:
 		return redirect(url_for(".student_home"))
-	if is_staff and not is_student:
-		return redirect(url_for(".staff_home"))
 	return render_template("home.html", netid=netid)
 
 

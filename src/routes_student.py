@@ -14,7 +14,8 @@ class StudentRoutes:
 		@util.disable_in_maintenance_mode
 		@auth.require_auth
 		def student_home(netid):
-			courses = db.get_courses_for_student(netid)
+			# staff should be able to see course as a student
+			courses = db.get_courses_for_student_or_staff(netid)
 			return render_template("student/home.html", netid=netid, courses=courses)
 
 		@blueprint.route("/student/course/<cid>/", methods=["GET"])

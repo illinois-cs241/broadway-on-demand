@@ -46,6 +46,14 @@ def set_user_access_token(netid, access_token):
 	"""
 	mongo.db.users.update({"_id": netid}, {"access_token": access_token}, upsert=True)
 
+def get_courses_for_student_or_staff(netid):
+	student_course = get_courses_for_student(netid)
+	staff_course = get_courses_for_staff(netid)
+	for course in staff_course:
+		if course not in student_course:
+			student_course.append(course)
+	return student_course
+
 
 def get_courses_for_student(netid):
 	courses = mongo.db.courses.find({"student_ids": netid})
