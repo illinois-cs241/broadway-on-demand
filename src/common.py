@@ -73,7 +73,7 @@ def verify_student(netid, cid):
 
 def verify_student_or_staff(netid, cid):
 	"""
-	Check whether the given NetID is a student in the given course.
+	Check whether the given NetID is a student or a staff in the given course.
 	:param netid: a user's NetID.
 	:param cid: a course ID.
 	:return: a boolean value.
