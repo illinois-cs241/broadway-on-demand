@@ -71,6 +71,16 @@ def verify_student(netid, cid):
 	return netid in db.get_course(cid)["student_ids"]
 
 
+def verify_student_or_staff(netid, cid):
+	"""
+	Check whether the given NetID is a student in the given course.
+	:param netid: a user's NetID.
+	:param cid: a course ID.
+	:return: a boolean value.
+	"""
+	return verify_student(netid, cid) or verify_staff(netid, cid)
+
+
 def verify_admin(netid, cid):
 	"""
 	Check whether the given NetID is a course admin in the given course.
