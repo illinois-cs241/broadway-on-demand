@@ -8,7 +8,7 @@ class ApiRoutes:
         @blueprint.route("/api/<cid>/update_roster", methods=["POST"])
         @auth.require_token_auth
         @auth.require_admin_status
-        def admin_update_roster(_netid, cid):
+        def admin_update_roster(netid, cid):
             netids = request.form["roster"].split("\n")
 
             for i, student_id in enumerate(netids):
