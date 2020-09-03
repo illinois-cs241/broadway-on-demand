@@ -44,7 +44,7 @@ def set_user_access_token(netid, access_token):
 	:param netid: a user's NetID.
 	:param access_token: a GitHub Enterprise access token for the user.
 	"""
-	mongo.db.update_one({"_id": netid}, {"$set": {"access_token": access_token}}, upsert=True)
+	mongo.db.users.update_one({"_id": netid}, {"$set": {"access_token": access_token}}, upsert=True)
 
 def get_courses_for_student_or_staff(netid):
 	student_course = get_courses_for_student(netid)
