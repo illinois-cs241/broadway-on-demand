@@ -1,4 +1,4 @@
-from flask import Flask, Blueprint, url_for, send_from_directory, render_template, request, redirect, abort
+from flask import Flask, Blueprint, url_for, send_from_directory, render_template, request, redirect, abort, session
 from flask_session import Session
 from werkzeug.urls import url_parse
 from http import HTTPStatus
@@ -86,6 +86,12 @@ def root(netid):
 		return redirect(url_for(".student_home"))
 	return render_template("home.html", netid=netid)
 
+
+@app.context_processor
+@auth.get_auth_user
+def inject_header_values(netid):
+	is_staff = netid and common.is_staff(netid)
+	return dict(show_staff=is_staff)
 
 app.register_blueprint(blueprint)
 

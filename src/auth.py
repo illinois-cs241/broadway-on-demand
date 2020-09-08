@@ -38,6 +38,18 @@ def require_auth(func):
 		return redirect(url_for(".login_page"))
 	return wrapper
 
+def get_auth_user(func):
+	"""
+	A decorator to get a user's UID without redirecting them to the login page
+	:param func: a route function that takes a NetID as its first positional argument.
+	"""
+	@wraps(func)
+	def wrapper(*args, **kwargs):
+		kwargs[UID_KEY] = None
+		if UID_KEY in session:
+			kwargs[UID_KEY] = session[UID_KEY]
+		return func(*args, **kwargs)
+	return wrapper
 
 def require_token_auth(func):
 	"""

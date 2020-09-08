@@ -33,14 +33,24 @@
     </button>
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <div class="navbar-nav mr-auto">
-            <a href="{{ url_for('.logout') }}" class="nav-item">
-                <span class="nav-link text-danger">Log Out</span>
-            </a>
+            {% if not hide_switch and show_staff %}
+                <a href="{{ url_for('.student_home') }}" style="margin-right: 10px;">
+                    <button class="btn btn-primary">Student</button>
+                </a>
+                <a href="{{ url_for('.staff_home') }}">
+                    <button class="btn btn-primary">Staff</button>
+                </a>
+            {% endif %}
+        </div>
+        <div class="navbar-nav ml-auto">
             <a href="https://github.com/illinois-cs241/broadway-on-demand" class="nav-item" target="_blank">
                 <span class="nav-link text-white-50">Contribute</span>
             </a>
             <a href="https://github.com/illinois-cs241/broadway-on-demand/issues/new" class="nav-item" target="_blank">
                 <span class="nav-link text-white-50">Report issue</span>
+            </a>
+            <a href="{{ url_for('.logout') }}" class="nav-item">
+                <span class="nav-link text-danger">Log Out</span>
             </a>
         </div>
         {% if config.ENV == "development" %}
