@@ -141,7 +141,7 @@
 
     function normalizeJSON(json) {
         try {
-            return JSON.stringify(JSON.parse(json));
+            return JSON.stringify(JSON.parse(json), undefined, 2);
         } catch {
             return null;
         }
