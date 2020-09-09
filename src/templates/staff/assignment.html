@@ -147,6 +147,19 @@
         }
     }
 
+    function changeTextareaRow(id, json) {
+        // Change the size of config text area based on number of rows. This row number is an approximate
+        // because it doesn't consider wrapping.
+        let numRows = json.split("\n").length;
+        if (numRows <= 5) {
+            $(id).attr('rows', 5);
+        } else if (5 < numRows && numRows <= 20) {
+            $(id).attr('rows', numRows);
+        } else if (numRows > 20) {
+            $(id).attr('rows', 20);
+        }
+    }
+
     function loadOriginalConfig() {
         $('#mdl-edit-assn-config').val("Loading...").attr("disabled", "");
 
@@ -158,6 +171,7 @@
                 let json = JSON.stringify(result);
                 let old = normalizeJSON(json);
                 $('#mdl-edit-assn-config').val(old).data("old-config", old).removeAttr("disabled");
+                changeTextareaRow('#mdl-edit-assn-config', old);
             },
             error: function () {
                 $('#mdl-edit-assn-config')
