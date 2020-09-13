@@ -34,6 +34,9 @@
         if (!start || !end) {
             addExtErr("Start and End are required.");
             return;
+        } else {
+            start = moment(start).format("YYYY-MM-DDTHH:mm");
+            end = moment(end).format("YYYY-MM-DDTHH:mm");
         }
         $.ajax({
             type: "POST",
