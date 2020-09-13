@@ -211,7 +211,7 @@ class AdminRoutes:
                     msg = bw_api.set_assignment_config(cid, aid, config)
 
                     if msg:
-                        return util.error(f"Failed to add assignment to Broadway: {msg}")
+                        return util.error(f"Failed to update assignment config to Broadway: {msg}")
             except json.decoder.JSONDecodeError:
                 return util.error("Failed to decode config JSON")
 

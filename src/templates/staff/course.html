@@ -1,104 +1,17 @@
 {% set title = "%s (staff) (%s)" % (course.name, netid) %}
 {% include 'header.html' %}
-<script type="application/javascript" src="{{ url_for('.static_file', path='file_drag_drop_upload.js') }}"></script>
+<script src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.11.1/jquery.validate.min.js"></script>
+<script src="{{ url_for('.static_file', path='moment.min.js') }}"></script>
+<script src="{{ url_for('.static_file', path='modify_assignment.js') }}"></script>
 <script type="application/javascript">
-    function addAssnErr(msg) {
-        $('#mdl-add-assn-error').html(msg).show();
-    }
-    function attemptAddAssignment() {
-        let aid = $('#mdl-add-assn-aid').val();
-        if (!aid) {
-            addAssnErr("Assignment ID is required.");
-            return;
-        }
-
-        if (!aid.match(/^[a-zA-Z0-9_.\-]+$/)) {
-            addAssnErr("Illegal assignment ID. Assignment ID must match: a-z A-Z _ - .");
-            return;
-        }
-
-        let maxRuns = $('#mdl-add-assn-runs').val();
-        if (!maxRuns) {
-            addAssnErr("Max Runs is required.");
-            return;
-        }
-        let quota = $('input[name=quota]:checked', '#add-assn').val();
-        if (!quota) {
-            addAssnErr("Quota Type is required.");
-            return;
-        }
-        let start = $('#mdl-add-assn-start').val();
-        let end = $('#mdl-add-assn-end').val();
-        if (!start || !end) {
-            addAssnErr("Start and End are required.");
-            return;
-        }
-
-        let config = undefined;
-
-        let visibility = $('input[name=visibility]:checked', '#add-assn').val();
-
-        if ($('#mdl-add-assn-config-nav-text').hasClass("active")) {
-            config = $('#mdl-add-assn-config').val();
-            if (!config) {
-                addAssnErr("Assignment config is required.");
-                return;
-            }
-
-            do_post();
-        } else {
-            if (!get_file()) {
-                addAssnErr("No file selected");
-                return;
-            }
-
-            if (!FileReader) {
-                addAssnErr("Unable to read file content, please use the text input instead");
-            } else {
-                let reader = new FileReader();
-
-                reader.onload = function () {
-                    config = reader.result;
-                    do_post();
-                };
-
-                reader.readAsText(get_file());
-
-                $('#mdl-add-assn-save .loader').addClass("fa-spin");
-            }
-        }
-
-        function do_post() {
-            $.ajax({
-                type: "POST",
-                url: "{{ url_for('.add_assignment', cid=course._id) }}",
-                data: {aid: aid, max_runs: maxRuns, quota: quota, start: start, end: end, visibility: visibility, config: config},
-                beforeSend: function () {
-                    $('#mdl-add-assn-error').html('').fadeOut();
-                    $('#mdl-add-assn-save .loader').addClass("fa-spin");
-                },
-                success: function () {
-                    $('#mdl-add-assn').modal('hide');
-                    location.reload();
-                    $('#mdl-add-assn-save .loader').removeClass("fa-spin");
-                },
-                error: function (xhr) {
-                    if (!xhr.responseText) {
-                        $('#mdl-add-assn-error').html("Save failed. Please try again.").fadeIn();
-                    } else {
-                        $('#mdl-add-assn-error').html(xhr.responseText).fadeIn();
-                    }
-
-                    $('#mdl-add-assn-save .loader').removeClass("fa-spin");
-                }
-            });
-        }
-    }
-
-    var get_file = undefined;
-
-    $(function () {
-        get_file = fileDragDrop('#mdl-add-assn-config-upload-box', '#mdl-add-assn-config-upload')
+    $(() => { // on load
+        modifyAssignment(
+            "add-assn", 
+            `{{ url_for('.add_assignment', cid=course._id) }}`, 
+            '#mdl-add-assn-error', 
+            '#mdl-add-assn-save .loader', 
+            '#mdl-add-assn'
+        );
     });
 
     function viewWorkerStatus() {
@@ -196,7 +109,7 @@
                                                 <label for="max_runs">Max Runs</label>
                                                 <input type="number" min="1" max="100" class="form-control" id="mdl-add-assn-runs" name="max_runs">
                                             </div>
-                                            <div class="form-group">
+                                            <div class="form-group" id="quota-group">
                                                 <label class="form-check-label">Quota Type</label><br>
                                                 <div class="form-check form-check-inline">
                                                     <input class="form-check-input" type="radio" name="quota" id="mdl-add-assn-quota-daily" value="daily" checked>
@@ -209,11 +122,11 @@
                                             </div>
                                             <div class="form-group">
                                                 <label for="start">Start Date & Time</label> <span class="badge badge-secondary">{{ tzname }}</span>
-                                                <input type="datetime-local" class="form-control" id="mdl-add-assn-start" name="start">
+                                                <input type="datetime-local" class="form-control" id="mdl-add-assn-start" name="start" placeholder="YYYY-MM-DD HH:MM">
                                             </div>
                                             <div class="form-group">
                                                 <label for="start">End Date & Time</label> <span class="badge badge-secondary">{{ tzname }}</span>
-                                                <input type="datetime-local" class="form-control" id="mdl-add-assn-end" name="end">
+                                                <input type="datetime-local" class="form-control" id="mdl-add-assn-end" name="end" placeholder="YYYY-MM-DD HH:MM">
                                             </div>
                                             <div class="form-group">
                                                 <label class="form-check-label">Visibility</label><br>
@@ -232,30 +145,15 @@
                                             </div>
                                             <div class="form-group">
                                                 <label for="start">Configuration</label>
-                                                <nav>
-                                                    <div class="nav nav-tabs" role="tablist">
-                                                        <a id="mdl-add-assn-config-nav-text" class="nav-item nav-link active" data-toggle="tab" href="#nav-home" role="tab">Text</a>
-                                                        <a id="mdl-add-assn-config-nav-upload" class="nav-item nav-link" data-toggle="tab" href="#nav-profile" role="tab">Upload</a>
-                                                    </div>
-                                                </nav>
-                                                <div class="tab-content">
-                                                    <div class="tab-pane fade show active" id="nav-home" role="tabpanel">
-                                                        <textarea type="text" class="form-control" id="mdl-add-assn-config" name="config" rows="8"
-                                                                  style="font-family: monospace; border-top: none; border-top-left-radius: 0; border-top-right-radius: 0;"></textarea>
-                                                    </div>
-                                                    <div class="tab-pane fade" id="nav-profile" role="tabpanel" style="padding-top: 0.5em;">
-                                                        <div id="mdl-add-assn-config-upload-box" class="file-drop-box" draggable="true">
-                                                            Drag & drop or click to upload
-                                                        </div>
-                                                        <input type="file" id="mdl-add-assn-config-upload" class="form-control-file" style="display: none;">
-                                                    </div>
+                                                <div class="tab-pane fade show active" id="nav-home" role="tabpanel">
+                                                    <textarea type="text" class="form-control" id="mdl-add-assn-config" name="config" rows="8" style="font-family: monospace;" placeholder="JSON configuration for broadway"></textarea>
                                                 </div>
                                             </div>
                                             <span id="mdl-add-assn-error" class="form-text text-danger"></span>
                                         </form>
                                     </div>
                                     <div class="modal-footer">
-                                        <button type="button" class="btn btn-primary" id="mdl-add-assn-save" onclick="attemptAddAssignment()">
+                                        <button type="submit" form="add-assn" class="btn btn-primary" id="mdl-add-assn-save">
                                             <span class="fa fa-cog loader" style="margin-right: 0.2em;"></span>
                                             Save
                                         </button>

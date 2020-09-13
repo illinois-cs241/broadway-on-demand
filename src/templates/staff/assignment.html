@@ -1,70 +1,19 @@
 {% set title = "%s (staff) (%s)" % (course.name, netid) %}
 {% include 'header.html' %}
 {% include 'status.html' %}
+<script src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.11.1/jquery.validate.min.js"></script>
+<script src="{{ url_for('.static_file', path='moment.min.js') }}"></script>
+<script src="{{ url_for('.static_file', path='modify_assignment.js') }}"></script>
 <script type="application/javascript">
-    function editAssnErr(msg) {
-        $('#mdl-edit-assn-error').html(msg).show();
-    }
-    function attemptEditAssignment() {
-        let maxRuns = $('#mdl-edit-assn-runs').val();
-        if (!maxRuns) {
-            editAssnErr("Max Runs is required.");
-            return;
-        }
-        let quota = $('input[name=quota]:checked', '#edit-assn').val();
-        if (!quota) {
-            editAssnErr("Quota Type is required.");
-            return;
-        }
-        let start = $('#mdl-edit-assn-start').val();
-        let end = $('#mdl-edit-assn-end').val();
-        if (!start || !end) {
-            editAssnErr("Start and End are required.");
-            return;
-        }
-
-        let config = undefined;
-        let old = $('#mdl-edit-assn-config').data("old-config");
-
-        if (!$('#mdl-edit-assn-config')[0].hasAttribute("disabled")) {
-            config = normalizeJSON($('#mdl-edit-assn-config').val());
-
-            if (!config) {
-                editAssnErr("Invalid assignment config");
-                return;
-            }
-
-            if (config == old) {
-                config = undefined;
-            }
-        }
-
-        let visibility = $('input[name=visibility]:checked', '#edit-assn').val();
-
-        $.ajax({
-            type: "POST",
-            url: "{{ url_for('.edit_assignment', cid=course._id, aid=assignment.assignment_id) }}",
-            data: {max_runs: maxRuns, quota: quota, start: start, end: end, visibility: visibility, config: config},
-            beforeSend: function () {
-                $('#mdl-edit-assn-error').html('').fadeOut();
-                $('#mdl-edit-assn-save .loader').addClass("fa-spin");
-            },
-            success: function () {
-                $('#mdl-edit-assn').modal('hide');
-                location.reload();
-                $('#mdl-edit-assn-save .loader').removeClass("fa-spin");
-            },
-            error: function (xhr) {
-                if (!xhr.responseText) {
-                    $('#mdl-edit-assn-error').html("Save failed. Please try again.").fadeIn();
-                } else {
-                    $('#mdl-edit-assn-error').html(xhr.responseText).fadeIn();
-                }
-
-                $('#mdl-edit-assn-save .loader').removeClass("fa-spin");
-            }
-        })
-    }
+    $(() => { // on load
+        modifyAssignment(
+            "edit-assn", 
+            `{{ url_for('.edit_assignment', cid=course._id, aid=assignment.assignment_id) }}`, 
+            '#mdl-edit-assn-error', 
+            '#mdl-edit-assn-save .loader', 
+            '#mdl-edit-assn'
+        );
+    });
 
     function addExtErr(msg) {
         $('#mdl-add-ext-error').html(msg).show();
@@ -326,7 +275,6 @@
                                             <div class="form-group">
                                                 <label for="start">Configuration</label>
                                                 <div>
-
                                                     <textarea type="text" class="form-control" id="mdl-edit-assn-config" name="config" rows="5" style="font-family: monospace;"></textarea>
                                                 </div>
                                             </div>
@@ -334,7 +282,7 @@
                                         </form>
                                     </div>
                                     <div class="modal-footer">
-                                        <button type="button" class="btn btn-primary" id="mdl-edit-assn-save" onclick="attemptEditAssignment()">
+                                        <button type="submit" form="edit-assn" class="btn btn-primary" id="mdl-edit-assn-save">
                                             <span class="fa fa-cog loader" style="margin-right: 0.2em;"></span>
                                             Save
                                         </button>
