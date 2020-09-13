@@ -285,7 +285,7 @@
     let data = {
       'content': file_content
     };
-    $.post('{{ url_for('.upload_roster_file', cid=course._id) }}', data, () => {
+    $.post(`{{ url_for('.upload_roster_file', cid=course._id) }}`, data, () => {
       location.reload();
     }).fail((jqXHR) => {
       showError(jqXHR.responseText, roster_alert);
