@@ -12,7 +12,7 @@ function modifyAssignment(formName, postUrl, errorSelector, saveBtnIcon, modalSe
     // custom validators
     $.validator.addMethod("check_id", function(value, element) {
         return this.optional(element) || /^[a-zA-Z0-9_\-]+$/.test(value);
-    }, "ID must only contain: a-z A-Z _ -");
+    }, "ID must only contain: a-z A-Z 0-9 _ -");
 
     $.validator.addMethod("check_datetime", function(value, element) {
         return this.optional(element) || moment(value).isValid();
