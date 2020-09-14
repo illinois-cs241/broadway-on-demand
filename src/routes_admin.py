@@ -158,14 +158,14 @@ class AdminRoutes:
             if start >= end:
                 return util.error("Start must be before End.")
 
-            # try:
-            #     config = json.loads(request.form["config"])
-            #     msg = bw_api.set_assignment_config(cid, aid, config)
+            try:
+                config = json.loads(request.form["config"])
+                msg = bw_api.set_assignment_config(cid, aid, config)
 
-            #     if msg:
-            #         return util.error(f"Failed to add assignment to Broadway: {msg}")
-            # except json.decoder.JSONDecodeError:
-            #     return util.error("Failed to decode config JSON")
+                if msg:
+                    return util.error(f"Failed to add assignment to Broadway: {msg}")
+            except json.decoder.JSONDecodeError:
+                return util.error("Failed to decode config JSON")
 
             visibility = request.form["visibility"]
 
