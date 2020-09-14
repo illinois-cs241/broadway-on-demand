@@ -158,14 +158,14 @@ class AdminRoutes:
             if start >= end:
                 return util.error("Start must be before End.")
 
-            try:
-                config = json.loads(request.form["config"])
-                msg = bw_api.set_assignment_config(cid, aid, config)
+            # try:
+            #     config = json.loads(request.form["config"])
+            #     msg = bw_api.set_assignment_config(cid, aid, config)
 
-                if msg:
-                    return util.error(f"Failed to add assignment to Broadway: {msg}")
-            except json.decoder.JSONDecodeError:
-                return util.error("Failed to decode config JSON")
+            #     if msg:
+            #         return util.error(f"Failed to add assignment to Broadway: {msg}")
+            # except json.decoder.JSONDecodeError:
+            #     return util.error("Failed to decode config JSON")
 
             visibility = request.form["visibility"]
 
@@ -219,6 +219,14 @@ class AdminRoutes:
 
             if not db.update_assignment(cid, aid, max_runs, quota, start, end, visibility):
                 return util.error("Save failed or no changes were made.")
+            return util.success("")
+        
+        @blueprint.route("/staff/course/<cid>/<aid>/delete/", methods=["POST"])
+        @auth.require_auth
+        @auth.require_admin_status
+        def delete_assignment(netid, cid, aid):
+            if not db.remove_assignment(cid, aid):
+                return util.error("Assignment doesn't exist")
             return util.success("")
 
         @blueprint.route("/staff/course/<cid>/<aid>/extensions/", methods=["GET"])
