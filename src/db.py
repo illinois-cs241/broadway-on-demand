@@ -149,6 +149,12 @@ def update_assignment(cid, aid, max_runs, quota, start, end, visibility):
 	)
 	return res["n"] == 1 and 0 <= res["nModified"] <= 1
 
+def remove_assignment(cid, aid):
+	delete_filter = {"course_id": cid, "assignment_id": aid}
+	mongo.db.extensions.delete_many(delete_filter)
+	mongo.db.runs.delete_many(delete_filter)
+	res = mongo.db.assignments.delete_many(delete_filter)
+	return res.deleted_count == 1
 
 def get_assignment_runs_for_student(cid, aid, netid):
 	"""

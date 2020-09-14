@@ -13,6 +13,23 @@
             '#mdl-edit-assn-save .loader', 
             '#mdl-edit-assn'
         );
+        // Deal with bootstrap 4 doesn't support double modaling
+        // https://stackoverflow.com/a/32712953/9059878
+        $('.modal').on("hidden.bs.modal", function (e) { //fire on closing modal box
+            if ($('.modal:visible').length) { // check whether parent modal is opend after child modal close
+                $('body').addClass('modal-open'); // if open mean length is 1 then add a bootstrap css class to body of the page
+            }
+        });
+    });
+
+    // Deal with bootstrap 4 doesn't support double modaling
+    // https://stackoverflow.com/questions/19305821/multiple-modals-overlay
+    $(document).on('show.bs.modal', '.modal', function () {
+        var zIndex = 1040 + (10 * $('.modal:visible').length);
+        $(this).css('z-index', zIndex);
+        setTimeout(function() {
+            $('.modal-backdrop').not('.modal-stack').css('z-index', zIndex - 1).addClass('modal-stack');
+        }, 0);
     });
 
     function addExtErr(msg) {
@@ -150,6 +167,30 @@
                 }
             })
     }
+
+    function deleteAssignment() {
+        $.ajax({
+            type: "POST",
+            url: "{{ url_for('.delete_assignment', cid=course._id, aid=assignment.assignment_id) }}",
+            dataType: "json",
+            beforeSend: () => {
+                $("#delete-assn-error").html("").fadeOut();
+                $("#delete-assn").prop('disabled', true);
+            },
+            success: () => {
+                location.replace("{{ url_for('.staff_get_course', cid=course._id) }}");
+            },
+            error: (xhr) => {
+                if (!xhr.responseText) {
+                    $("#delete-assn-error").html("Delete assignment failed. Please try again.").fadeIn();
+                } else {
+                    $("#delete-assn-error").html(xhr.responseText).fadeIn();
+                }
+            },
+        }).always(() => {
+            $("#delete-assn").prop('disabled', false);
+        });
+    }
 </script>
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
@@ -285,10 +326,34 @@
                                         </form>
                                     </div>
                                     <div class="modal-footer">
-                                        <button type="submit" form="edit-assn" class="btn btn-primary" id="mdl-edit-assn-save">
+                                        <button type="button" class="btn btn-outline-danger w-100" data-toggle="modal" data-target="#delete-confirmation">
+                                            <span class="fa fa-trash-alt" style="margin-right: 0.2em;"></span>
+                                            Delete
+                                        </button>
+                                        <button type="submit" form="edit-assn" class="btn btn-primary w-100" id="mdl-edit-assn-save">
                                             <span class="fa fa-cog loader" style="margin-right: 0.2em;"></span>
                                             Save
                                         </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal fade" tabindex="-1" role="dialog" id="delete-confirmation">
+                            <div class="modal-dialog p-3" role="document" style="margin-top: 5rem;">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Delete {{ assignment.assignment_id }}</h5>
+                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p>Are you sure you want to delete <b>{{ assignment.assignment_id }}</b>?</p>
+                                        <span id="delete-assn-error" class="form-text text-danger"></span>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-danger w-100" id="delete-assn" onclick="deleteAssignment()">Yes</button>
+                                        <button type="button" class="btn btn-secondary w-100" data-dismiss="modal">No</button>
                                     </div>
                                 </div>
                             </div>

@@ -220,6 +220,14 @@ class AdminRoutes:
             if not db.update_assignment(cid, aid, max_runs, quota, start, end, visibility):
                 return util.error("Save failed or no changes were made.")
             return util.success("")
+        
+        @blueprint.route("/staff/course/<cid>/<aid>/delete/", methods=["POST"])
+        @auth.require_auth
+        @auth.require_admin_status
+        def delete_assignment(netid, cid, aid):
+            if not db.remove_assignment(cid, aid):
+                return util.error("Assignment doesn't exist")
+            return util.success("")
 
         @blueprint.route("/staff/course/<cid>/<aid>/extensions/", methods=["GET"])
         @auth.require_auth
