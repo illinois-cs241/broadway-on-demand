@@ -27,21 +27,25 @@
     <a class="navbar-brand" href="{{ url_for('.root') }}">
         {{ title }}
     </a>
+    <div class="navbar-nav mr-auto">
+        {% if is_staff %}
+            {% if "staff" in request.path %}
+                <a href="{{ switcher_endpoint(course, assignment) }}" style="margin-right: 10px;">
+                    <button class="btn btn-primary">Staff</button>
+                </a>
+            {% endif %}
+            {% if "student" in request.path %}
+                <a href="{{ switcher_endpoint(course, assignment, mode='staff') }}">
+                    <button class="btn btn-primary">Student</button>
+                </a>
+            {% endif %}
+        {% endif %}
+    </div>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
             aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
-        <div class="navbar-nav mr-auto">
-            {% if is_staff %}
-                <a href="{{ switcher_endpoint(course, assignment) }}" style="margin-right: 10px;">
-                    <button class="btn btn-primary">Student</button>
-                </a>
-                <a href="{{ switcher_endpoint(course, assignment, mode='staff') }}">
-                    <button class="btn btn-primary">Staff</button>
-                </a>
-            {% endif %}
-        </div>
         <div class="navbar-nav ml-auto">
             <a href="https://github.com/illinois-cs241/broadway-on-demand" class="nav-item" target="_blank">
                 <span class="nav-link text-white-50">Contribute</span>
