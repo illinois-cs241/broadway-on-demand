@@ -10,6 +10,15 @@ UID_KEY = "netid"
 CID_KEY = "cid"
 
 
+def get_netid():
+	"""
+	Gets the logged in user's netid
+	"""
+	if UID_KEY in session:
+		return session[UID_KEY]
+	return None
+
+
 def require_no_auth(func):
 	"""
 	A route decorator that redirects authenticated users to the site root. If the user is not authenticated, proceeds
@@ -38,18 +47,6 @@ def require_auth(func):
 		return redirect(url_for(".login_page"))
 	return wrapper
 
-def get_auth_user(func):
-	"""
-	A decorator to get a user's UID without redirecting them to the login page
-	:param func: a route function that takes a NetID as its first positional argument.
-	"""
-	@wraps(func)
-	def wrapper(*args, **kwargs):
-		kwargs[UID_KEY] = None
-		if UID_KEY in session:
-			kwargs[UID_KEY] = session[UID_KEY]
-		return func(*args, **kwargs)
-	return wrapper
 
 def require_token_auth(func):
 	"""

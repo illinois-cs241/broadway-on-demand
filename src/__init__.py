@@ -88,10 +88,23 @@ def root(netid):
 
 
 @app.context_processor
-@auth.get_auth_user
-def inject_header_values(netid):
+def inject_header_values():
+	netid = auth.get_netid()
 	is_staff = netid and common.is_staff(netid)
-	return dict(show_staff=is_staff)
+
+	def switcher_endpoint(course, assignment, mode="student"):
+		if course and assignment:
+			route = "get_assignment"
+			url_args = {"cid": course["_id"], "aid": assignment["assignment_id"]}
+		elif course:
+			route = "get_course"
+			url_args = {"cid": course["_id"]}
+		else:
+			route = "home"
+			url_args = {}
+		return url_for(f'.{mode}_{route}', **url_args)
+
+	return dict(is_staff=is_staff, switcher_endpoint=switcher_endpoint)
 
 app.register_blueprint(blueprint)
 

@@ -33,11 +33,11 @@
     </button>
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <div class="navbar-nav mr-auto">
-            {% if not hide_switch and show_staff %}
-                <a href="{{ url_for('.student_home') }}" style="margin-right: 10px;">
+            {% if is_staff %}
+                <a href="{{ switcher_endpoint(course, assignment) }}" style="margin-right: 10px;">
                     <button class="btn btn-primary">Student</button>
                 </a>
-                <a href="{{ url_for('.staff_home') }}">
+                <a href="{{ switcher_endpoint(course, assignment, mode='staff') }}">
                     <button class="btn btn-primary">Staff</button>
                 </a>
             {% endif %}
