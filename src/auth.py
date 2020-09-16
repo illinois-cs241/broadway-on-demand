@@ -10,6 +10,15 @@ UID_KEY = "netid"
 CID_KEY = "cid"
 
 
+def get_netid():
+	"""
+	Gets the logged in user's netid
+	"""
+	if UID_KEY in session:
+		return session[UID_KEY]
+	return None
+
+
 def require_no_auth(func):
 	"""
 	A route decorator that redirects authenticated users to the site root. If the user is not authenticated, proceeds
