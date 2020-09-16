@@ -31,12 +31,12 @@
         {% if is_staff %}
             {% if "staff" in request.path %}
                 <a href="{{ switcher_endpoint(course, assignment) }}" style="margin-right: 10px;">
-                    <button class="btn btn-primary">Staff</button>
+                    <button class="btn btn-primary" title="Switch to Student view">Staff</button>
                 </a>
             {% endif %}
             {% if "student" in request.path %}
                 <a href="{{ switcher_endpoint(course, assignment, mode='staff') }}">
-                    <button class="btn btn-primary">Student</button>
+                    <button class="btn btn-primary" title="Switch to Staff view">Student</button>
                 </a>
             {% endif %}
         {% endif %}

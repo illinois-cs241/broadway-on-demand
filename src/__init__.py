@@ -1,4 +1,4 @@
-from flask import Flask, Blueprint, url_for, send_from_directory, render_template, request, redirect, abort, session
+from flask import Flask, Blueprint, url_for, send_from_directory, render_template, request, redirect, abort
 from flask_session import Session
 from werkzeug.urls import url_parse
 from http import HTTPStatus
@@ -93,15 +93,29 @@ def inject_header_values():
 	is_staff = netid and common.is_staff(netid)
 
 	def switcher_endpoint(course, assignment, mode="student"):
-		if course and assignment:
-			route = "get_assignment"
-			url_args = {"cid": course["_id"], "aid": assignment["assignment_id"]}
-		elif course:
-			route = "get_course"
-			url_args = {"cid": course["_id"]}
-		else:
-			route = "home"
-			url_args = {}
+		'''
+		This function determines the correct endpoint for the student/staff
+		switcher based on the currently selected course/assignment
+		'''
+		route = "home"
+		url_args = {}
+
+		if course:
+			# ensure user is staff of current course, 
+			# otherwise redirect to staff_home
+			if mode == "staff":
+				netid = auth.get_netid()
+				if not (netid and common.verify_staff(netid, course["_id"])):
+					return url_for(f'.{mode}_{route}', **url_args)
+
+			# get urls for current assignment or course
+			if assignment:
+				route = "get_assignment"
+				url_args = {"cid": course["_id"], "aid": assignment["assignment_id"]}
+			else:
+				route = "get_course"
+				url_args = {"cid": course["_id"]}
+
 		return url_for(f'.{mode}_{route}', **url_args)
 
 	return dict(is_staff=is_staff, switcher_endpoint=switcher_endpoint)
