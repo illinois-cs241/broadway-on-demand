@@ -34,4 +34,3 @@
 
 #### Important Notes
 - broadway-on-demand assumes that a student's netid is the same as the studne'ts repository name. It uses that to get a student's latest commit.
-
