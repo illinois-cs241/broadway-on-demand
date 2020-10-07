@@ -56,7 +56,7 @@ class AdminRoutes:
         @auth.require_auth
         @auth.require_admin_status
         def remove_course_staff(netid, cid):
-            staff_id = request.form.get('netid').lower()
+            staff_id = request.form.get('netid')
             result = db.remove_staff_from_course(cid, staff_id)
             if none_modified(result):
                 return util.error(f"'{staff_id}' is not a staff")
