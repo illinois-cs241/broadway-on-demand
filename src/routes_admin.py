@@ -42,7 +42,7 @@ class AdminRoutes:
         @auth.require_auth
         @auth.require_admin_status
         def add_course_staff(netid, cid):
-            new_staff_id = request.form.get('netid')
+            new_staff_id = request.form.get('netid').lower()
             if new_staff_id is None:
                 return util.error("Cannot find netid field")
             if not util.is_valid_netid(new_staff_id):
@@ -88,7 +88,7 @@ class AdminRoutes:
         @auth.require_auth
         @auth.require_admin_status
         def add_course_student(netid, cid):
-            new_student_id = request.form.get('netid')
+            new_student_id = request.form.get('netid').lower()
             if new_student_id is None:
                 return util.error("Cannot find netid field")
             if not util.is_valid_netid(new_student_id):
@@ -113,7 +113,7 @@ class AdminRoutes:
         @auth.require_admin_status
         def upload_roster_file(netid, cid):
             file_content = request.form.get('content')
-            netids = file_content.strip().split('\n')
+            netids = file_content.strip().lower().split('\n')
             for i, student_id in enumerate(netids):
                 if not util.is_valid_netid(student_id):
                     return util.error(f"Poorly formatted NetID on line {i + 1}: '{student_id}'")
@@ -249,7 +249,7 @@ class AdminRoutes:
             if util.check_missing_fields(request.form, "netids", "max_runs", "start", "end"):
                 return util.error("Missing fields. Please try again.")
 
-            student_netids = request.form["netids"].replace(" ", "").split(",")
+            student_netids = request.form["netids"].replace(" ", "").lower().split(",")
             for student_netid in student_netids:
                 if not util.valid_id(student_netid) or not verify_student(student_netid, cid):
                     return util.error(f"Invalid or non-existent student NetID: {student_netid}")
