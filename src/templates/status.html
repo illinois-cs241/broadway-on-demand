@@ -16,6 +16,9 @@
                         if (result.indexOf(key) != -1) {
                             $("#status-" + runId).html("<i class=\"fas fa-sync-alt\"></i> " + result)
                                                  .attr("class", "btn btn-secondary btn-sm " + status_map[key]);
+                            if (key == "scheduled") {
+                                getQueuePosition(runId);
+                            }
                             break;
                         }
                     }
@@ -23,6 +26,23 @@
                 error: function () {
                     $("#status-" + runId).html("<i class=\"fas fa-sync-alt\"></i> Unknown. Click to try again.")
                                          .attr("class", "btn btn-sm btn-warning");
+                }
+            })
+    }
+
+    function getQueuePosition(runId) {
+        $.ajax(
+            {
+                url: "./" + runId + "/position/",
+                success: function (result) {
+                    let queuePositionString = "Your job is scheduled after " + result + " other runs";
+                    if (result == "0") {
+                        queuePositionString = "Your job is next";
+                    }
+                    $("#status-" + runId).html("<i class=\"fas fa-sync-alt\"></i> " + queuePositionString);
+                },
+                error: function () {
+                    $("#status-" + runId).html("<i class=\"fas fa-sync-alt\"></i> Your run is scheduled. Queue position unknown.");
                 }
             })
     }
