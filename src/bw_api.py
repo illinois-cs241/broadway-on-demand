@@ -72,7 +72,6 @@ def get_grading_job_queue_position(cid, run_id):
 	"""
 	Get the queue position of a grading run.
 	:param cid: the course ID.
-	:param aid: the assignment ID within the course.
 	:param run_id: the run ID received when the run was started.
 	:return: the queue position as a string if successful, or None otherwise.
 	"""
