@@ -1,4 +1,9 @@
 <script type="application/javascript">
+    function updateButtonContent(runId, text, buttonType) {
+        $("#status-" + runId).html("<i class=\"fas fa-sync-alt\"></i> " + text)
+                             .attr("class", "btn btn-secondary btn-sm " + buttonType);
+    }
+
     function getRunStatus(runId) {
         $.ajax(
             {
@@ -14,15 +19,34 @@
 
                     for (var key in status_map) {
                         if (result.indexOf(key) != -1) {
-                            $("#status-" + runId).html("<i class=\"fas fa-sync-alt\"></i> " + result)
-                                                 .attr("class", "btn btn-secondary btn-sm " + status_map[key]);
+                            if (key == "scheduled") {
+                                getQueuePosition(runId);
+                            } else {
+                                updateButtonContent(runId, result, status_map[key]);
+                            }
                             break;
                         }
                     }
                 },
                 error: function () {
-                    $("#status-" + runId).html("<i class=\"fas fa-sync-alt\"></i> Unknown. Click to try again.")
-                                         .attr("class", "btn btn-sm btn-warning");
+                    updateButtonContent(runId, "Unknown. Click to try again.", "btn-warning");
+                }
+            })
+    }
+
+    function getQueuePosition(runId) {
+        $.ajax(
+            {
+                url: "./" + runId + "/position/",
+                success: function (result) {
+                    let queuePositionString = "Your job is scheduled after " + result + " other jobs";
+                    if (result == "0") {
+                        queuePositionString = "Your job is next";
+                    }
+                    updateButtonContent(runId, queuePositionString, "btn-info");
+                },
+                error: function () {
+                    updateButtonContent(runId, "Your run is scheduled. Queue position unknown.", "btn-info");
                 }
             })
     }
