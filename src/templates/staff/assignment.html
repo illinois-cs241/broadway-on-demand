@@ -61,6 +61,7 @@
             data: {netids: netids, max_runs: maxRuns, start: start, end: end},
             beforeSend: function () {
                 $('#mdl-add-ext-error').html('').hide();
+                $("#mdl-add-ext-save").prop('disabled', true);
             },
             success: function () {
                 $('#mdl-add-ext').modal('hide');
@@ -73,7 +74,9 @@
                     $('#mdl-add-ext-error').html(xhr.responseText).show();
                 }
             }
-        });
+        }).always(() => {
+            $("#mdl-add-ext-save").prop('disabled', false);
+        });;
     }
     function fmtTimestamp(timestamp) {
         return new Date(timestamp * 1000).toLocaleString('en-US', {timeZone: '{{ tzname }}'});
