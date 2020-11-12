@@ -5,10 +5,11 @@
  * @param formName Name of form to validate
  * @param postUrl The url to send form data to
  * @param errorSelector Selector for element to display error
+ * @param saveBtn Selector for save button
  * @param saveBtnIcon The selector for icon on save button
  * @param modalSelector The selector for form modal
  */
-function modifyAssignment(formName, postUrl, errorSelector, saveBtnIcon, modalSelector) {
+function modifyAssignment(formName, postUrl, errorSelector, saveBtn, saveBtnIcon, modalSelector) {
     // custom validators
     $.validator.addMethod("check_id", function(value, element) {
         return this.optional(element) || /^[a-zA-Z0-9_\-]+$/.test(value);
@@ -72,11 +73,11 @@ function modifyAssignment(formName, postUrl, errorSelector, saveBtnIcon, modalSe
                 beforeSend: function () {
                     $(errorSelector).html('').fadeOut();
                     $(saveBtnIcon).addClass("fa-spin");
+                    $(saveBtn).prop('disabled', true);
                 },
                 success: function () {
                     $(modalSelector).modal('hide');
                     location.reload();
-                    $(saveBtnIcon).removeClass("fa-spin");
                 },
                 error: function (xhr) {
                     if (!xhr.responseText) {
@@ -84,9 +85,10 @@ function modifyAssignment(formName, postUrl, errorSelector, saveBtnIcon, modalSe
                     } else {
                         $(errorSelector).html(xhr.responseText).fadeIn();
                     }
-
-                    $(saveBtnIcon).removeClass("fa-spin");
                 }
+            }).always(() => {
+                $(saveBtnIcon).removeClass("fa-spin");
+                $(saveBtn).prop('disabled', false);
             });
         }
     });

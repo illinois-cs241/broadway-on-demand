@@ -3,13 +3,14 @@
 {% include 'status.html' %}
 <script src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.11.1/jquery.validate.min.js"></script>
 <script src="{{ url_for('.static_file', path='moment.min.js') }}"></script>
-<script src="{{ url_for('.static_file', path='modify_assignment.js') }}"></script>
+<script src="{{ url_for('.static_file', path='modify_assignment.1.0.1.js') }}"></script>
 <script type="application/javascript">
     $(() => { // on load
         modifyAssignment(
             "edit-assn", 
             `{{ url_for('.edit_assignment', cid=course._id, aid=assignment.assignment_id) }}`, 
             '#mdl-edit-assn-error', 
+            '#mdl-edit-assn-save',
             '#mdl-edit-assn-save .loader', 
             '#mdl-edit-assn'
         );

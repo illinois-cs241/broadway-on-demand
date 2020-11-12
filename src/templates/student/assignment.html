@@ -15,6 +15,7 @@
             },
             beforeSend: function () {
                 $('#grade-now-error').html('').hide();
+                $('#grade-now').prop('disabled', true);
             },
             success: function () {
                 location.reload();
@@ -26,6 +27,8 @@
                     $('#grade-now-error').html(xhr.responseText).show();
                 }
             }
+        }).always(() => {
+            $('#grade-now').prop('disabled', false);
         });
     }
 </script>
@@ -78,7 +81,7 @@
                     {% set has_commits = not not commit["sha"] %}
                     <form action="">
                         <input id="csrf_token" name="csrf_token" type="hidden" value="{{ csrf_token() }}">
-                        <button onclick="confirmGradeNow()" type="button" class="btn btn-primary" {% if not has_runs or not has_commits %}disabled{% endif %}>Grade Now</button>
+                        <button id="grade-now" onclick="confirmGradeNow()" type="button" class="btn btn-primary" {% if not has_runs or not has_commits %}disabled{% endif %}>Grade Now</button>
                     </form>
                     <p>
                         <strong>Start</strong> {{ assignment.start|fmt_timestamp }}
