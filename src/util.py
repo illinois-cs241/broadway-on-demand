@@ -128,7 +128,7 @@ def is_valid_netid(netid):
 
 def test_slow_respond(func):
 	"""
-	Decorator used to simulate slow server respond. Sleep 5 seconds before processing
+	Decorator used to simulate slow server respond. Sleep a few seconds before processing
 	the respond.
 	"""
 	@wraps(func)
