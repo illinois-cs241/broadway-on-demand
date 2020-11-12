@@ -1,4 +1,5 @@
 import uuid
+import time
 from datetime import datetime
 from functools import wraps
 from re import fullmatch
@@ -124,3 +125,14 @@ def is_valid_netid(netid):
 	:param netid: A netid string to be tested
 	"""
 	return fullmatch(r"[a-zA-Z0-9\-]+", netid) is not None
+
+def test_slow_respond(func):
+	"""
+	Decorator used to simulate slow server respond. Sleep 5 seconds before processing
+	the respond.
+	"""
+	@wraps(func)
+	def wrapper(*args, **kwargs):
+		time.sleep(3)
+		return func(*args, **kwargs)
+	return wrapper
