@@ -269,3 +269,18 @@ class AdminRoutes:
             for student_netid in student_netids:
                 db.add_extension(cid, aid, student_netid, max_runs, start, end)
             return util.success("")
+        
+        @blueprint.route("/staff/course/<cid>/<aid>/extensions/", methods=["DELETE"])
+        @auth.require_auth
+        @auth.require_admin_status
+        def staff_delete_extension(netid, cid, aid):
+            extension_id = request.form["_id"]
+            try:
+                delete_result = db.delete_extension(extension_id)
+            except:
+                return util.error("Invalid ID?")
+            
+            if delete_result.deleted_count != 1:
+                return util.error("Failed to delete extension.")
+
+            return util.success("")
