@@ -3,13 +3,14 @@
 {% include 'status.html' %}
 <script src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.11.1/jquery.validate.min.js"></script>
 <script src="{{ url_for('.static_file', path='moment.min.js') }}"></script>
-<script src="{{ url_for('.static_file', path='modify_assignment.js') }}"></script>
+<script src="{{ url_for('.static_file', path='modify_assignment.1.0.1.js') }}"></script>
 <script type="application/javascript">
     $(() => { // on load
         modifyAssignment(
             "edit-assn", 
             `{{ url_for('.edit_assignment', cid=course._id, aid=assignment.assignment_id) }}`, 
             '#mdl-edit-assn-error', 
+            '#mdl-edit-assn-save',
             '#mdl-edit-assn-save .loader', 
             '#mdl-edit-assn'
         );
@@ -61,6 +62,7 @@
             data: {netids: netids, max_runs: maxRuns, start: start, end: end},
             beforeSend: function () {
                 $('#mdl-add-ext-error').html('').hide();
+                $("#mdl-add-ext-save").prop('disabled', true);
             },
             success: function () {
                 $('#mdl-add-ext').modal('hide');
@@ -73,7 +75,9 @@
                     $('#mdl-add-ext-error').html(xhr.responseText).show();
                 }
             }
-        });
+        }).always(() => {
+            $("#mdl-add-ext-save").prop('disabled', false);
+        });;
     }
     function fmtTimestamp(timestamp) {
         return new Date(timestamp * 1000).toLocaleString('en-US', {timeZone: '{{ tzname }}'});
