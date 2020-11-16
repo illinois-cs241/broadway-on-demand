@@ -3,6 +3,12 @@ body {
     font-family: 'Roboto', sans-serif;
 }
 
+@media (min-width: 576px) {
+    .modal-xl {
+        max-width: 80%;
+    }
+}
+
 i.fab, i.fas {
     margin-right: 0.3em;
 }

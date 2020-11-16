@@ -2,13 +2,14 @@
 {% include 'header.html' %}
 <script src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.11.1/jquery.validate.min.js"></script>
 <script src="{{ url_for('.static_file', path='moment.min.js') }}"></script>
-<script src="{{ url_for('.static_file', path='modify_assignment.js') }}"></script>
+<script src="{{ url_for('.static_file', path='modify_assignment.1.0.1.js') }}"></script>
 <script type="application/javascript">
     $(() => { // on load
         modifyAssignment(
             "add-assn", 
             `{{ url_for('.add_assignment', cid=course._id) }}`, 
             '#mdl-add-assn-error', 
+            '#mdl-add-assn-save',
             '#mdl-add-assn-save .loader', 
             '#mdl-add-assn'
         );

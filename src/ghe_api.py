@@ -30,7 +30,7 @@ def get_access_token(code):
 def get_login(access_token):
 	try:
 		resp = requests.get("%s/user" % GHE_API_URL, params={"access_token": access_token})
-		return resp.json()["login"]
+		return resp.json()["login"].lower()
 	except requests.exceptions.RequestException:
 		return None
 	except KeyError:

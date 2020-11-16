@@ -9,7 +9,7 @@ class ApiRoutes:
         @auth.require_token_auth
         @auth.require_admin_status
         def admin_update_roster(netid, cid):
-            netids = request.form["roster"].split("\n")
+            netids = request.form["roster"].strip().lower().split("\n")
 
             for i, student_id in enumerate(netids):
                 if not util.is_valid_netid(student_id):
