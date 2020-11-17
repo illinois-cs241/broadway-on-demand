@@ -101,6 +101,7 @@
                             + '</td><td class="text-right">' + fmtTimestamp(result[i].end)
                             + '</td><td class="text-right">' + result[i].max_runs
                             + '</td><td class="text-right">' + result[i].remaining_runs
+                            + '</td><td><i class="text-danger fas fa-trash-alt" style="cursor: pointer" onclick="deleteExtension(\'' + result[i]._id + '\')"/>'
                             + '</td></tr>\n');
                     }
                 }
@@ -108,6 +109,19 @@
             },
             error: function (xhr) {
                 alert("Error!");
+            }
+        });
+    }
+    function deleteExtension(extensionId) {
+        $.ajax({
+            type: "DELETE",
+            url: "{{ url_for('.staff_delete_extension', cid=course._id, aid=assignment.assignment_id) }}",
+            data: {"_id": extensionId},
+            success: function (result) {
+                viewExtensions();
+            },
+            error: function (xhr) {
+                alert(xhr.responseText);
             }
         });
     }
@@ -431,6 +445,7 @@
                                                     <th scope="col">End</th>
                                                     <th scope="col">Max Runs</th>
                                                     <th scope="col">Remaining Runs</th>
+                                                    <th scope="col"></th>
                                                 </tr>
                                                 </thead>
                                                 <tbody id="mdl-view-exts-body">

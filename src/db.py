@@ -1,4 +1,5 @@
 from flask_pymongo import PyMongo, ASCENDING, DESCENDING
+from bson.objectid import ObjectId
 from src import util
 
 mongo = PyMongo()
@@ -217,3 +218,9 @@ def get_extensions(cid, aid, netid=None):
 
 def add_extension(cid, aid, netid, max_runs, start, end):
 	return mongo.db.extensions.insert_one({"course_id": cid, "assignment_id": aid, "netid": netid, "max_runs": max_runs, "remaining_runs": max_runs, "start": start, "end": end})
+
+def delete_extension(extension_id):
+	try:
+		return mongo.db.extensions.delete_one({"_id": ObjectId(extension_id)})
+	except:
+		return None
