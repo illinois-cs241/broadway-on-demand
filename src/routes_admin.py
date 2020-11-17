@@ -275,11 +275,10 @@ class AdminRoutes:
         @auth.require_admin_status
         def staff_delete_extension(netid, cid, aid):
             extension_id = request.form["_id"]
-            try:
-                delete_result = db.delete_extension(extension_id)
-            except:
-                return util.error("Invalid ID?")
-            
+            delete_result = db.delete_extension(extension_id)
+
+            if delete_result is None:
+                return util.error("Bad ID?")
             if delete_result.deleted_count != 1:
                 return util.error("Failed to delete extension.")
 

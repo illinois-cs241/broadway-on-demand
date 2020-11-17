@@ -101,7 +101,7 @@
                             + '</td><td class="text-right">' + fmtTimestamp(result[i].end)
                             + '</td><td class="text-right">' + result[i].max_runs
                             + '</td><td class="text-right">' + result[i].remaining_runs
-                            + '</td><td class="text-right"><button id="btn-' + result[i]._id + '" class="btn btn-danger" onclick="deleteExtension(\'' + result[i]._id + '\')">Delete</button>'
+                            + '</td><td><button id="btn-' + result[i]._id + '" class="btn btn-outline-danger fas fa-trash-alt" style="cursor: pointer" onclick="deleteExtension(\'' + result[i]._id + '\')"/>'
                             + '</td></tr>\n');
                     }
                 }
@@ -120,10 +120,10 @@
             url: "{{ url_for('.staff_delete_extension', cid=course._id, aid=assignment.assignment_id) }}",
             data: {"_id": extensionId},
             success: function (result) {
-                deleteButton.innerText = "Deleted";
+                viewExtensions();
             },
             error: function (xhr) {
-                alert("Error!");
+                alert(xhr.responseText);
                 deleteButton.disabled = false;
             }
         });
