@@ -101,7 +101,7 @@
                             + '</td><td class="text-right">' + fmtTimestamp(result[i].end)
                             + '</td><td class="text-right">' + result[i].max_runs
                             + '</td><td class="text-right">' + result[i].remaining_runs
-                            + '</td><td><button id="btn-' + result[i]._id + '" class="btn btn-outline-danger fas fa-trash-alt" style="cursor: pointer" onclick="deleteExtension(\'' + result[i]._id + '\')"/>'
+                            + '</td><td><i class="text-danger fas fa-trash-alt" style="cursor: pointer" onclick="deleteExtension(\'' + result[i]._id + '\')"/>'
                             + '</td></tr>\n');
                     }
                 }
@@ -113,8 +113,6 @@
         });
     }
     function deleteExtension(extensionId) {
-        let deleteButton = document.getElementById("btn-" + extensionId);
-        deleteButton.disabled = true;
         $.ajax({
             type: "DELETE",
             url: "{{ url_for('.staff_delete_extension', cid=course._id, aid=assignment.assignment_id) }}",
@@ -124,7 +122,6 @@
             },
             error: function (xhr) {
                 alert(xhr.responseText);
-                deleteButton.disabled = false;
             }
         });
     }
