@@ -112,6 +112,9 @@
             }
         });
     }
+    function scheduleRun() {
+        // TODO!
+    }
     function deleteExtension(extensionId) {
         $.ajax({
             type: "DELETE",
@@ -250,7 +253,7 @@
                                         </button>
                                     </div>
                                     <div class="col">
-                                        <button type="button" style="width: 190px;" class="btn btn-outline-primary" onclick="viewExtensions()">
+                                        <button type="button" style="width: 190px;" class="btn btn-outline-primary" onclick="scheduleRun()">
                                             <i class="fas fa-calendar-plus"></i> Add Scheduled Run
                                         </button>
                                     </div>
@@ -407,7 +410,7 @@
         {% endif %}
     </div>
     <div class="row">
-        <div class="col-md-6 col-lg-8 col-xl-9">
+        <div class="col-md-12 col-lg-6">
             <table class="table table-hover table-fit">
                 <thead>
                 <tr>
@@ -441,6 +444,41 @@
             </table>
             <div class="text-secondary"> All times in {{ tzname }}</div>
         </div>
+
+        <div class="col-md-12 col-lg-6">
+            <table class="table table-hover table-fit">
+                <thead>
+                <tr>
+                    <th scope="col">Name</th>
+                    <th scope="col">Time</th>
+                    <th scope="col">Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for student in student_runs %}
+                    <tr>
+                        <th scope="col" class="student-header" colspan="3">{{ student._id }}</th>
+                    </tr>
+                    {% for run in student.runs %}
+                        <tr>
+                            <td>{{ run._id }}</td>
+                            <td>{{ run.timestamp | round_timestamp | fmt_timestamp }}</td>
+                            <td>
+                                <button class="btn btn-link btn-sm" type="button" data-toggle="tooltip" data-placement="top" title="Check status" onclick="getRunStatus('{{ run._id }}')" id="status-{{ run._id }}"><i class="fas fa-info-circle"></i>Status</button> 
+                                <button class="btn btn-link btn-sm" type="button" onclick="getRunLog('{{ run._id }}')" id="view-log-{{ run._id }}"><i class="fas fa-file-alt"></i>Log</button>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                {% endfor %}
+                {% if not student_runs %}
+                    <tr>
+                        <td colspan="3">No scheduled runs</td>
+                    </tr>
+                {% endif %}
+                </tbody>
+            </table>
+        </div>
+
         <div class="modal fade" id="mdl-view-log" tabindex="-1" role="dialog" aria-labelledby="mdl-view-log-label" aria-hidden="true">
             <div class="modal-dialog modal-xl" role="document">
                 <div class="modal-content">
