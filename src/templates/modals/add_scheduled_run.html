@@ -2,54 +2,80 @@
     <i class="fas fa-plus"></i> Add scheduled run
 </button>
 <div class="modal fade" id="sched-run-modal" tabindex="-1" role="dialog" aria-labelledby="sched-run-label" aria-hidden="true">
-<div class="modal-dialog" role="document">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h5 class="modal-title" id="sched-run-label">Schedule a Grading Run</h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-            </button>
-        </div>
-        <div class="modal-body">
-            <form name="sched-run" id="sched-run">
-                <input type="text" id="sched-run-id" value="" hidden>
-                <div class="form-group">
-                    <label for="name">Name</label>
-                    <input type="text" class="form-control" id="sched-run-name" name="name">
-                </div>
-                <div class="form-group">
-                    <label for="netids">Roster</label>
-                    <small>(comma-separated list of NetIDs)</small>
-                    <input type="text" class="form-control" id="sched-run-roster" name="roster">
-                    <div class="form-check mt-1">
-                        <input type="checkbox" class="form-check-input" id="sched-run-roster-checkbox" name="roster-checkbox" onclick="onCheckboxClicked('roster')">
-                        <label class="form-check-label" for="sched-run-roster-checkbox">Use course roster</label>
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="sched-run-label">Schedule a Grading Run</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form name="sched-run" id="sched-run">
+                    <input type="text" id="sched-run-id" value="" hidden>
+                    <div class="form-group">
+                        <label for="name">Name</label>
+                        <input type="text" class="form-control" id="sched-run-name" name="name">
                     </div>
-                </div>
-                <div class="form-group">
-                    <label for="run_time">When to Start the Run</label> <span class="badge badge-secondary">{{ tzname }}</span>
-                    <input type="datetime-local" class="form-control" id="sched-run-run-time" name="run_time" oninput="onRunTimeInput()">
-                </div>
-                <div class="form-group">
-                    <label for="due_time">Due Date & Time</label> <span class="badge badge-secondary">{{ tzname }}</span>
-                    <input type="datetime-local" class="form-control" id="sched-run-due-time" name="due_time">
-                    <small>This will be passed into grading containers as <code>DUE_DATE</code> environment variable</small>
-                    <div class="form-check">
-                        <input type="checkbox" class="form-check-input" id="sched-run-due-time-checkbox" name="due-time-checkbox" onclick="onCheckboxClicked('due-time')">
-                        <label class="form-check-label" for="sched-run-due-time-checkbox">Same as start time of the run</label>
+                    <div class="form-group">
+                        <label for="netids">Roster</label>
+                        <small>(comma-separated list of NetIDs)</small>
+                        <input type="text" class="form-control" id="sched-run-roster" name="roster">
+                        <div class="form-check mt-1">
+                            <input type="checkbox" class="form-check-input" id="sched-run-roster-checkbox" name="roster-checkbox" onclick="onCheckboxClicked('roster')">
+                            <label class="form-check-label" for="sched-run-roster-checkbox">Use course roster</label>
+                        </div>
                     </div>
-                </div>
-                <div class="form-group">
-                    <label for="start">Configuration</label>
-                    <textarea type="text" class="form-control" id="sched-run-config" name="config" rows="5" style="font-family: monospace;" placeholder="JSON configuration for broadway"></textarea>
-                </div>
-                <div id="sched-run-error" class="form-text text-danger"></div>
-            </form>
+                    <div class="form-group">
+                        <label for="run_time">When to Start the Run</label> <span class="badge badge-secondary">{{ tzname }}</span>
+                        <input type="datetime-local" class="form-control" id="sched-run-run-time" name="run_time" oninput="onRunTimeInput()">
+                    </div>
+                    <div class="form-group">
+                        <label for="due_time">Due Date & Time</label> <span class="badge badge-secondary">{{ tzname }}</span>
+                        <input type="datetime-local" class="form-control" id="sched-run-due-time" name="due_time">
+                        <small>This will be passed into grading containers as <code>DUE_DATE</code> environment variable</small>
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="sched-run-due-time-checkbox" name="due-time-checkbox" onclick="onCheckboxClicked('due-time')">
+                            <label class="form-check-label" for="sched-run-due-time-checkbox">Same as start time of the run</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="start">Configuration</label>
+                        <textarea type="text" class="form-control" id="sched-run-config" name="config" rows="5" style="font-family: monospace;" placeholder="JSON configuration for broadway"></textarea>
+                    </div>
+                    <div id="sched-run-error" class="form-text text-danger"></div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-danger w-100" id="sched-run-delete" data-toggle="modal" data-target="#delete-sched-run-confirmation">
+                    <span class="fa fa-trash-alt" style="margin-right: 0.2em;"></span>
+                    Delete
+                </button>
+                <button type="submit" form="edit-assn" class="btn btn-primary w-100" id="sched-run-save" onclick="updateScheduledRun()">
+                    <span class="fa fa-cog loader" style="margin-right: 0.2em;"></span>
+                    Save
+                </button>
+            </div>
         </div>
-        <div class="modal-footer">
-            <button type="button" class="btn btn-primary" id="sched-run-save" onclick="updateScheduledRun()">
-                Save
-            </button>
+    </div>
+</div>
+<div class="modal fade" tabindex="-1" role="dialog" id="delete-sched-run-confirmation">
+    <div class="modal-dialog p-3" role="document" style="margin-top: 5rem;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="delete-sched-run-title">Delete Scheduled Run Name</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete <b id="delete-sched-run-name">Scheduled Run Name</b>?</p>
+                <span id="delete-assn-error" class="form-text text-danger"></span>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger w-100" id="delete-assn" onclick="deleteScheduledRun()">Yes</button>
+                <button type="button" class="btn btn-secondary w-100" data-dismiss="modal">No</button>
+            </div>
         </div>
     </div>
 </div>
@@ -61,8 +87,9 @@
     /**
      * Initialize the modal to add/edit schedule runs by filling in appropriate values.
      */
-    function initializeScheduleRunModal(id, name, roster, run_time, due_time, config) {
+    function initializeScheduleRunModal(id, title, name, roster, run_time, due_time, config, show_delete) {
         $("#sched-run-id").val(id);
+        $("#sched-run-label").text(title);
         $("#sched-run-name").val(name);
         if (roster == null) {
             checkBox("#sched-run-roster", "#sched-run-roster-checkbox");
@@ -78,14 +105,26 @@
             $("#sched-run-due-time").val(due_time);
         }
         $("#sched-run-config").val(config);
+        if (show_delete) {
+            $("#sched-run-delete").show();
+            $("#sched-run-save").addClass("w-100");
+            $("#delete-sched-run-title").text(`Delete ${name}`);
+            $("#delete-sched-run-name").text(name);
+        } else {
+            $("#sched-run-delete").hide();
+            $("#sched-run-save").removeClass("w-100");
+        }
     }
     function addScheduledRun() {
-        initializeScheduleRunModal("", "Final Grading Run", null, "", null, "");
+        initializeScheduleRunModal("", "Schedule a Grading Run", "Final Grading Run", null, "", null, "", false);
     }
     function editScheduledRun(run_id) {
         // TODO get scheduled run info from server
-        initializeScheduleRunModal(run_id, "TODO", null, "", null, "");
+        initializeScheduleRunModal(run_id, "Edit Scheduled Run", "Test scheduled run name", null, "", null, "", true);
         // TODO trigger modal
+    }
+    function deleteScheduledRun() {
+
     }
     /* Some helper functions */
     function checkBox(input_selector, checkbox_selector, mimic_input_selector) {
