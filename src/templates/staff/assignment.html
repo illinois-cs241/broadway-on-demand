@@ -464,7 +464,7 @@
                         <td>{{ run.run_time | round_timestamp | fmt_timestamp }}</td>
                         <td>
                             <button class="btn btn-link btn-sm" type="button" onclick="editRun('{{ run._id }}')" id="edit-run-{{ run._id }}"><i class="fas fa-pen"></i>Edit</button>
-                            <button class="btn btn-link btn-sm" type="button" onclick="" id="view-details-{{ run._id }}"><i class="fas fa-info-circle"></i>Details</button>
+                            <button class="btn btn-link btn-sm" type="button" onclick="" id="view-details-{{ run._id }}" data-toggle="collapse" data-target="#runDetails" aria-expanded="false" aria-controls="runDetails"><i class="fas fa-info-circle"></i>Details</button>
                         </td>
                     </tr>
                 {% endfor %}
@@ -475,6 +475,31 @@
                 {% endif %}
                 </tbody>
             </table>
+            <div class="collapse" id="runDetails">
+                <div class="card card-body">
+                    <h5 style="font-weight: bold;">##scheduled run name</h5>
+                    <table class="table table-hover table-fit">
+                        <thead>
+                        <tr>
+                            <th scope="col">NetID</th>
+                            <th scope="col">Run ID</th>
+                            <th scope="col">Time ({{ tzCity }})</th>
+                            <th scope="col">Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for student in student_runs %}
+                            <!-- TODO -->
+                        {% endfor %}
+                        {% if not student_runs %}
+                            <tr>
+                                <td colspan="4">No grading runs</td>
+                            </tr>
+                        {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
 
         <div class="modal fade" id="mdl-view-log" tabindex="-1" role="dialog" aria-labelledby="mdl-view-log-label" aria-hidden="true">
