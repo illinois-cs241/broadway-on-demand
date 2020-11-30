@@ -229,7 +229,7 @@ def delete_extension(extension_id):
 def generate_new_id():
 	return ObjectId()
 
-def add_or_update_scheduled_run(rid, cid, aid, run_time, due_time, roster, name, scheduled_run_id):
+def add_or_update_scheduled_run(rid, cid, aid, run_time, due_time, roster, name, scheduled_run_id, bw_run_id = None):
 	"""
 	Add or update a staff scheduled run.
 	:param rid: run id
@@ -250,6 +250,7 @@ def add_or_update_scheduled_run(rid, cid, aid, run_time, due_time, roster, name,
 		"roster": roster,
 		"name": name,
 		"scheduled_run_id": scheduled_run_id,
+		"broadway_run_id": bw_run_id,
 	}
 	res = mongo.db.scheduled_runs.update_one({"_id": rid}, {"$set": sched_run_obj}, upsert=True)
 	# if inserted, or found a match (whether modified or not), then is successful
