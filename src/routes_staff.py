@@ -50,10 +50,12 @@ class StaffRoutes:
             course = db.get_course(cid)
             assignment = db.get_assignment(cid, aid)
             student_runs = list(db.get_assignment_runs(cid, aid))
+            scheduled_runs = list(db.get_scheduled_runs(cid, aid))
             is_admin = verify_admin(netid, cid)
 
             return render_template("staff/assignment.html", netid=netid, course=course,
                                    assignment=assignment, student_runs=student_runs,
+                                   scheduled_runs=scheduled_runs,
                                    tzname=str(TZ), is_admin=is_admin, visibility=db.Visibility)
 
         @blueprint.route("/staff/course/<cid>/<aid>/config", methods=["GET"])

@@ -1,4 +1,5 @@
 {% set title = "%s (%s)" % (course.name, netid) %}
+{% set tzCity = tzname.split("/")[-1] %}
 {% include 'header.html' %}
 {% include 'status.html' %}
 <script src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.11.1/jquery.validate.min.js"></script>
@@ -227,18 +228,18 @@
                 <div class="card-body">
                     <div class="container-fluid" style="padding: 0;">
                         <div class="row">
-                            <div class="col-12 col-md-3">
+                            <div class="col-md-6 col-lg-6 col-xl-4" style="align-self: center;">
                                 <h2 class="card-title">{{ assignment.assignment_id }}</h5>
                             </div>
 
-                            <div class="col" style="align-self: center; text-align: center;">
+                            <div class="col-md-6 col-lg-6 col-xl-8" style="align-self: center; text-align: center;">
                                 <div class="row">
-                                    <div class="col">
+                                    <div class="col" style="padding-inline: 3px;">
                                         <button type="button" style="width: 190px;" class="btn btn-outline-primary" data-toggle="modal" data-target="#mdl-edit-assn" onclick="loadOriginalConfig();">
                                             <i class="fas fa-pen"></i> Edit assignment
                                         </button>
                                     </div>
-                                    <div class="col">
+                                    <div class="col" style="padding-inline: 3px;">
                                         <button type="button" style="width: 190px;" class="btn btn-outline-primary" data-toggle="modal" data-target="#mdl-add-ext">
                                             <i class="fas fa-plus"></i> Add extension
                                         </button>
@@ -247,12 +248,12 @@
                                     <!-- column break -->
                                     <div class="d-block d-xl-none w-100"></div>
 
-                                    <div class="col">
+                                    <div class="col" style="padding-inline: 3px;">
                                         <button type="button" style="width: 190px;" class="btn btn-outline-primary" onclick="viewExtensions()">
                                             <i class="fas fa-list"></i> View extensions
                                         </button>
                                     </div>
-                                    <div class="col">
+                                    <div class="col" style="padding-inline: 3px;">
                                         <button type="button" style="width: 190px;" class="btn btn-outline-primary" onclick="scheduleRun()">
                                             <i class="fas fa-calendar-plus"></i> Add Scheduled Run
                                         </button>
@@ -411,11 +412,12 @@
     </div>
     <div class="row">
         <div class="col-md-12 col-lg-6">
+            <h5 style="font-weight: bold;">Student Runs</h5>
             <table class="table table-hover table-fit">
                 <thead>
                 <tr>
                     <th scope="col">Run ID</th>
-                    <th scope="col">Time</th>
+                    <th scope="col">Time ({{ tzCity }})</th>
                     <th scope="col">Actions</th>
                 </tr>
                 </thead>
@@ -442,35 +444,31 @@
                 {% endif %}
                 </tbody>
             </table>
-            <div class="text-secondary"> All times in {{ tzname }}</div>
         </div>
 
         <div class="col-md-12 col-lg-6">
+            <h5 style="font-weight: bold;">Scheduled Runs</h5>
             <table class="table table-hover table-fit">
                 <thead>
                 <tr>
                     <th scope="col">Name</th>
-                    <th scope="col">Time</th>
+                    <th scope="col">Time ({{ tzCity }})</th>
                     <th scope="col">Actions</th>
                 </tr>
                 </thead>
                 <tbody>
-                {% for student in student_runs %}
+
+                {% for run in scheduled_runs %}
                     <tr>
-                        <th scope="col" class="student-header" colspan="3">{{ student._id }}</th>
+                        <td>{{ run.name }}</td>
+                        <td>{{ run.run_time | round_timestamp | fmt_timestamp }}</td>
+                        <td>
+                            <button class="btn btn-link btn-sm" type="button" onclick="editRun('{{ run._id }}')" id="edit-run-{{ run._id }}"><i class="fas fa-pen"></i>Edit</button>
+                            <button class="btn btn-link btn-sm" type="button" onclick="" id="view-details-{{ run._id }}"><i class="fas fa-info-circle"></i>Details</button>
+                        </td>
                     </tr>
-                    {% for run in student.runs %}
-                        <tr>
-                            <td>{{ run._id }}</td>
-                            <td>{{ run.timestamp | round_timestamp | fmt_timestamp }}</td>
-                            <td>
-                                <button class="btn btn-link btn-sm" type="button" data-toggle="tooltip" data-placement="top" title="Check status" onclick="getRunStatus('{{ run._id }}')" id="status-{{ run._id }}"><i class="fas fa-info-circle"></i>Status</button> 
-                                <button class="btn btn-link btn-sm" type="button" onclick="getRunLog('{{ run._id }}')" id="view-log-{{ run._id }}"><i class="fas fa-file-alt"></i>Log</button>
-                            </td>
-                        </tr>
-                    {% endfor %}
                 {% endfor %}
-                {% if not student_runs %}
+                {% if not scheduled_runs %}
                     <tr>
                         <td colspan="3">No scheduled runs</td>
                     </tr>

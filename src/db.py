@@ -187,6 +187,17 @@ def get_assignment_runs(cid, aid):
 	])
 
 
+def get_scheduled_runs(cid, aid):
+	"""
+	Get all scheduled runs for a specified course and assignment.
+
+	:param cid: a course ID.
+	:param aid: an assignment ID.
+	:return: a list of objects, each containing a list of runs for a single student.
+	"""
+	return mongo.db.scheduled_runs.find({"course_id": cid, "assignment_id": aid}).sort("run_time", DESCENDING)
+
+
 def add_grading_run(cid, aid, netid, timestamp, run_id, extension_used=None):
 	"""
 	Add a new grading run.
