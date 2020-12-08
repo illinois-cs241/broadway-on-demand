@@ -113,12 +113,6 @@
             }
         });
     }
-    function scheduleRun() {
-        // TODO!
-    }
-    function editScheduledRun(scheduleRunId) {
-        // TODO!
-    }
     function deleteExtension(extensionId) {
         $.ajax({
             type: "DELETE",
@@ -257,9 +251,7 @@
                                         </button>
                                     </div>
                                     <div class="col" style="padding-inline: 3px;">
-                                        <button type="button" style="width: 190px;" class="btn btn-outline-primary" onclick="scheduleRun()">
-                                            <i class="fas fa-calendar-plus"></i> Add Scheduled Run
-                                        </button>
+                                        {% include 'modals/add_scheduled_run.html' %}
                                     </div>
                                 </div>
                             </div>
