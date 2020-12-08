@@ -1,5 +1,6 @@
 from flask_pymongo import PyMongo, ASCENDING, DESCENDING
 from bson.objectid import ObjectId
+from bson.errors import InvalidId
 from src import util
 
 mongo = PyMongo()
@@ -233,5 +234,52 @@ def add_extension(cid, aid, netid, max_runs, start, end):
 def delete_extension(extension_id):
 	try:
 		return mongo.db.extensions.delete_one({"_id": ObjectId(extension_id)})
-	except:
+	except InvalidId:
 		return None
+
+def generate_new_id():
+	return ObjectId()
+
+def add_or_update_scheduled_run(rid, cid, aid, run_time, due_time, roster, name, scheduled_run_id, bw_run_id = None):
+	"""
+	Add or update a staff scheduled run.
+	:param rid: run id
+	:param cid: course id
+	:param aid: assignment id
+	:param run_time: the time to initiate this scheduled run
+	:param due_time: the due date for this scheduled run
+	:param roster: None, or an array of NetIDs. If this is None, will use course roster instead.
+	:param name: human readable name for this scheduled run
+	:param scheduled_run_id: the id of this run on the scheduler side
+	:return: True if successful (created a new one or matched with an existing one)
+	"""
+	sched_run_obj = {
+		"course_id": cid,
+		"assignment_id": aid, 
+		"run_time": run_time,
+		"due_time": due_time,
+		"roster": roster,
+		"name": name,
+		"scheduled_run_id": scheduled_run_id,
+		"broadway_run_id": bw_run_id,
+	}
+	res = mongo.db.scheduled_runs.update_one({"_id": rid}, {"$set": sched_run_obj}, upsert=True)
+	# if inserted, or found a match (whether modified or not), then is successful
+	return res.upserted_id is not None or res.matched_count > 0
+
+def get_scheduled_run(cid, aid, rid):
+	try:
+		return mongo.db.scheduled_runs.find_one({"_id": ObjectId(rid), "course_id": cid, "assignment_id": aid})
+	except InvalidId:
+		return None
+
+def delete_scheduled_run(cid, aid, rid):
+	"""
+	Delete scheduled run based on course id, assignment id, run id. 
+	:return: True if a run was deleted successfully.
+	"""
+	try:
+		res = mongo.db.scheduled_runs.delete_one({"_id": ObjectId(rid), "course_id": cid, "assignment_id": aid})
+		return res.deleted_count == 1
+	except InvalidId:
+		return False
