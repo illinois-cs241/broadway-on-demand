@@ -12,7 +12,7 @@
             </div>
             <div class="modal-body">
                 <form name="sched-run" id="sched-run">
-                    <input type="text" id="sched-run-id" value="" hidden>
+                    <input type="text" id="sched-run-id" name="id" value="" hidden>
                     <div class="form-group">
                         <label for="name">Name</label>
                         <input type="text" class="form-control" id="sched-run-name" name="name">
@@ -51,7 +51,7 @@
                     <span class="fa fa-trash-alt" style="margin-right: 0.2em;"></span>
                     Delete
                 </button>
-                <button type="submit" form="edit-assn" class="btn btn-primary w-100" id="sched-run-save" onclick="updateScheduledRun()">
+                <button type="submit" form="sched-run" class="btn btn-primary w-100" id="sched-run-save">
                     <span class="fa fa-cog loader" style="margin-right: 0.2em;"></span>
                     Save
                 </button>
@@ -70,19 +70,109 @@
             </div>
             <div class="modal-body">
                 <p>Are you sure you want to delete <b id="delete-sched-run-name">Scheduled Run Name</b>?</p>
-                <span id="delete-assn-error" class="form-text text-danger"></span>
+                <span id="delete-sched-run-error" class="form-text text-danger"></span>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-danger w-100" id="delete-assn" onclick="deleteScheduledRun()">Yes</button>
+                <button type="button" class="btn btn-danger w-100" id="delete-sched-run" onclick="deleteScheduledRun()">Yes</button>
                 <button type="button" class="btn btn-secondary w-100" data-dismiss="modal">No</button>
             </div>
         </div>
     </div>
 </div>
 <script>
-    function updateScheduledRun() {
-        // TODO make request to server to add/edit scheduled run
-        // If "id" field is empty, then we are performing an add. Otherwise it's an edit.
+    function initializeSchedRunForm() {
+        // form validation
+        $.validator.addMethod("check_datetime", function(value, element) {
+            return this.optional(element) || moment(value).isValid();
+        }, "Please provide valid datetime, e.g. 2013-02-08 19:30")
+
+        // Use this check on roster input field, it considers the checkbox
+        $.validator.addMethod("check_roster", function(value, element) {
+            let checkboxed = $("input[name='roster-checkbox']").prop("checked");
+            return checkboxed || value != "";
+        }, "Roster field is required if 'Use course roster' is not checked.")
+
+        $(`form[name="sched-run"]`).validate({
+            errorClass: "text-danger",
+            errorElement: "small",
+            rules: {
+                name: "required",
+                roster: {
+                    check_roster: true,
+                },
+                run_time: {
+                    required: true,
+                    check_datetime: true,
+                },
+                due_time: {
+                    required: true,
+                    check_datetime: true,
+                },
+                config: "required",
+            },
+            submitHandler: function(form, event) {
+                event.preventDefault();
+                // raw data has the form: [{name: "name of input field", value: "input value"}, ...]
+                let disabled = $(form).find(':input:disabled').removeAttr('disabled'); // disabled fields won't be picked up
+                let rawData = $(form).serializeArray();
+                disabled.attr('disabled', true);
+                let formData = {};
+                let run_id = null;
+                for (let i = 0; i < rawData.length; i++) {
+                    let fieldName = rawData[i].name;
+                    let fieldVal = rawData[i].value;
+                    // Convert date string to special format
+                    if (fieldName == "run_time" || fieldName == "due_time") {
+                        fieldVal = moment(fieldVal).format("YYYY-MM-DDTHH:mm");
+                    }
+                    // If roster is not provided and it passed the validate check, use course roster
+                    if (fieldName == "roster" && fieldVal == "") {
+                        fieldVal = null;
+                    }
+                    // Skip checkbox input
+                    if (fieldName.includes("checkbox")) {
+                        continue;
+                    }
+                    // Get "hidden" id field which is filled by code
+                    if (fieldName == "id") {
+                        run_id = fieldVal;
+                    }
+                    formData[fieldName] = fieldVal;
+                }
+                // If "id" field is empty, then we are performing an add. Otherwise it's an edit.
+                let postUrl = "{{ url_for('.staff_schedule_run', cid=course._id, aid=assignment.assignment_id) }}";
+                if (run_id) {
+                    postUrl += "/" + run_id;
+                }
+                let errorSelector = "#sched-run-error";
+                let saveBtn = "#sched-run-save";
+                let saveBtnIcon = saveBtn + " .loader";
+                $.ajax({
+                    type: "POST",
+                    url: postUrl,
+                    data: formData,
+                    beforeSend: function () {
+                        $(errorSelector).html('').fadeOut();
+                        $(saveBtnIcon).addClass("fa-spin");
+                        $(saveBtn).prop('disabled', true);
+                    },
+                    success: function () {
+                        $("#sched-run-modal").modal('hide');
+                        location.reload();
+                    },
+                    error: function (xhr) {
+                        if (!xhr.responseText) {
+                            $(errorSelector).html("Save failed. Please try again.").fadeIn();
+                        } else {
+                            $(errorSelector).html(xhr.responseText).fadeIn();
+                        }
+                    }
+                }).always(() => {
+                    $(saveBtnIcon).removeClass("fa-spin");
+                    $(saveBtn).prop('disabled', false);
+                });
+            }
+        });
     }
     /**
      * Initialize the modal to add/edit schedule runs by filling in appropriate values.
@@ -147,11 +237,14 @@
         } else {
             uncheckBox(`#sched-run-${name}`, `#sched-run-${name}-checkbox`);
         }
+        fieldName = name.replace("-", "_");
+        $(`input[name="${fieldName}"]`).valid();
     }
     /** Sync up DUE TIME value with RUN TIME if the box is checked. */
     function onRunTimeInput() {
         if ($("#sched-run-due-time-checkbox").prop("checked")) {
             $("#sched-run-due-time").val($("#sched-run-run-time").val());
+            $("#sched-run-due-time").valid();
         }
     }
 </script>

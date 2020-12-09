@@ -15,6 +15,7 @@
             '#mdl-edit-assn-save .loader', 
             '#mdl-edit-assn'
         );
+        initializeSchedRunForm(); // For add scheduled run and edit scheduled run form submission
         // Deal with bootstrap 4 doesn't support double modaling
         // https://stackoverflow.com/a/32712953/9059878
         $('.modal').on("hidden.bs.modal", function (e) { //fire on closing modal box

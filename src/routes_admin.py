@@ -336,7 +336,7 @@ class AdminRoutes:
         @blueprint.route("/staff/course/<cid>/<aid>/schedule_run/<run_id>", methods=["POST"])
         @auth.require_auth
         @auth.require_admin_status
-        def staff_edit_scheduled_run(netid, cid, aid):
+        def staff_edit_scheduled_run(netid, cid, aid, run_id):
             sched_run = db.get_scheduled_run(run_id)
             if sched_run is None:
                 return util.error("Could not find this scheduled run. Please refresh and try again.")
