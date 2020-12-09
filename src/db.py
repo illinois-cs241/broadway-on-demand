@@ -263,7 +263,7 @@ def add_or_update_scheduled_run(rid, cid, aid, run_time, due_time, roster, name,
 		"scheduled_run_id": scheduled_run_id,
 		"broadway_run_id": bw_run_id,
 	}
-	res = mongo.db.scheduled_runs.update_one({"_id": rid}, {"$set": sched_run_obj}, upsert=True)
+	res = mongo.db.scheduled_runs.update_one({"_id": ObjectId(rid)}, {"$set": sched_run_obj}, upsert=True)
 	# if inserted, or found a match (whether modified or not), then is successful
 	return res.upserted_id is not None or res.matched_count > 0
 

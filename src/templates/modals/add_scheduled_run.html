@@ -142,7 +142,7 @@
                 // If "id" field is empty, then we are performing an add. Otherwise it's an edit.
                 let postUrl = "{{ url_for('.staff_schedule_run', cid=course._id, aid=assignment.assignment_id) }}";
                 if (run_id) {
-                    postUrl += "/" + run_id;
+                    postUrl += run_id;
                 }
                 let errorSelector = "#sched-run-error";
                 let saveBtn = "#sched-run-save";
@@ -209,9 +209,15 @@
         initializeScheduleRunModal("", "Schedule a Grading Run", "Final Grading Run", null, "", null, "", false);
     }
     function editScheduledRun(run_id) {
-        // TODO get scheduled run info from server
-        initializeScheduleRunModal(run_id, "Edit Scheduled Run", "Test scheduled run name", null, "", null, "", true);
-        $("#sched-run-modal").modal("show");
+        getScheduledRun(run_id, (run) => {
+            // Format values for display
+            run.run_time = moment.unix(run.run_time).format("YYYY-MM-DDTHH:mm");
+            run.due_time = moment.unix(run.due_time).format("YYYY-MM-DDTHH:mm");
+            run.roster = run.roster == null ? null : run.roster.join(", ");
+            initializeScheduleRunModal(run_id, "Edit Scheduled Run", run.name, run.roster, run.run_time, run.due_time, "Loading broadway config...", true);
+            loadOriginalConfig("#sched-run-config");
+            $("#sched-run-modal").modal("show");
+        });
     }
     function deleteScheduledRun() {
 
@@ -246,5 +252,15 @@
             $("#sched-run-due-time").val($("#sched-run-run-time").val());
             $("#sched-run-due-time").valid();
         }
+    }
+    /** Get information about a scheduled run */
+    function getScheduledRun(run_id, callback) {
+        $.get(`{{ url_for('.staff_schedule_run', cid=course._id, aid=assignment.assignment_id) }}${run_id}`, (data) => {
+            let run = JSON.parse(data);
+            callback(run);
+        }).fail((jqXHR) => {
+            console.log(jqXHR);
+            alert("Failed to get scheduled run information. Please try again");
+        })
     }
 </script>

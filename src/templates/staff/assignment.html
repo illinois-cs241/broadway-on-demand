@@ -149,8 +149,8 @@
         }
     }
 
-    function loadOriginalConfig() {
-        $('#mdl-edit-assn-config').val("Loading...").attr("disabled", "");
+    function loadOriginalConfig(configSelector) {
+        $(configSelector).val("Loading...").attr("disabled", "");
 
         $.ajax({
             type: "GET",
@@ -159,11 +159,11 @@
             success: function (result) {
                 let json = JSON.stringify(result);
                 let old = normalizeJSON(json);
-                $('#mdl-edit-assn-config').val(old).data("old-config", old).removeAttr("disabled");
-                changeTextareaRow('#mdl-edit-assn-config', old);
+                $(configSelector).val(old).data("old-config", old).removeAttr("disabled");
+                changeTextareaRow(configSelector, old);
             },
             error: function () {
-                $('#mdl-edit-assn-config')
+                $(configSelector)
                     .val("Config loading failed; you may proceed with editing other information");
             }
         });
@@ -233,7 +233,7 @@
                             <div class="col-md-6 col-lg-6 col-xl-8" style="align-self: center; text-align: center;">
                                 <div class="row">
                                     <div class="col" style="padding-inline: 3px;">
-                                        <button type="button" style="width: 190px;" class="btn btn-outline-primary" data-toggle="modal" data-target="#mdl-edit-assn" onclick="loadOriginalConfig();">
+                                        <button type="button" style="width: 190px;" class="btn btn-outline-primary" data-toggle="modal" data-target="#mdl-edit-assn" onclick="loadOriginalConfig('#mdl-edit-assn-config');">
                                             <i class="fas fa-pen"></i> Edit assignment
                                         </button>
                                     </div>
