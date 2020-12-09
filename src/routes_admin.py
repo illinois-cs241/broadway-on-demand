@@ -355,7 +355,7 @@ class AdminRoutes:
         @blueprint.route("/staff/course/<cid>/<aid>/schedule_run/<run_id>", methods=["DELETE"])
         @auth.require_auth
         @auth.require_admin_status
-        def staff_delete_scheduled_run(netid, cid, aid):
+        def staff_delete_scheduled_run(netid, cid, aid, run_id):
             if not db.delete_scheduled_run(cid, aid, run_id):
                 return util.error("Failed to delete scheduled run. Please try again")
             return util.success("")

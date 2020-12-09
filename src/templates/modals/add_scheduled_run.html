@@ -220,7 +220,27 @@
         });
     }
     function deleteScheduledRun() {
-
+        let run_id = $("#sched-run-id").val();
+        $.ajax({
+            type: "DELETE",
+            url: "{{ url_for('.staff_delete_scheduled_run', cid=course._id, aid=assignment.assignment_id, run_id='RUN_ID') }}".replace("RUN_ID", run_id),
+            beforeSend: () => {
+                $("#delete-sched-run-error").html("").fadeOut();
+                $("#delete-sched-run").prop('disabled', true);
+            },
+            success: () => {
+                location.reload();
+            },
+            error: (xhr) => {
+                if (!xhr.responseText) {
+                    $("#delete-sched-run-error").html("Delete assignment failed. Please try again.").fadeIn();
+                } else {
+                    $("#delete-sched-run-error").html(xhr.responseText).fadeIn();
+                }
+            },
+        }).always(() => {
+            $("#delete-sched-run").prop('disabled', false);
+        });
     }
     /* Some helper functions */
     function checkBox(input_selector, checkbox_selector, mimic_input_selector) {
