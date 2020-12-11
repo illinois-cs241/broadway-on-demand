@@ -227,7 +227,7 @@
                     <div class="container-fluid" style="padding: 0;">
                         <div class="row">
                             <div class="col-md-6 col-lg-6 col-xl-4" style="align-self: center;">
-                                <h2 class="card-title">{{ assignment.assignment_id }}</h5>
+                                <h2 class="card-title">{{ assignment.assignment_id }}</h2>
                             </div>
 
                             <div class="col-md-6 col-lg-6 col-xl-8" style="align-self: center; text-align: center;">
@@ -459,7 +459,10 @@
                         <td>{{ run.name }}</td>
                         <td>{{ run.run_time | round_timestamp | fmt_timestamp }}</td>
                         <td>
+                            {% if is_admin %}
                             <button class="btn btn-link btn-sm" type="button" onclick="editScheduledRun('{{ run._id }}')" id="edit-run-{{ run._id }}"><i class="fas fa-pen"></i>Edit</button>
+                            {% endif %}
+                            
                             <button class="btn btn-link btn-sm" type="button" onclick="" id="view-details-{{ run._id }}" data-toggle="collapse" data-target="#runDetails" aria-expanded="false" aria-controls="runDetails"><i class="fas fa-info-circle"></i>Details</button>
                         </td>
                     </tr>
