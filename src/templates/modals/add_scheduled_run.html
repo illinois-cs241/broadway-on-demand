@@ -55,6 +55,9 @@
                     <span class="fa fa-cog loader" style="margin-right: 0.2em;"></span>
                     Save
                 </button>
+                <button type="button" class="btn btn-secondary text-center w-100" id="sched-run-cannot-modify" disabled>
+                    Cannot modify past runs
+                </button>
             </div>
         </div>
     </div>
@@ -176,8 +179,10 @@
     }
     /**
      * Initialize the modal to add/edit schedule runs by filling in appropriate values.
+     * @param status "new" if add new scheduled run, "scheduled" if edit scheduled run, 
+     *     "past" if edit/view runs that failed or ran.
      */
-    function initializeScheduleRunModal(id, title, name, roster, run_time, due_time, config, show_delete) {
+    function initializeScheduleRunModal(id, title, name, roster, run_time, due_time, config, status) {
         // Fill in appropriate form values
         $("#sched-run-id").val(id);
         $("#sched-run-label").text(title);
@@ -196,22 +201,38 @@
             $("#sched-run-due-time").val(due_time);
         }
         $("#sched-run-config").val(config);
-        // Whether we show the delete button
-        if (show_delete) {
-            $("#sched-run-delete").show();
-            $("#sched-run-save").addClass("w-100");
-            $("#delete-sched-run-title").text(`Delete ${name}`);
-            $("#delete-sched-run-name").text(name);
-        } else {
-            $("#sched-run-delete").hide();
-            $("#sched-run-save").removeClass("w-100");
+        // Action buttons change depending on run status
+        let saveBtn = "#sched-run-save";
+        let deleteBtn = "#sched-run-delete";
+        let msgBtn = "#sched-run-cannot-modify";
+        switch (status) {
+            // Show save button
+            case "new":
+                $(deleteBtn).hide();
+                $(msgBtn).hide();
+                $(saveBtn).show().removeClass("w-100");
+                break
+            // Show both delete and save button
+            case "scheduled":
+                $(deleteBtn).show();
+                $(msgBtn).hide();
+                $(saveBtn).show().addClass("w-100");
+                $("#delete-sched-run-title").text(`Delete ${name}`);
+                $("#delete-sched-run-name").text(name);
+                break
+            // Hide both buttons and show message
+            case "past":
+                $(deleteBtn).hide();
+                $(saveBtn).hide();
+                $(msgBtn).show();
+                break
         }
         // Clear previoous error messages
         $("#delete-sched-run-error").html("");
         $("#sched-run-error").html("");
     }
     function addScheduledRun() {
-        initializeScheduleRunModal("", "Schedule a Grading Run", "Final Grading Run", null, "", null, "", false);
+        initializeScheduleRunModal("", "Schedule a Grading Run", "Final Grading Run", null, "", null, "", "new");
     }
     function editScheduledRun(run_id) {
         getScheduledRun(run_id, (run) => {
@@ -219,7 +240,8 @@
             run.run_time = moment.unix(run.run_time).format("YYYY-MM-DDTHH:mm");
             run.due_time = moment.unix(run.due_time).format("YYYY-MM-DDTHH:mm");
             run.roster = run.roster == null ? null : run.roster.join(", ");
-            initializeScheduleRunModal(run_id, "Edit Scheduled Run", run.name, run.roster, run.run_time, run.due_time, "Loading broadway config...", true);
+            let status = run.status === "scheduled" ? run.status : "past";
+            initializeScheduleRunModal(run_id, "Edit Scheduled Run", run.name, run.roster, run.run_time, run.due_time, "Loading broadway config...", status);
             loadOriginalConfig("#sched-run-config");
             $("#sched-run-modal").modal("show");
         });
@@ -280,6 +302,8 @@
     }
     /** Get information about a scheduled run */
     function getScheduledRun(run_id, callback) {
+        // This is actually creating a url for .staff_get_scheduled_run, but flask doesn't allow dynamic 
+        // url_for parameterization, so this code appends the run_id at the end of .staff_schedule_run's url
         $.get(`{{ url_for('.staff_schedule_run', cid=course._id, aid=assignment.assignment_id) }}${run_id}`, (data) => {
             let run = JSON.parse(data);
             callback(run);

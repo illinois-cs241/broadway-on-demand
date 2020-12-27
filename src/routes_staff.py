@@ -4,7 +4,7 @@ import logging
 from flask import render_template, abort, jsonify
 
 from config import TZ
-from src import db, util, auth, bw_api
+from src import db, util, auth, bw_api, sched_api
 from src.common import verify_staff, verify_admin
 
 logger = logging.getLogger(__name__)
@@ -55,7 +55,7 @@ class StaffRoutes:
 
             return render_template("staff/assignment.html", netid=netid, course=course,
                                    assignment=assignment, student_runs=student_runs,
-                                   scheduled_runs=scheduled_runs,
+                                   scheduled_runs=scheduled_runs, sched_run_status=sched_api.ScheduledRunStatus,
                                    tzname=str(TZ), is_admin=is_admin, visibility=db.Visibility)
 
         @blueprint.route("/staff/course/<cid>/<aid>/config", methods=["GET"])

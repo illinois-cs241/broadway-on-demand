@@ -449,6 +449,7 @@
                 <tr>
                     <th scope="col">Name</th>
                     <th scope="col">Time ({{ tzCity }})</th>
+                    <th scope="col">Status</th>
                     <th scope="col">Actions</th>
                 </tr>
                 </thead>
@@ -458,6 +459,12 @@
                     <tr>
                         <td>{{ run.name }}</td>
                         <td>{{ run.run_time | round_timestamp | fmt_timestamp }}</td>
+                        <td>
+                            {% if run.status == sched_run_status.SCHEDULED %}<div class="text-info"><i class="fas fa-clock"></i>Scheduled</div>
+                            {% elif run.status == sched_run_status.FAILED %}<div class="text-danger"><i class="fas fa-times-circle"></i>Failed</div>
+                            {% elif run.status == sched_run_status.RAN %}<div class="text-success"><i class="fas fa-check-circle"></i>Ran</div>
+                            {% endif %}
+                        </td>
                         <td>
                             {% if is_admin %}
                             <button class="btn btn-link btn-sm" type="button" onclick="editScheduledRun('{{ run._id }}')" id="edit-run-{{ run._id }}"><i class="fas fa-pen"></i>Edit</button>
