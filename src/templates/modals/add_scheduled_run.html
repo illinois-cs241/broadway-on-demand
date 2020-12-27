@@ -79,7 +79,7 @@
         </div>
     </div>
 </div>
-<script>
+<script type="text/javascript">
     function initializeSchedRunForm() {
         // form validation
         $.validator.addMethod("check_datetime", function(value, element) {
@@ -178,6 +178,7 @@
      * Initialize the modal to add/edit schedule runs by filling in appropriate values.
      */
     function initializeScheduleRunModal(id, title, name, roster, run_time, due_time, config, show_delete) {
+        // Fill in appropriate form values
         $("#sched-run-id").val(id);
         $("#sched-run-label").text(title);
         $("#sched-run-name").val(name);
@@ -195,6 +196,7 @@
             $("#sched-run-due-time").val(due_time);
         }
         $("#sched-run-config").val(config);
+        // Whether we show the delete button
         if (show_delete) {
             $("#sched-run-delete").show();
             $("#sched-run-save").addClass("w-100");
@@ -204,6 +206,9 @@
             $("#sched-run-delete").hide();
             $("#sched-run-save").removeClass("w-100");
         }
+        // Clear previoous error messages
+        $("#delete-sched-run-error").html("");
+        $("#sched-run-error").html("");
     }
     function addScheduledRun() {
         initializeScheduleRunModal("", "Schedule a Grading Run", "Final Grading Run", null, "", null, "", false);

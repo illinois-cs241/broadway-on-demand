@@ -2,6 +2,7 @@ from flask_pymongo import PyMongo, ASCENDING, DESCENDING
 from bson.objectid import ObjectId
 from bson.errors import InvalidId
 from src import util
+from src.sched_api import ScheduledRunStatus
 
 mongo = PyMongo()
 
@@ -240,7 +241,7 @@ def delete_extension(extension_id):
 def generate_new_id():
 	return ObjectId()
 
-def add_or_update_scheduled_run(rid, cid, aid, run_time, due_time, roster, name, scheduled_run_id, bw_run_id = None):
+def add_or_update_scheduled_run(rid, cid, aid, run_time, due_time, roster, name, scheduled_run_id, bw_run_id=None, status=ScheduledRunStatus.SCHEDULED):
 	"""
 	Add or update a staff scheduled run.
 	:param rid: run id
@@ -262,16 +263,28 @@ def add_or_update_scheduled_run(rid, cid, aid, run_time, due_time, roster, name,
 		"name": name,
 		"scheduled_run_id": scheduled_run_id,
 		"broadway_run_id": bw_run_id,
+		"status": status,
 	}
 	res = mongo.db.scheduled_runs.update_one({"_id": ObjectId(rid)}, {"$set": sched_run_obj}, upsert=True)
 	# if inserted, or found a match (whether modified or not), then is successful
 	return res.upserted_id is not None or res.matched_count > 0
+
+def update_scheduled_run_status(rid, status):
+	res = mongo.db.scheduled_runs.update_one({"_id": ObjectId(rid)}, {"$set": {"status": status}})
+	return res.modified_count > 0
+
+def update_scheduled_run_bw_run_id(rid, bw_run_id):
+	res = mongo.db.scheduled_runs.update_one({"_id": ObjectId(rid)}, {"$set": {"broadway_run_id": bw_run_id}})
+	return res.modified_count > 0
 
 def get_scheduled_run(cid, aid, rid):
 	try:
 		return mongo.db.scheduled_runs.find_one({"_id": ObjectId(rid), "course_id": cid, "assignment_id": aid})
 	except InvalidId:
 		return None
+
+def get_scheduled_run_by_scheduler_id(cid, aid, scheduled_run_id):
+	return mongo.db.scheduled_runs.find_one({"scheduled_run_id": scheduled_run_id, "course_id": cid, "assignment_id": aid})
 
 def delete_scheduled_run(cid, aid, rid):
 	"""

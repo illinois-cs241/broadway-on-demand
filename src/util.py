@@ -1,5 +1,8 @@
 import uuid
 import time
+import logging
+import requests
+from json.decoder import JSONDecodeError
 from datetime import datetime
 from functools import wraps
 from re import fullmatch
@@ -125,6 +128,21 @@ def is_valid_netid(netid):
 	:param netid: A netid string to be tested
 	"""
 	return fullmatch(r"[a-zA-Z0-9\-]+", netid) is not None
+
+def catch_request_errors(func):
+	"""
+	Decorator used to catch common request errors such as RequestException,
+	json decode error, etc.
+	:return: None if the function raised exception
+	"""
+	@wraps(func)
+	def wrapper(*args, **kwargs):
+		try:
+			return func(*args, **kwargs)
+		except (requests.exceptions.RequestException, KeyError, JSONDecodeError) as e:
+			logging.error("%s(args=%s, kwargs=%s): %s", func.__name__, str(args), str(kwargs), repr(e))
+			return None
+	return wrapper
 
 def test_slow_respond(func):
 	"""
