@@ -349,6 +349,8 @@ class AdminRoutes:
             sched_run = db.get_scheduled_run(cid, aid, run_id)
             if sched_run is None:
                 return util.error("Could not find this scheduled run. Please refresh and try again.")
+            if sched_run["status"] != sched_api.ScheduledRunStatus.SCHEDULED:
+                return util.error("Cannot edit past runs")
             scheduled_run_id = sched_run["scheduled_run_id"]
             return add_or_edit_scheduled_run(cid, aid, run_id, request.form, scheduled_run_id)
 

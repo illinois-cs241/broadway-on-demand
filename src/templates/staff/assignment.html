@@ -212,6 +212,11 @@
         });
     }
 </script>
+<style>
+    .btn-fixed-width {
+        width: 190px;
+    }
+</style>
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
         <li class="breadcrumb-item"><a href="{{ url_for('.staff_home') }}">Staff Home</a></li>
@@ -232,13 +237,13 @@
 
                             <div class="col-md-6 col-lg-6 col-xl-8" style="align-self: center; text-align: center;">
                                 <div class="row">
-                                    <div class="col" style="padding-inline: 3px;">
-                                        <button type="button" style="width: 190px;" class="btn btn-outline-primary" data-toggle="modal" data-target="#mdl-edit-assn" onclick="loadOriginalConfig('#mdl-edit-assn-config', '{{ assignment._id }}');">
+                                    <div class="col">
+                                        <button type="button" class="btn btn-outline-primary btn-fixed-width" data-toggle="modal" data-target="#mdl-edit-assn" onclick="loadOriginalConfig('#mdl-edit-assn-config', '{{ assignment._id }}');">
                                             <i class="fas fa-pen"></i> Edit assignment
                                         </button>
                                     </div>
-                                    <div class="col" style="padding-inline: 3px;">
-                                        <button type="button" style="width: 190px;" class="btn btn-outline-primary" data-toggle="modal" data-target="#mdl-add-ext">
+                                    <div class="col">
+                                        <button type="button" class="btn btn-outline-primary btn-fixed-width" data-toggle="modal" data-target="#mdl-add-ext">
                                             <i class="fas fa-plus"></i> Add extension
                                         </button>
                                     </div>
@@ -246,12 +251,12 @@
                                     <!-- column break -->
                                     <div class="d-block d-xl-none w-100"></div>
 
-                                    <div class="col" style="padding-inline: 3px;">
-                                        <button type="button" style="width: 190px;" class="btn btn-outline-primary" onclick="viewExtensions()">
+                                    <div class="col">
+                                        <button type="button" class="btn btn-outline-primary btn-fixed-width" onclick="viewExtensions()">
                                             <i class="fas fa-list"></i> View extensions
                                         </button>
                                     </div>
-                                    <div class="col" style="padding-inline: 3px;">
+                                    <div class="col">
                                         {% include 'modals/add_scheduled_run.html' %}
                                     </div>
                                 </div>
@@ -485,7 +490,7 @@
                         <td>
                             {% if run.status == sched_run_status.SCHEDULED %}<div class="text-info"><i class="fas fa-clock"></i>Scheduled</div>
                             {% elif run.status == sched_run_status.FAILED %}<div class="text-danger"><i class="fas fa-times-circle"></i>Failed</div>
-                            {% elif run.status == sched_run_status.RAN %}<button class="btn btn-success btn-sm" onclick="getRunStatus('{{ run.broadway_run_id }}')" id="status-{{ run.broadway_run_id }}"><i class="fas fa-check-circle"></i>check status</button>
+                            {% elif run.status == sched_run_status.RAN %}<button class="btn btn-success btn-sm" onclick="getRunState('{{ run.broadway_run_id }}')" id="status-{{ run.broadway_run_id }}"><i class="fas fa-check-circle"></i>check status</button>
                             {% endif %}
                         </td>
                         <td>

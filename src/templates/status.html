@@ -4,6 +4,23 @@
                              .attr("class", "btn btn-secondary btn-sm btn-text-break " + buttonType);
     }
 
+    function getRunState(runId) {
+        $.ajax({
+            type: "get",
+            url: `./${runId}/state/`,
+            success: (result) => {
+                if (result.indexOf("scheduled") != -1) {
+                    updateButtonContent(runId, result, "btn-info")
+                } else {
+                    updateButtonContent(runId, result, "btn-success")
+                }
+            },
+            error: () => {
+                updateButtonContent(runId, "Unknown. Click to try again", "btn-warning");
+            }
+        })
+    }
+
     function getRunStatus(runId) {
         $.ajax(
             {
