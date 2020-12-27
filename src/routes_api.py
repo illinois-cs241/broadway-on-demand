@@ -28,21 +28,21 @@ class ApiRoutes:
                 logging.warning("Received trigger scheduled run request for scheduled_run_id '%s' but cannot find corresponding run.", scheduled_run_id)
                 return util.error("")
             if sched_run["status"] != ScheduledRunStatus.SCHEDULED:
-                logging.warning("Received trigger scheduled run for _id '%s' but this run has status '%s', which is not 'SCHEDULED'.", str(sched_run["_id"]), sched_run["status"])
+                logging.warning("Received trigger scheduled run for _id '%s' but this run has status '%s', which is not 'scheduled'.", str(sched_run["_id"]), sched_run["status"])
                 return util.error("")
 
-            # If a roster is provided, use it
+            # If roster is not provided, use course roster
             if sched_run["roster"] is None:
                 course = db.get_course(cid)
                 if course is None:
                     return util.error("")
                 netids = course["student_ids"]
-            # If roster is not provided, use course roster
+            # If a roster is provided, use it
             else:
                 netids = sched_run["roster"]
             
             # Start broadway grading run
-            bw_run_id = bw_api.start_grading_run(cid, aid, netids, sched_run["due_time"])
+            bw_run_id = bw_api.start_grading_run(cid, f"{aid}_{sched_run['_id']}", netids, sched_run["due_time"])
             if bw_run_id is None:
                 logging.warning("Failed to trigger run with broadway")
                 db.update_scheduled_run_status(sched_run["_id"], ScheduledRunStatus.FAILED)

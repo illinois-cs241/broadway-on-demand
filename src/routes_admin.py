@@ -369,8 +369,7 @@ class AdminRoutes:
             sched_run = db.get_scheduled_run(cid, aid, run_id)
             if sched_run is None:
                 return util.error("Cannot find scheduled run")
-            if not sched_api.delete_scheduled_run(sched_run["scheduled_run_id"]):
-                return util.error("Failed to delete scheduled run with scheduler")
+            sched_api.delete_scheduled_run(sched_run["scheduled_run_id"])
             if not db.delete_scheduled_run(cid, aid, run_id):
                 return util.error("Failed to delete scheduled run. Please try again")
             return util.success("")

@@ -1,7 +1,7 @@
 <script type="application/javascript">
     function updateButtonContent(runId, text, buttonType) {
         $("#status-" + runId).html("<i class=\"fas fa-sync-alt\"></i> " + text)
-                             .attr("class", "btn btn-secondary btn-sm " + buttonType);
+                             .attr("class", "btn btn-secondary btn-sm btn-text-break " + buttonType);
     }
 
     function getRunStatus(runId) {

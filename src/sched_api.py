@@ -57,7 +57,7 @@ def delete_scheduled_run(scheduled_run_id):
     resp = requests.delete(url=url)
     is_success = resp.status_code == HTTPStatus.OK
     if not is_success:
-        logging.warning("Failed to update scheduled run: %s", resp.text)
+        logging.warning("Failed to delete scheduled run: %s", resp.text)
     return is_success
 
 

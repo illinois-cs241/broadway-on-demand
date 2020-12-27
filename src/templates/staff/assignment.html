@@ -149,12 +149,12 @@
         }
     }
 
-    function loadOriginalConfig(configSelector) {
+    function loadOriginalConfig(configSelector, assignment_id) {
         $(configSelector).val("Loading...").attr("disabled", "");
 
         $.ajax({
             type: "GET",
-            url: "{{ url_for('.staff_get_assignment_config', cid=course._id, aid=assignment.assignment_id) }}",
+            url: `{{ url_for('.staff_get_course', cid=course._id) }}${assignment_id}/config`,
             dataType: "json",
             success: function (result) {
                 let json = JSON.stringify(result);
@@ -233,7 +233,7 @@
                             <div class="col-md-6 col-lg-6 col-xl-8" style="align-self: center; text-align: center;">
                                 <div class="row">
                                     <div class="col" style="padding-inline: 3px;">
-                                        <button type="button" style="width: 190px;" class="btn btn-outline-primary" data-toggle="modal" data-target="#mdl-edit-assn" onclick="loadOriginalConfig('#mdl-edit-assn-config');">
+                                        <button type="button" style="width: 190px;" class="btn btn-outline-primary" data-toggle="modal" data-target="#mdl-edit-assn" onclick="loadOriginalConfig('#mdl-edit-assn-config', '{{ assignment._id }}');">
                                             <i class="fas fa-pen"></i> Edit assignment
                                         </button>
                                     </div>
@@ -261,7 +261,7 @@
                 </div>
             </div>
 
-            
+
             <div class="modal fade" id="mdl-edit-assn" tabindex="-1" role="dialog" aria-labelledby="mdl-edit-assn-label" aria-hidden="true">
                 <div class="modal-dialog" role="document">
                     <div class="modal-content">
@@ -318,7 +318,6 @@
                                 <div class="form-group">
                                     <label for="start">Configuration</label>
                                     <div>
-
                                         <textarea type="text" class="form-control" id="mdl-edit-assn-config" name="config" rows="5" style="font-family: monospace;"></textarea>
                                     </div>
                                 </div>
@@ -326,10 +325,34 @@
                             </form>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-primary" id="mdl-edit-assn-save" onclick="attemptEditAssignment()">
+                            <button type="button" class="btn btn-outline-danger w-100" data-toggle="modal" data-target="#delete-confirmation">
+                                <span class="fa fa-trash-alt" style="margin-right: 0.2em;"></span>
+                                Delete
+                            </button>
+                            <button type="submit" form="edit-assn" class="btn btn-primary w-100" id="mdl-edit-assn-save">
                                 <span class="fa fa-cog loader" style="margin-right: 0.2em;"></span>
                                 Save
                             </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal fade" tabindex="-1" role="dialog" id="delete-confirmation">
+                <div class="modal-dialog p-3" role="document" style="margin-top: 5rem;">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Delete {{ assignment.assignment_id }}</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                        </div>
+                        <div class="modal-body">
+                            <p>Are you sure you want to delete <b>{{ assignment.assignment_id }}</b>?</p>
+                            <span id="delete-assn-error" class="form-text text-danger"></span>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-danger w-100" id="delete-assn" onclick="deleteAssignment()">Yes</button>
+                            <button type="button" class="btn btn-secondary w-100" data-dismiss="modal">No</button>
                         </div>
                     </div>
                 </div>
@@ -447,10 +470,10 @@
             <table class="table table-hover table-fit">
                 <thead>
                 <tr>
-                    <th scope="col">Name</th>
-                    <th scope="col">Time ({{ tzCity }})</th>
-                    <th scope="col">Status</th>
-                    <th scope="col">Actions</th>
+                    <th scope="col" style="width: 25%;">Name</th>
+                    <th scope="col" style="width: 25%;">Time ({{ tzCity }})</th>
+                    <th scope="col" style="width: 25%;">Status</th>
+                    <th scope="col" style="width: 25%;">Actions</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -462,7 +485,7 @@
                         <td>
                             {% if run.status == sched_run_status.SCHEDULED %}<div class="text-info"><i class="fas fa-clock"></i>Scheduled</div>
                             {% elif run.status == sched_run_status.FAILED %}<div class="text-danger"><i class="fas fa-times-circle"></i>Failed</div>
-                            {% elif run.status == sched_run_status.RAN %}<div class="text-success"><i class="fas fa-check-circle"></i>Ran</div>
+                            {% elif run.status == sched_run_status.RAN %}<button class="btn btn-success btn-sm" onclick="getRunStatus('{{ run.broadway_run_id }}')" id="status-{{ run.broadway_run_id }}"><i class="fas fa-check-circle"></i>check status</button>
                             {% endif %}
                         </td>
                         <td>

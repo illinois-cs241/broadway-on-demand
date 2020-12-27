@@ -55,8 +55,8 @@
                     <span class="fa fa-cog loader" style="margin-right: 0.2em;"></span>
                     Save
                 </button>
-                <button type="button" class="btn btn-secondary text-center w-100" id="sched-run-cannot-modify" disabled>
-                    Cannot modify past runs
+                <button type="button" class="btn btn-primary text-center w-100" id="sched-run-cannot-edit" disabled>
+                    Cannot edit past runs
                 </button>
             </div>
         </div>
@@ -204,7 +204,9 @@
         // Action buttons change depending on run status
         let saveBtn = "#sched-run-save";
         let deleteBtn = "#sched-run-delete";
-        let msgBtn = "#sched-run-cannot-modify";
+        let msgBtn = "#sched-run-cannot-edit";
+        let deleteTitle = "#delete-sched-run-title";
+        let deleteName = "#delete-sched-run-name";
         switch (status) {
             // Show save button
             case "new":
@@ -212,19 +214,21 @@
                 $(msgBtn).hide();
                 $(saveBtn).show().removeClass("w-100");
                 break
-            // Show both delete and save button
+            // Show delete and save button
             case "scheduled":
                 $(deleteBtn).show();
                 $(msgBtn).hide();
                 $(saveBtn).show().addClass("w-100");
-                $("#delete-sched-run-title").text(`Delete ${name}`);
-                $("#delete-sched-run-name").text(name);
+                $(deleteTitle).text(`Delete ${name}`);
+                $(deleteName).text(name);
                 break
-            // Hide both buttons and show message
+            // Show delete button and message
             case "past":
-                $(deleteBtn).hide();
+                $(deleteBtn).show();
                 $(saveBtn).hide();
                 $(msgBtn).show();
+                $(deleteTitle).text(`Delete ${name}`);
+                $(deleteName).text(name);
                 break
         }
         // Clear previoous error messages
@@ -242,7 +246,7 @@
             run.roster = run.roster == null ? null : run.roster.join(", ");
             let status = run.status === "scheduled" ? run.status : "past";
             initializeScheduleRunModal(run_id, "Edit Scheduled Run", run.name, run.roster, run.run_time, run.due_time, "Loading broadway config...", status);
-            loadOriginalConfig("#sched-run-config");
+            loadOriginalConfig("#sched-run-config", `${run.assignment_id}_${run_id}`);
             $("#sched-run-modal").modal("show");
         });
     }
