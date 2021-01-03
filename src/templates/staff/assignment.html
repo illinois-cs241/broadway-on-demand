@@ -237,12 +237,12 @@
 
                             <div class="col-md-6 col-lg-6 col-xl-8" style="align-self: center; text-align: center;">
                                 <div class="row">
-                                    <div class="col">
+                                    <div class="col p-1">
                                         <button type="button" class="btn btn-outline-primary btn-fixed-width" data-toggle="modal" data-target="#mdl-edit-assn" onclick="loadOriginalConfig('#mdl-edit-assn-config', '{{ assignment._id }}');">
                                             <i class="fas fa-pen"></i> Edit assignment
                                         </button>
                                     </div>
-                                    <div class="col">
+                                    <div class="col p-1">
                                         <button type="button" class="btn btn-outline-primary btn-fixed-width" data-toggle="modal" data-target="#mdl-add-ext">
                                             <i class="fas fa-plus"></i> Add extension
                                         </button>
@@ -251,12 +251,12 @@
                                     <!-- column break -->
                                     <div class="d-block d-xl-none w-100"></div>
 
-                                    <div class="col">
+                                    <div class="col p-1">
                                         <button type="button" class="btn btn-outline-primary btn-fixed-width" onclick="viewExtensions()">
                                             <i class="fas fa-list"></i> View extensions
                                         </button>
                                     </div>
-                                    <div class="col">
+                                    <div class="col p-1">
                                         {% include 'modals/add_scheduled_run.html' %}
                                     </div>
                                 </div>
