@@ -2,7 +2,7 @@ from flask import render_template, abort, request, jsonify
 from http import HTTPStatus
 import json, re
 
-from src import db, util, auth, bw_api
+from src import db, util, auth, bw_api, sched_api
 from src.common import verify_staff, verify_admin, verify_student
 
 MIN_PREDEADLINE_RUNS = 1  # Minimum pre-deadline runs for every assignment
@@ -278,8 +278,103 @@ class AdminRoutes:
             delete_result = db.delete_extension(extension_id)
 
             if delete_result is None:
-                return util.error("Bad ID?")
+                return util.error("Invalid extension, please refresh the page.")
             if delete_result.deleted_count != 1:
                 return util.error("Failed to delete extension.")
 
             return util.success("")
+
+        def add_or_edit_scheduled_run(cid, aid, run_id, form, scheduled_run_id):
+            # course and assignment name validation
+            course = db.get_course(cid)
+            assignment = db.get_assignment(cid, aid)
+            if course is None or assignment is None:
+                return abort(HTTPStatus.NOT_FOUND)
+
+            # form validation
+            missing = util.check_missing_fields(request.form, "run_time", "due_time", "name", "config")
+            if missing:
+                return util.error(f"Missing fields ({', '.join(missing)}).")
+            run_time = util.parse_form_datetime(request.form["run_time"]).timestamp()
+            if run_time is None:
+                return util.error("Missing or invalid run time.")
+            if run_time <= util.now_timestamp():
+                return util.error("Run time must be in the future.")
+            due_time = util.parse_form_datetime(request.form["due_time"]).timestamp()
+            if due_time is None:
+                return util.error("Missing or invalid due time.")
+            if "roster" not in request.form or not request.form["roster"]:
+                roster = None
+            else:
+                roster = request.form["roster"].replace(" ", "").lower().split(",")
+                for student_netid in roster:
+                    if not util.valid_id(student_netid) or not verify_student(student_netid, cid):
+                        return util.error(f"Invalid or non-existent student NetID: {student_netid}")
+            try:
+                config = json.loads(request.form["config"])
+                msg = bw_api.set_assignment_config(cid, f"{aid}_{run_id}", config)
+                if msg:
+                    return util.error(f"Failed to upload config to Broadway: {msg}")
+            except json.decoder.JSONDecodeError:
+                return util.error("Failed to decode config JSON")
+
+            # Schedule a new run with scheduler
+            if scheduled_run_id is None:
+                scheduled_run_id = sched_api.schedule_run(run_time, cid, aid)
+                if scheduled_run_id is None:
+                    return util.error("Failed to schedule run with scheduler")
+            # Or if the run was already scheduled, update the time
+            else:
+                if not sched_api.update_scheduled_run(scheduled_run_id, run_time):
+                    return util.error("Failed to update scheduled run time with scheduler")
+
+            assert scheduled_run_id is not None
+
+            if not db.add_or_update_scheduled_run(run_id, cid, aid, run_time, due_time, roster, request.form["name"], scheduled_run_id):
+                return util.error("Failed to save the changes, please try again.")
+            return util.success("")
+
+        @blueprint.route("/staff/course/<cid>/<aid>/schedule_run/", methods=["POST"])
+        @auth.require_auth
+        @auth.require_admin_status
+        def staff_schedule_run(netid, cid, aid):
+            # generate new id for this scheduled run
+            run_id = db.generate_new_id()
+            return add_or_edit_scheduled_run(cid, aid, run_id, request.form, None)
+
+        @blueprint.route("/staff/course/<cid>/<aid>/schedule_run/<run_id>", methods=["POST"])
+        @auth.require_auth
+        @auth.require_admin_status
+        def staff_edit_scheduled_run(netid, cid, aid, run_id):
+            sched_run = db.get_scheduled_run(cid, aid, run_id)
+            if sched_run is None:
+                return util.error("Could not find this scheduled run. Please refresh and try again.")
+            if sched_run["status"] != sched_api.ScheduledRunStatus.SCHEDULED:
+                return util.error("Cannot edit past runs")
+            scheduled_run_id = sched_run["scheduled_run_id"]
+            return add_or_edit_scheduled_run(cid, aid, run_id, request.form, scheduled_run_id)
+
+        @blueprint.route("/staff/course/<cid>/<aid>/schedule_run/<run_id>", methods=["GET"])
+        @auth.require_auth
+        @auth.require_admin_status
+        def staff_get_scheduled_run(netid, cid, aid, run_id):
+            sched_run = db.get_scheduled_run(cid, aid, run_id)
+            if sched_run is None:
+                return util.error("Cannot find scheduled run")
+            del sched_run["_id"]
+            return util.success(json.dumps(sched_run), 200)
+
+        @blueprint.route("/staff/course/<cid>/<aid>/schedule_run/<run_id>", methods=["DELETE"])
+        @auth.require_auth
+        @auth.require_admin_status
+        def staff_delete_scheduled_run(netid, cid, aid, run_id):
+            sched_run = db.get_scheduled_run(cid, aid, run_id)
+            if sched_run is None:
+                return util.error("Cannot find scheduled run")
+            sched_api.delete_scheduled_run(sched_run["scheduled_run_id"])
+            if not db.delete_scheduled_run(cid, aid, run_id):
+                return util.error("Failed to delete scheduled run. Please try again")
+            return util.success("")
+
+        
+        

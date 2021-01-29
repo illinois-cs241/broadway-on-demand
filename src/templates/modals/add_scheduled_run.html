@@ -1,0 +1,319 @@
+<button type="button" class="btn btn-outline-primary btn-fixed-width" data-toggle="modal" data-target="#sched-run-modal" onclick="addScheduledRun()">
+    <i class="fas fa-calendar-plus"></i> Add scheduled run
+</button>
+<div class="modal fade text-left" id="sched-run-modal" tabindex="-1" role="dialog" aria-labelledby="sched-run-label" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="sched-run-label">Schedule a Grading Run</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form name="sched-run" id="sched-run">
+                    <input type="text" id="sched-run-id" name="id" value="" hidden>
+                    <div class="form-group">
+                        <label for="name">Name</label>
+                        <input type="text" class="form-control" id="sched-run-name" name="name">
+                    </div>
+                    <div class="form-group">
+                        <label for="netids">Roster</label>
+                        <small>(comma-separated list of NetIDs)</small>
+                        <input type="text" class="form-control" id="sched-run-roster" name="roster">
+                        <div class="form-check mt-1">
+                            <input type="checkbox" class="form-check-input" id="sched-run-roster-checkbox" name="roster-checkbox" onclick="onCheckboxClicked('roster')">
+                            <label class="form-check-label" for="sched-run-roster-checkbox">Use course roster</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="run_time">When to Start the Run</label> <span class="badge badge-secondary">{{ tzname }}</span>
+                        <input type="datetime-local" class="form-control" id="sched-run-run-time" name="run_time" oninput="onRunTimeInput()">
+                    </div>
+                    <div class="form-group">
+                        <label for="due_time">Due Date & Time</label> <span class="badge badge-secondary">{{ tzname }}</span>
+                        <input type="datetime-local" class="form-control" id="sched-run-due-time" name="due_time">
+                        <small>This will be passed into grading containers as <code>DUE_DATE</code> environment variable</small>
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="sched-run-due-time-checkbox" name="due-time-checkbox" onclick="onCheckboxClicked('due-time')">
+                            <label class="form-check-label" for="sched-run-due-time-checkbox">Same as start time of the run</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="start">Configuration</label>
+                        <textarea type="text" class="form-control" id="sched-run-config" name="config" rows="5" style="font-family: monospace;" placeholder="JSON configuration for broadway"></textarea>
+                    </div>
+                    <div id="sched-run-error" class="form-text text-danger"></div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-danger w-100" id="sched-run-delete" data-toggle="modal" data-target="#delete-sched-run-confirmation">
+                    <span class="fa fa-trash-alt" style="margin-right: 0.2em;"></span>
+                    Delete
+                </button>
+                <button type="submit" form="sched-run" class="btn btn-primary w-100" id="sched-run-save">
+                    <span class="fa fa-cog loader" style="margin-right: 0.2em;"></span>
+                    Save
+                </button>
+                <button type="button" class="btn btn-primary text-center w-100" id="sched-run-cannot-edit" disabled>
+                    Cannot edit past runs
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" tabindex="-1" role="dialog" id="delete-sched-run-confirmation">
+    <div class="modal-dialog p-3" role="document" style="margin-top: 5rem;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="delete-sched-run-title">Delete Scheduled Run Name</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete <b id="delete-sched-run-name">Scheduled Run Name</b>?</p>
+                <span id="delete-sched-run-error" class="form-text text-danger"></span>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger w-100" id="delete-sched-run" onclick="deleteScheduledRun()">Yes</button>
+                <button type="button" class="btn btn-secondary w-100" data-dismiss="modal">No</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    function initializeSchedRunForm() {
+        // form validation
+        $.validator.addMethod("check_datetime", function(value, element) {
+            return this.optional(element) || moment(value).isValid();
+        }, "Please provide valid datetime, e.g. 2013-02-08 19:30")
+
+        // Use this check on roster input field, it considers the checkbox
+        $.validator.addMethod("check_roster", function(value, element) {
+            let checkboxed = $("input[name='roster-checkbox']").prop("checked");
+            return checkboxed || value != "";
+        }, "Roster field is required if 'Use course roster' is not checked.")
+
+        $(`form[name="sched-run"]`).validate({
+            errorClass: "text-danger",
+            errorElement: "small",
+            rules: {
+                name: "required",
+                roster: {
+                    check_roster: true,
+                },
+                run_time: {
+                    required: true,
+                    check_datetime: true,
+                },
+                due_time: {
+                    required: true,
+                    check_datetime: true,
+                },
+                config: "required",
+            },
+            submitHandler: function(form, event) {
+                event.preventDefault();
+                // raw data has the form: [{name: "name of input field", value: "input value"}, ...]
+                let disabled = $(form).find(':input:disabled').removeAttr('disabled'); // disabled fields won't be picked up
+                let rawData = $(form).serializeArray();
+                disabled.attr('disabled', true);
+                let formData = {};
+                let run_id = null;
+                for (let i = 0; i < rawData.length; i++) {
+                    let fieldName = rawData[i].name;
+                    let fieldVal = rawData[i].value;
+                    // Convert date string to special format
+                    if (fieldName == "run_time" || fieldName == "due_time") {
+                        fieldVal = moment(fieldVal).format("YYYY-MM-DDTHH:mm");
+                    }
+                    // If roster is not provided and it passed the validate check, use course roster
+                    if (fieldName == "roster" && fieldVal == "") {
+                        fieldVal = null;
+                    }
+                    // Skip checkbox input
+                    if (fieldName.includes("checkbox")) {
+                        continue;
+                    }
+                    // Get "hidden" id field which is filled by code
+                    if (fieldName == "id") {
+                        run_id = fieldVal;
+                    }
+                    formData[fieldName] = fieldVal;
+                }
+                // If "id" field is empty, then we are performing an add. Otherwise it's an edit.
+                let postUrl = "{{ url_for('.staff_schedule_run', cid=course._id, aid=assignment.assignment_id) }}";
+                if (run_id) {
+                    postUrl += run_id;
+                }
+                let errorSelector = "#sched-run-error";
+                let saveBtn = "#sched-run-save";
+                let saveBtnIcon = saveBtn + " .loader";
+                $.ajax({
+                    type: "POST",
+                    url: postUrl,
+                    data: formData,
+                    beforeSend: function () {
+                        $(errorSelector).html('').fadeOut();
+                        $(saveBtnIcon).addClass("fa-spin");
+                        $(saveBtn).prop('disabled', true);
+                    },
+                    success: function () {
+                        $("#sched-run-modal").modal('hide');
+                        location.reload();
+                    },
+                    error: function (xhr) {
+                        if (!xhr.responseText) {
+                            $(errorSelector).html("Save failed. Please try again.").fadeIn();
+                        } else {
+                            $(errorSelector).html(xhr.responseText).fadeIn();
+                        }
+                    }
+                }).always(() => {
+                    $(saveBtnIcon).removeClass("fa-spin");
+                    $(saveBtn).prop('disabled', false);
+                });
+            }
+        });
+    }
+    /**
+     * Initialize the modal to add/edit schedule runs by filling in appropriate values.
+     * @param status "new" if add new scheduled run, "scheduled" if edit scheduled run, 
+     *     "past" if edit/view runs that failed or ran.
+     */
+    function initializeScheduleRunModal(id, title, name, roster, run_time, due_time, config, status) {
+        // Fill in appropriate form values
+        $("#sched-run-id").val(id);
+        $("#sched-run-label").text(title);
+        $("#sched-run-name").val(name);
+        if (roster == null) {
+            checkBox("#sched-run-roster", "#sched-run-roster-checkbox");
+        } else {
+            uncheckBox("#sched-run-roster", "#sched-run-roster-checkbox");
+            $("#sched-run-roster").val(roster);
+        }
+        $("#sched-run-run-time").val(run_time);
+        if (due_time == null) {
+            checkBox("#sched-run-due-time", "#sched-run-due-time-checkbox");
+        } else {
+            uncheckBox("#sched-run-due-time", "#sched-run-due-time-checkbox");
+            $("#sched-run-due-time").val(due_time);
+        }
+        $("#sched-run-config").val(config);
+        // Action buttons change depending on run status
+        let saveBtn = "#sched-run-save";
+        let deleteBtn = "#sched-run-delete";
+        let msgBtn = "#sched-run-cannot-edit";
+        let deleteTitle = "#delete-sched-run-title";
+        let deleteName = "#delete-sched-run-name";
+        switch (status) {
+            // Show save button
+            case "new":
+                $(deleteBtn).hide();
+                $(msgBtn).hide();
+                $(saveBtn).show().removeClass("w-100");
+                break
+            // Show delete and save button
+            case "scheduled":
+                $(deleteBtn).show();
+                $(msgBtn).hide();
+                $(saveBtn).show().addClass("w-100");
+                $(deleteTitle).text(`Delete ${name}`);
+                $(deleteName).text(name);
+                break
+            // Show delete button and message
+            case "past":
+                $(deleteBtn).show();
+                $(saveBtn).hide();
+                $(msgBtn).show();
+                $(deleteTitle).text(`Delete ${name}`);
+                $(deleteName).text(name);
+                break
+        }
+        // Clear previoous error messages
+        $("#delete-sched-run-error").html("");
+        $("#sched-run-error").html("");
+    }
+    function addScheduledRun() {
+        initializeScheduleRunModal("", "Schedule a Grading Run", "Final Grading Run", null, "", null, "", "new");
+    }
+    function editScheduledRun(run_id) {
+        getScheduledRun(run_id, (run) => {
+            // Format values for display
+            run.run_time = moment.unix(run.run_time).format("YYYY-MM-DDTHH:mm");
+            run.due_time = moment.unix(run.due_time).format("YYYY-MM-DDTHH:mm");
+            run.roster = run.roster == null ? null : run.roster.join(", ");
+            let status = run.status === "scheduled" ? run.status : "past";
+            initializeScheduleRunModal(run_id, "Edit Scheduled Run", run.name, run.roster, run.run_time, run.due_time, "Loading broadway config...", status);
+            loadOriginalConfig("#sched-run-config", `${run.assignment_id}_${run_id}`);
+            $("#sched-run-modal").modal("show");
+        });
+    }
+    function deleteScheduledRun() {
+        let run_id = $("#sched-run-id").val();
+        $.ajax({
+            type: "DELETE",
+            url: "{{ url_for('.staff_delete_scheduled_run', cid=course._id, aid=assignment.assignment_id, run_id='RUN_ID') }}".replace("RUN_ID", run_id),
+            beforeSend: () => {
+                $("#delete-sched-run-error").html("").fadeOut();
+                $("#delete-sched-run").prop('disabled', true);
+            },
+            success: () => {
+                location.reload();
+            },
+            error: (xhr) => {
+                if (!xhr.responseText) {
+                    $("#delete-sched-run-error").html("Delete assignment failed. Please try again.").fadeIn();
+                } else {
+                    $("#delete-sched-run-error").html(xhr.responseText).fadeIn();
+                }
+            },
+        }).always(() => {
+            $("#delete-sched-run").prop('disabled', false);
+        });
+    }
+    /* Some helper functions */
+    function checkBox(input_selector, checkbox_selector, mimic_input_selector) {
+        if (mimic_input_selector != null) {
+            $(input_selector).val($(mimic_input_selector).val()).prop("disabled", true);
+        } else {
+            $(input_selector).val("").prop("disabled", true);
+        }
+        $(checkbox_selector).prop("checked", true);
+    }
+    function uncheckBox(input_selector, checkbox_selector) {
+        $(input_selector).prop("disabled", false);
+        $(checkbox_selector).prop("checked", false);
+    }
+    /** Disable/Re-enable input fields when checkbox is checked/unchecked. */
+    function onCheckboxClicked(name) {
+        if ($(`#sched-run-${name}-checkbox`).prop("checked")) {
+            mimic_input_selector = name === "due-time" ? "#sched-run-run-time" : undefined;
+            checkBox(`#sched-run-${name}`, `#sched-run-${name}-checkbox`, mimic_input_selector);
+        } else {
+            uncheckBox(`#sched-run-${name}`, `#sched-run-${name}-checkbox`);
+        }
+        fieldName = name.replace("-", "_");
+        $(`input[name="${fieldName}"]`).valid();
+    }
+    /** Sync up DUE TIME value with RUN TIME if the box is checked. */
+    function onRunTimeInput() {
+        if ($("#sched-run-due-time-checkbox").prop("checked")) {
+            $("#sched-run-due-time").val($("#sched-run-run-time").val());
+            $("#sched-run-due-time").valid();
+        }
+    }
+    /** Get information about a scheduled run */
+    function getScheduledRun(run_id, callback) {
+        // This is actually creating a url for .staff_get_scheduled_run, but flask doesn't allow dynamic 
+        // url_for parameterization, so this code appends the run_id at the end of .staff_schedule_run's url
+        $.get(`{{ url_for('.staff_schedule_run', cid=course._id, aid=assignment.assignment_id) }}${run_id}`, (data) => {
+            let run = JSON.parse(data);
+            callback(run);
+        }).fail((jqXHR) => {
+            console.log(jqXHR);
+            alert("Failed to get scheduled run information. Please try again");
+        })
+    }
+</script>

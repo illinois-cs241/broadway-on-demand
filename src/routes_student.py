@@ -97,7 +97,7 @@ class StudentRoutes:
 
 			now_rounded = util.timestamp_round_up_minute(now)
 
-			run_id = bw_api.start_grading_run(cid, aid, netid, now_rounded)
+			run_id = bw_api.start_grading_run(cid, aid, [netid], now_rounded)
 			if run_id is None:
 				restore_csrf_token(current_csrf_token)
 				return util.error("Failed to start grading run. Please try again.")

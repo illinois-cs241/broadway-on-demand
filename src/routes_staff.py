@@ -4,7 +4,7 @@ import logging
 from flask import render_template, abort, jsonify
 
 from config import TZ
-from src import db, util, auth, bw_api
+from src import db, util, auth, bw_api, sched_api
 from src.common import verify_staff, verify_admin
 
 logger = logging.getLogger(__name__)
@@ -50,10 +50,12 @@ class StaffRoutes:
             course = db.get_course(cid)
             assignment = db.get_assignment(cid, aid)
             student_runs = list(db.get_assignment_runs(cid, aid))
+            scheduled_runs = list(db.get_scheduled_runs(cid, aid))
             is_admin = verify_admin(netid, cid)
 
             return render_template("staff/assignment.html", netid=netid, course=course,
                                    assignment=assignment, student_runs=student_runs,
+                                   scheduled_runs=scheduled_runs, sched_run_status=sched_api.ScheduledRunStatus,
                                    tzname=str(TZ), is_admin=is_admin, visibility=db.Visibility)
 
         @blueprint.route("/staff/course/<cid>/<aid>/config", methods=["GET"])
@@ -71,13 +73,24 @@ class StaffRoutes:
 
         @blueprint.route("/staff/course/<cid>/<aid>/<run_id>/status/", methods=["GET"])
         @auth.require_auth
-        def staff_get_run_status(netid, cid, aid, run_id):
+        def staff_get_job_status(netid, cid, aid, run_id):
             if not verify_staff(netid, cid):
                 return abort(HTTPStatus.FORBIDDEN)
 
-            status = bw_api.get_grading_run_status(cid, run_id)
+            status = bw_api.get_grading_job_status(cid, run_id)
             if status:
                 return util.success(status, HTTPStatus.OK)
+            return util.error("")
+
+        @blueprint.route("/staff/course/<cid>/<aid>/<run_id>/state/", methods=["GET"])
+        @auth.require_auth
+        def staff_get_run_state(netid, cid, aid, run_id):
+            if not verify_staff(netid, cid):
+                return abort(HTTPStatus.FORBIDDEN)
+
+            state = bw_api.get_grading_run_state(cid, run_id)
+            if state:
+                return util.success(state, HTTPStatus.OK)
             return util.error("")
 
         @blueprint.route("/staff/course/<cid>/<aid>/<run_id>/log/", methods=["GET"])

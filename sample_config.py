@@ -22,10 +22,13 @@ SESSION_MONGODB_DB = "flask_session"
 # MongoDB URI for Broadway on Demand data.
 MONGO_URI = "mongodb://localhost:27017/broadway_on_demand"
 
+# Scheduler URI for scheduling runs
+SCHEDULER_URI = "http://localhost:3000/scheduler"
+
 # Broadway API configuration.
 BROADWAY_API_URL = "http://some-broadway-api-server.example/api/v1"
 
-# API token used to authenticate /system/ routes. Currently unused.
+# API token used to authenticate /system/ routes.
 SYSTEM_API_TOKEN = "some_token"
 
 # GitHub Enterprise OAuth client ID and secret.

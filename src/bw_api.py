@@ -7,7 +7,7 @@ from json.decoder import JSONDecodeError
 
 from config import BROADWAY_API_URL
 from src import db
-from src.util import timestamp_to_bw_api_format
+from src.util import timestamp_to_bw_api_format, catch_request_errors
 
 
 def build_header(cid):
@@ -15,57 +15,54 @@ def build_header(cid):
 	return {"Authorization": f"Bearer {token}"}
 
 
-def start_grading_run(cid, aid, netid, timestamp):
+@catch_request_errors
+def start_grading_run(cid, aid, netids, timestamp):
 	"""
 	Attempt to start a grading run.
 	:param cid: the course ID.
 	:param aid: the assignment ID within the course.
-	:param netid: the student's NetID.
+	:param netid: an arary of student NetIDs.
 	:param timestamp: the UNIX timestamp for the run due date.
 	:return: a run_id string if successful, or None otherwise.
 	"""
-	data = {
-		"students_env": [{
+	due_date_str = timestamp_to_bw_api_format(timestamp)
+	students_env = [
+		{
 			"STUDENT_ID": netid,
-			"DUE_DATE": timestamp_to_bw_api_format(timestamp)
-		}]
+			"DUE_DATE": due_date_str,
+		} for netid in netids
+	]
+	data = {
+		"students_env": students_env
 	}
-	try:
-		resp = requests.post(url=f"{BROADWAY_API_URL}/grading_run/{cid}/{aid}", headers=build_header(cid), json=data)
-		run_id = resp.json()["data"]["grading_run_id"]
-		return run_id
-	except requests.exceptions.RequestException as e:
-		logging.error(f"start_grading_run(cid={cid}, aid={aid}, netid={netid}): {repr(e)}")
-		return None
-	except KeyError as e:
-		logging.error(f"start_grading_run(cid={cid}, aid={aid}, netid={netid}): {repr(e)}")
-		return None
-	except JSONDecodeError as e:
-		logging.error(f"start_grading_run(cid={cid}, aid={aid}, netid={netid}): {repr(e)}")
-		return None
+	resp = requests.post(url=f"{BROADWAY_API_URL}/grading_run/{cid}/{aid}", headers=build_header(cid), json=data)
+	run_id = resp.json()["data"]["grading_run_id"]
+	return run_id
 
 
-def get_grading_run_status(cid, run_id):
+@catch_request_errors
+def get_grading_run_state(cid, run_id):
 	"""
-	Get the status of a grading run.
+	Get the state of a grading run. 
 	:param cid: the course ID.
-	:param aid: the assignment ID within the course.
+	:param run_id: the run ID received when the run was started.
+	:return: a state string if successful, or None otherwise.
+	"""
+	resp = requests.get(url=f"{BROADWAY_API_URL}/grading_run_status/{cid}/{run_id}", headers=build_header(cid))
+	return resp.json()["data"]["state"]
+
+
+@catch_request_errors
+def get_grading_job_status(cid, run_id):
+	"""
+	Get the status of a grading job within a grading run, assuming only 1 grading job in this run.
+	:param cid: the course ID.
 	:param run_id: the run ID received when the run was started.
 	:return: a status string if successful, or None otherwise.
 	"""
-	try:
-		resp = requests.get(url=f"{BROADWAY_API_URL}/grading_run_status/{cid}/{run_id}", headers=build_header(cid))
-		student_jobs_dict = resp.json()["data"]["student_jobs_state"]
-		return list(student_jobs_dict.values())[0]
-	except requests.exceptions.RequestException as e:
-		logging.error(f"get_grading_run_status(cid={cid}, run_id={run_id}): {repr(e)}")
-		return None
-	except KeyError as e:
-		logging.error(f"get_grading_run_status(cid={cid}, run_id={run_id}): {repr(e)}")
-		return None
-	except JSONDecodeError as e:
-		logging.error(f"get_grading_run_status(cid={cid}, run_id={run_id}): {repr(e)}")
-		return None
+	resp = requests.get(url=f"{BROADWAY_API_URL}/grading_run_status/{cid}/{run_id}", headers=build_header(cid))
+	student_jobs_dict = resp.json()["data"]["student_jobs_state"]
+	return list(student_jobs_dict.values())[0]
 
 
 def get_grading_job_queue_position(cid, run_id):

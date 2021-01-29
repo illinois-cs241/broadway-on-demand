@@ -118,3 +118,7 @@ tr.assignment-no-runs a {
 .ansi1 { font-weight: bold; }
 .ansi32 { color: #00aa00; }
 .ansi35 { color: #E850A8; }
+
+.btn-text-break {
+    white-space: normal;
+}
