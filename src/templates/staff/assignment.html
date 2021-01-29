@@ -103,7 +103,7 @@
                             + '</td><td class="text-right">' + fmtTimestamp(result[i].end)
                             + '</td><td class="text-right">' + result[i].max_runs
                             + '</td><td class="text-right">' + result[i].remaining_runs
-                            + '</td><td><i class="text-danger fas fa-trash-alt" style="cursor: pointer" onclick="deleteExtension(\'' + result[i]._id + '\')"/>'
+                            + '</td><td class="text-center"><i class="text-danger fas fa-trash-alt" style="cursor: pointer" onclick="deleteExtension(\'' + result[i]._id + '\')"/>'
                             + '</td></tr>\n');
                     }
                 }
@@ -422,6 +422,7 @@
                                         <th scope="col">End</th>
                                         <th scope="col">Max Runs</th>
                                         <th scope="col">Remaining Runs</th>
+                                        <th scope="col">Action</th>
                                     </tr>
                                     </thead>
                                     <tbody id="mdl-view-exts-body">
