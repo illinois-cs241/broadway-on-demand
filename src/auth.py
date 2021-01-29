@@ -5,6 +5,7 @@ from flask import session, redirect, url_for, abort, request
 from src import db
 from src.common import verify_staff, verify_admin
 
+from config import SYSTEM_API_TOKEN
 
 UID_KEY = "netid"
 CID_KEY = "cid"
@@ -47,6 +48,19 @@ def require_auth(func):
 		return redirect(url_for(".login_page"))
 	return wrapper
 
+
+def require_system_auth(func):
+        """
+        A route decorator to check for the SYSTEM_API_TOKEN in the headers.
+        Returns Forbidden if the token is not set
+        """
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+                token = request.headers["Authorization"]
+                if token != f"Bearer {SYSTEM_API_TOKEN}":
+                        return abort(HTTPStatus.FORBIDDEN)
+                return func(*args, **kwargs)
+        return wrapper
 
 def require_token_auth(func):
 	"""

@@ -21,9 +21,8 @@ class ApiRoutes:
             return util.success("Successfully updated roster.", HTTPStatus.OK)
 
         @blueprint.route("/api/<cid>/<aid>/trigger_scheduled_run/<scheduled_run_id>", methods=["POST"])
-        @auth.require_token_auth
-        @auth.require_admin_status
-        def trigger_scheduled_run(netid, cid, aid, scheduled_run_id):
+        @auth.require_system_auth
+        def trigger_scheduled_run(cid, aid, scheduled_run_id):
             sched_run = db.get_scheduled_run_by_scheduler_id(cid, aid, scheduled_run_id)
             if sched_run is None:
                 logging.warning("Received trigger scheduled run request for scheduled_run_id '%s' but cannot find corresponding run.", scheduled_run_id)
