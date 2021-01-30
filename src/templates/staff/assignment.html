@@ -231,14 +231,15 @@
                 <div class="card-body">
                     <div class="container-fluid" style="padding: 0;">
                         <div class="row">
-                            <div class="col-md-6 col-lg-6 col-xl-4" style="align-self: center;">
+                            <div class="col-md-6 col-lg-6 col-xl-4 text-center" style="align-self: center;">
                                 <h2 class="card-title">{{ assignment.assignment_id }}</h2>
                             </div>
 
                             <div class="col-md-6 col-lg-6 col-xl-8" style="align-self: center; text-align: center;">
                                 <div class="row">
                                     <div class="col p-1">
-                                        <button type="button" class="btn btn-outline-primary btn-fixed-width" data-toggle="modal" data-target="#mdl-edit-assn" onclick="loadOriginalConfig('#mdl-edit-assn-config', '{{ assignment._id }}');">
+                                        <button type="button" class="btn btn-outline-primary btn-fixed-width" data-toggle="modal" data-target="#mdl-edit-assn"
+                                            onclick="loadOriginalConfig('#mdl-edit-assn-config', '{{ assignment.assignment_id }}');">
                                             <i class="fas fa-pen"></i> Edit assignment
                                         </button>
                                     </div>
@@ -449,7 +450,7 @@
                 <tbody>
                 {% for student in student_runs %}
                     <tr>
-                        <th scope="col" class="student-header" colspan="3">{{ student._id }}</th>
+                        <th scope="col" class="student-header" colspan="4">{{ student._id }}</th>
                     </tr>
                     {% for run in student.runs %}
                         <tr>

@@ -108,11 +108,11 @@ class StudentRoutes:
 		@blueprint.route("/student/course/<cid>/<aid>/<run_id>/status/", methods=["GET"])
 		@util.disable_in_maintenance_mode
 		@auth.require_auth
-		def student_get_run_status(netid, cid, aid, run_id):
+		def student_get_job_status(netid, cid, aid, run_id):
 			if not verify_student_or_staff(netid, cid):
 				return abort(HTTPStatus.FORBIDDEN)
 
-			status = bw_api.get_grading_run_status(cid, run_id)
+			status = bw_api.get_grading_job_status(cid, run_id)
 			if status:
 				return status
 			return util.error("")
