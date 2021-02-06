@@ -7,6 +7,9 @@ from config import TZ
 from src import db, util, auth, bw_api, sched_api
 from src.common import verify_staff, verify_admin
 
+import pathlib
+import subprocess
+
 logger = logging.getLogger(__name__)
 
 
@@ -18,7 +21,9 @@ class StaffRoutes:
             courses = db.get_courses_for_staff(netid)
             version_code = 'unknown'
             try:
-                git_hash = check_output('git rev-parse --short=8 HEAD'.split(' ')).decode('utf-8')
+                curDirPath = str(pathlib.Path(__file__).parent.absolute())
+                switchDirCMD = 'cd "{path}"'.format(path = curDirPath)
+                git_hash = subprocess.Popen(switchDirCMD + ' && ' + 'git rev-parse --short=8 HEAD',stdout=subprocess.PIPE, shell=True).communicate()[0].strip()
                 if len(git_hash) >= 8:
                     version_code = git_hash[0:8]
 
