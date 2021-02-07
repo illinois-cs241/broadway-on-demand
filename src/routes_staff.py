@@ -23,7 +23,7 @@ class StaffRoutes:
             try:
                 curDirPath = str(pathlib.Path(__file__).parent.absolute())
                 switchDirCMD = 'cd "{path}"'.format(path = curDirPath)
-                git_hash = subprocess.Popen(switchDirCMD + ' && ' + 'git rev-parse --short=8 HEAD',stdout=subprocess.PIPE, shell=True).communicate()[0].strip()
+                git_hash = subprocess.Popen(switchDirCMD + ' && ' + 'git rev-parse --short=8 HEAD',stdout=subprocess.PIPE, shell=True).communicate()[0].strip().decode()
                 if len(git_hash) >= 8:
                     version_code = git_hash[0:8]
 
