@@ -29,7 +29,15 @@ class AdminRoutes:
         @auth.require_admin_status
         def get_course_staff_roster(netid, cid):
             course = db.get_course(cid)
-            return jsonify(admin_ids=course['admin_ids'], staff_ids=course['staff_ids'], user=netid)
+            
+            staff = course['staff']
+            # get all admin_ids by filtering out all non-admins
+            admin = dict(filter(lambda x : x[1] == {'is_admin': True}, staff.items()))
+            admin = list(admin.keys())
+            # get the entire staff
+            total_staff = list(staff.keys())
+            
+            return jsonify(admin_ids=admin, staff_ids=total_staff, user=netid)
 
         @blueprint.route("/staff/course/<cid>/student_roster", methods=["GET"])
         @auth.require_auth

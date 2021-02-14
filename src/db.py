@@ -62,27 +62,31 @@ def get_courses_for_student(netid):
 	courses = mongo.db.courses.find({"student_ids": netid})
 	return list(courses)
 
-
+# change this func
 def get_courses_for_staff(netid):
-	courses = mongo.db.courses.find({"staff_ids": netid})
+	courses = mongo.db.courses.find( {f'staff.{netid}': { '$exists': True } } )
+	# courses = mongo.db.courses.find({"staff_ids": netid})
+
 	return list(courses)
 
 
 def get_course(cid):
 	return mongo.db.courses.find_one({"_id": cid})
 
-
+# change this func
 def add_staff_to_course(cid, new_staff_id):
-	return mongo.db.courses.update({"_id": cid}, {"$addToSet": {"staff_ids": new_staff_id}})
+	return mongo.db.courses.update({"_id": cid}, {'$set' : {f"staff.{new_staff_id}": {"is_admin": False}}})
+	# return mongo.db.courses.update({"_id": cid}, {"$addToSet": {"staff_ids": new_staff_id}})
 
-
+# change this func
 def remove_staff_from_course(cid, staff_id):
-	return mongo.db.courses.update({"_id": cid}, {
-		"$pull": {
-			"staff_ids": staff_id,
-			"admin_ids": staff_id,
-		}
-	})
+	return mongo.db.courses.update({"_id": "test-course"},{'$unset' : {f"staff.{staff_id}": 1}})
+	# return mongo.db.courses.update({"_id": cid}, {
+	# 	"$pull": {
+	# 		"staff_ids": staff_id,
+	# 		"admin_ids": staff_id,
+	# 	}
+	# })
 
 
 def add_student_to_course(cid, new_student_id):
@@ -92,13 +96,18 @@ def add_student_to_course(cid, new_student_id):
 def remove_student_from_course(cid, student_id):
 	return mongo.db.courses.update({"_id": cid}, {"$pull": {"student_ids": student_id}})
 
-
+# change this func
 def add_admin_to_course(cid, staff_id):
-	return mongo.db.courses.update({"_id": cid}, {"$addToSet": {"admin_ids": staff_id}})
+	# the way an admin should be added to the course
+	return mongo.db.courses.update({"_id": cid}, {'$set' : {f"staff.{staff_id}": {"is_admin": True}}})
+	
+	# return mongo.db.courses.update({"_id": cid}, {"$addToSet": {"admin_ids": staff_id}})
 
-
+# change this func
 def remove_admin_from_course(cid, staff_id):
-	return mongo.db.courses.update({"_id": cid}, {"$pull": {"admin_ids": staff_id}})
+	return mongo.db.courses.update({"_id": cid}, {'$set' : {f"staff.{staff_id}": {"is_admin": False}}})
+
+	# return mongo.db.courses.update({"_id": cid}, {"$pull": {"admin_ids": staff_id}})
 
 
 def overwrite_student_roster(cid, student_ids):

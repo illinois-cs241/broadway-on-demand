@@ -5,6 +5,7 @@ from pytz import utc
 from config import TZ
 from src import db, util
 
+# modify any functions using the database
 
 def in_grading_period(assignment, now=None):
 	if now is None:
@@ -88,7 +89,13 @@ def verify_admin(netid, cid):
 	:param cid: a course ID.
 	:return: a boolean value.
 	"""
-	return netid in db.get_course(cid)["admin_ids"]
+	staff = db.get_course(cid)["staff"]
+	if netid not in staff:
+		return False
+	else:
+		is_admin = staff[netid]
+		return is_admin == {"is_admin": True}
+	# return netid in db.get_course(cid)["admin_ids"]
 
 
 def verify_staff(netid, cid):
@@ -98,4 +105,4 @@ def verify_staff(netid, cid):
 	:param cid: a course ID.
 	:return: a boolean value.
 	"""
-	return netid in db.get_course(cid)["staff_ids"]
+	return netid in db.get_course(cid)["staff"]
