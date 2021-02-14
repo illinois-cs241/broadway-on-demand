@@ -21,17 +21,16 @@ class StaffRoutes:
             courses = db.get_courses_for_staff(netid)
             version_code = 'unknown'
             try:
+
                 '''
                     Below is a fix, to get the git versionCode displayed on the front end
                     The workaround is to get the absolute path to the current directory, then cd into that folder, then run your git command.
                     We need to do this, because many times we will start the service from outside the current directory.
 
-                    Additionally, you may need to modify the "Environment" variable in the "on-demand.service" file and append the path to where git is located.
-                    For example: Environment="PATH=path_to_venv:/usr/bin/" and /usr/bin is where git is located.
-
-                    Moreover, add 'PATH=/usr/bin/' in your subproccess call as well. 
-                    
+                    The code below will only work in a linux like environment. It requires the exeuctable env and git to be in /usr/bin.
+                    If git is not in that location, then you can modify the parameters to the subproccess.Popen call as necessary.              
                 '''
+
                 curDirPath = str(pathlib.Path(__file__).parent.absolute())
                 git_hash = subprocess.Popen(['/usr/bin/env', 'PATH=/usr/bin/', 'git', 'rev-parse', '--short=8', 'HEAD'], stdout=subprocess.PIPE, cwd=curDirPath).communicate()[0].strip().decode()
                     
