@@ -7,6 +7,9 @@ from config import TZ
 from src import db, util, auth, bw_api, sched_api
 from src.common import verify_staff, verify_admin
 
+import pathlib
+import subprocess
+
 logger = logging.getLogger(__name__)
 
 
@@ -18,7 +21,19 @@ class StaffRoutes:
             courses = db.get_courses_for_staff(netid)
             version_code = 'unknown'
             try:
-                git_hash = check_output('git rev-parse --short=8 HEAD'.split(' ')).decode('utf-8')
+
+                '''
+                    Below is a fix, to get the git versionCode displayed on the front end
+                    The workaround is to get the absolute path to the current directory, then cd into that folder, then run your git command.
+                    We need to do this, because many times we will start the service from outside the current directory.
+
+                    The code below will only work in a linux like environment. It requires the exeuctable env and git to be in /usr/bin.
+                    If git is not in that location, then you can modify the parameters to the subproccess.Popen call as necessary.              
+                '''
+
+                curDirPath = str(pathlib.Path(__file__).parent.absolute())
+                git_hash = subprocess.Popen(['/usr/bin/env', 'PATH=/usr/bin/', 'git', 'rev-parse', '--short=8', 'HEAD'], stdout=subprocess.PIPE, cwd=curDirPath).communicate()[0].strip().decode()
+                    
                 if len(git_hash) >= 8:
                     version_code = git_hash[0:8]
 
