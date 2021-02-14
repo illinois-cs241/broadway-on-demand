@@ -95,7 +95,6 @@ def verify_admin(netid, cid):
 	else:
 		is_admin = staff[netid]
 		return is_admin == {"is_admin": True}
-	# return netid in db.get_course(cid)["admin_ids"]
 
 
 def verify_staff(netid, cid):
