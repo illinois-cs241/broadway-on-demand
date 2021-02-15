@@ -5,8 +5,6 @@ from pytz import utc
 from config import TZ
 from src import db, util
 
-# modify any functions using the database
-
 def in_grading_period(assignment, now=None):
 	if now is None:
 		now = util.now_timestamp()
@@ -93,8 +91,7 @@ def verify_admin(netid, cid):
 	if netid not in staff:
 		return False
 	else:
-		is_admin = staff[netid]
-		return is_admin == {"is_admin": True}
+		return staff[netid]["is_admin"]
 
 
 def verify_staff(netid, cid):

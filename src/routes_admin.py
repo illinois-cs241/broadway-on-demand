@@ -30,9 +30,9 @@ class AdminRoutes:
         def get_course_staff_roster(netid, cid):
             course = db.get_course(cid)
             
-            staff = course['staff']
+            staff = course["staff"]
             # get all admin_ids by filtering out all non-admins
-            admin = dict(filter(lambda x : x[1] == {'is_admin': True}, staff.items()))
+            admin = dict(filter(lambda x : x[1].get("is_admin", True), staff.items()))
             admin = list(admin.keys())
             # get the entire staff
             total_staff = list(staff.keys())
