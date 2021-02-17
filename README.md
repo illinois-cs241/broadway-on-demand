@@ -19,7 +19,7 @@
 ## How to update test database
 If you change the structure of database and you want to update the distributed test_data.zip, use the following command:
 ```
-mongodump --db broadway_on_demand --out=test_data && zip -r test_data.zip test_data
+mongodump --db broadway_on_demand --out=test_data && zip -r test_data.zip test_data && rm -r test_data
 ```
 
 ### New Course Setup
