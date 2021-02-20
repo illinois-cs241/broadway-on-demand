@@ -28,10 +28,10 @@
     function getRunStatus(runId, cid, queryToken) {
         $.ajax(
             {
+                type: "get",
                 url: `{{ broadway_api_url }}/grading_run_status/${cid}/${runId}`,
                 headers: buildHeader(queryToken),
-                success: function (data) {
-                    let result = $.parseJSON(data);
+                success: function (result) {
                     let status = Object.values(result["data"]["student_jobs_state"])[0]
                     var status_map = {
                         "scheduled": "btn-info",

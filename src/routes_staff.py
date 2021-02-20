@@ -87,17 +87,6 @@ class StaffRoutes:
 
             return jsonify(config)
 
-        @blueprint.route("/staff/course/<cid>/<aid>/<run_id>/status/", methods=["GET"])
-        @auth.require_auth
-        def staff_get_job_status(netid, cid, aid, run_id):
-            if not verify_staff(netid, cid):
-                return abort(HTTPStatus.FORBIDDEN)
-
-            status = bw_api.get_grading_job_status(cid, run_id)
-            if status:
-                return util.success(status, HTTPStatus.OK)
-            return util.error("")
-
         @blueprint.route("/staff/course/<cid>/<aid>/<run_id>/state/", methods=["GET"])
         @auth.require_auth
         def staff_get_run_state(netid, cid, aid, run_id):
@@ -127,6 +116,6 @@ class StaffRoutes:
                 return abort(HTTPStatus.FORBIDDEN)
 
             workers = bw_api.get_workers(cid)
-            if workers:
+            if workers is not None:
                 return util.success(jsonify(workers), HTTPStatus.OK)
             return util.error("")
