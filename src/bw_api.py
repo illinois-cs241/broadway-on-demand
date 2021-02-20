@@ -40,31 +40,6 @@ def start_grading_run(cid, aid, netids, timestamp):
 	return run_id
 
 
-@catch_request_errors
-def get_grading_run_state(cid, run_id):
-	"""
-	Get the state of a grading run. 
-	:param cid: the course ID.
-	:param run_id: the run ID received when the run was started.
-	:return: a state string if successful, or None otherwise.
-	"""
-	resp = requests.get(url=f"{BROADWAY_API_URL}/grading_run_status/{cid}/{run_id}", headers=build_header(cid))
-	return resp.json()["data"]["state"]
-
-
-@catch_request_errors
-def get_grading_job_status(cid, run_id):
-	"""
-	Get the status of a grading job within a grading run, assuming only 1 grading job in this run.
-	:param cid: the course ID.
-	:param run_id: the run ID received when the run was started.
-	:return: a status string if successful, or None otherwise.
-	"""
-	resp = requests.get(url=f"{BROADWAY_API_URL}/grading_run_status/{cid}/{run_id}", headers=build_header(cid))
-	student_jobs_dict = resp.json()["data"]["student_jobs_state"]
-	return list(student_jobs_dict.values())[0]
-
-
 def get_grading_job_queue_position(cid, run_id):
 	"""
 	Get the queue position of a grading run.

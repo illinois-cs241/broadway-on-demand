@@ -8,15 +8,17 @@
         return { Authorization: `Bearer ${token}` };
     }
 
-    function getRunState(runId) {
+    function getRunState(runId, cid, queryToken) {
         $.ajax({
             type: "get",
-            url: `./${runId}/state/`,
-            success: (result) => {
-                if (result.indexOf("scheduled") != -1) {
-                    updateButtonContent(runId, result, "btn-info")
+            url: `{{ broadway_api_url }}/grading_run_status/${cid}/${runId}`,
+            headers: buildHeader(queryToken),
+                success: (result) => {
+                let status = result["data"]["state"]
+                if (status.indexOf("scheduled") != -1) {
+                    updateButtonContent(runId, status, "btn-info")
                 } else {
-                    updateButtonContent(runId, result, "btn-success")
+                    updateButtonContent(runId, status, "btn-success")
                 }
             },
             error: () => {
