@@ -15,7 +15,9 @@
             '#mdl-edit-assn-save .loader', 
             '#mdl-edit-assn'
         );
+        {% if is_admin %}
         initializeSchedRunForm(); // For add scheduled run and edit scheduled run form submission
+        {% endif %}
         // Deal with bootstrap 4 doesn't support double modaling
         // https://stackoverflow.com/a/32712953/9059878
         $('.modal').on("hidden.bs.modal", function (e) { //fire on closing modal box
@@ -90,7 +92,6 @@
             url: "{{ url_for('.staff_get_extensions', cid=course._id, aid=assignment.assignment_id) }}",
             dataType: "json",
             success: function (result) {
-                console.log(result);
                 let tbody = $('#mdl-view-exts-body');
                 tbody.empty();
                 if (result == undefined || result.length == 0) {
