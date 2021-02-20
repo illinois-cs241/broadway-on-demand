@@ -457,7 +457,9 @@
                             <td>{{ run._id }}</td>
                             <td>{{ run.timestamp | round_timestamp | fmt_timestamp }}</td>
                             <td>
-                                <button class="btn btn-link btn-sm" type="button" data-toggle="tooltip" data-placement="top" title="Check status" onclick="getRunStatus('{{ run._id }}')" id="status-{{ run._id }}"><i class="fas fa-info-circle"></i>Status</button> 
+                                <button class="btn btn-link btn-sm" type="button" data-toggle="tooltip" data-placement="top" title="Check status"
+                                    onclick="getRunStatus('{{ run._id }}', '{{ course._id }}', '{{ course.query_token }}')" id="status-{{ run._id }}"><i
+                                        class="fas fa-info-circle"></i>Status</button>
                                 <button class="btn btn-link btn-sm" type="button" onclick="getRunLog('{{ run._id }}')" id="view-log-{{ run._id }}"><i class="fas fa-file-alt"></i>Log</button>
                             </td>
                         </tr>

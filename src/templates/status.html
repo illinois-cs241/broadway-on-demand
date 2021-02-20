@@ -4,6 +4,10 @@
                              .attr("class", "btn btn-secondary btn-sm btn-text-break " + buttonType);
     }
 
+    function buildHeader(token) {
+        return { Authorization: `Bearer ${token}` };
+    }
+
     function getRunState(runId) {
         $.ajax({
             type: "get",
@@ -21,11 +25,14 @@
         })
     }
 
-    function getRunStatus(runId) {
+    function getRunStatus(runId, cid, queryToken) {
         $.ajax(
             {
-                url: "./" + runId + "/status/",
-                success: function (result) {
+                url: `{{ broadway_api_url }}/grading_run_status/${cid}/${runId}`,
+                headers: buildHeader(queryToken),
+                success: function (data) {
+                    let result = $.parseJSON(data);
+                    let status = Object.values(result["data"]["student_jobs_state"])[0]
                     var status_map = {
                         "scheduled": "btn-info",
                         "running": "btn-info",
@@ -35,11 +42,11 @@
                     };
 
                     for (var key in status_map) {
-                        if (result.indexOf(key) != -1) {
+                        if (status.indexOf(key) != -1) {
                             if (key == "scheduled") {
                                 getQueuePosition(runId);
                             } else {
-                                updateButtonContent(runId, result, status_map[key]);
+                                updateButtonContent(runId, status, status_map[key]);
                             }
                             break;
                         }

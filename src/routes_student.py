@@ -1,7 +1,7 @@
 from flask import render_template, request, abort
 from http import HTTPStatus
 
-from config import TZ
+from config import TZ, BROADWAY_API_URL
 from src import bw_api, auth, util, db
 from src.common import verify_student_or_staff, verify_staff, get_available_runs, get_active_extensions
 from src.ghe_api import get_latest_commit
@@ -68,7 +68,7 @@ class StudentRoutes:
 			if verify_staff(netid, cid):
 				num_available_runs = max(num_available_runs, 1)
 
-			return render_template("student/assignment.html", netid=netid, course=course, assignment=assignment, commit=commit, runs=runs, num_available_runs=num_available_runs, num_extension_runs=num_extension_runs, tzname=str(TZ))
+			return render_template("student/assignment.html", netid=netid, course=course, assignment=assignment, commit=commit, runs=runs, num_available_runs=num_available_runs, num_extension_runs=num_extension_runs, tzname=str(TZ), broadway_api_url=BROADWAY_API_URL)
 
 		@blueprint.route("/student/course/<cid>/<aid>/run/", methods=["POST"])
 		@util.disable_in_maintenance_mode
