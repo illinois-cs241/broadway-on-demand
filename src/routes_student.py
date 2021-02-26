@@ -104,15 +104,3 @@ class StudentRoutes:
 
 			db.add_grading_run(cid, aid, netid, now, run_id, extension_used=ext_to_use)
 			return util.success("")
-
-		@blueprint.route("/student/course/<cid>/<aid>/<run_id>/position/", methods=["GET"])
-		@util.disable_in_maintenance_mode
-		@auth.require_auth
-		def student_get_queue_position(netid, cid, aid, run_id):
-			if not verify_student_or_staff(netid, cid):
-				return abort(HTTPStatus.FORBIDDEN)
-
-			queue_position = bw_api.get_grading_job_queue_position(cid, run_id)
-			if queue_position:
-				return queue_position
-			return util.error("")

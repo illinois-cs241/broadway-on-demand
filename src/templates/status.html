@@ -35,6 +35,7 @@
                 headers: buildHeader(queryToken),
                 success: function (result) {
                     let status = Object.values(result["data"]["student_jobs_state"])[0]
+                    let jobId = Object.keys(result["data"]["student_jobs_state"])[0]
                     var status_map = {
                         "scheduled": "btn-info",
                         "running": "btn-info",
@@ -46,7 +47,7 @@
                     for (var key in status_map) {
                         if (status.indexOf(key) != -1) {
                             if (key == "scheduled") {
-                                getQueuePosition(runId);
+                                getQueuePosition(runId, jobId, cid, queryToken);
                             } else {
                                 updateButtonContent(runId, status, status_map[key]);
                             }
@@ -60,13 +61,16 @@
             })
     }
 
-    function getQueuePosition(runId) {
+    function getQueuePosition(runId, jobId, cid, queryToken) {
         $.ajax(
             {
-                url: "./" + runId + "/position/",
+                type: "get",
+                url: `{{ broadway_api_url }}/queue/${cid}/${jobId}/position`,
+                headers: buildHeader(queryToken),
                 success: function (result) {
-                    let queuePositionString = "Your job is scheduled after " + result + " other jobs";
-                    if (result == "0") {
+                    let position = result["data"]["position"]
+                    let queuePositionString = "Your job is scheduled after " + position + " other jobs";
+                    if (position == "0") {
                         queuePositionString = "Your job is next";
                     }
                     updateButtonContent(runId, queuePositionString, "btn-info");
@@ -74,6 +78,7 @@
                 error: function () {
                     updateButtonContent(runId, "Your run is scheduled. Queue position unknown.", "btn-info");
                 }
-            })
+            }
+        )
     }
 </script>
