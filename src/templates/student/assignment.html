@@ -55,7 +55,10 @@
                     <tr>
                         <td style="width: 50%">{{ run.timestamp | round_timestamp | fmt_timestamp_full }}</td>
                         <td style="width: 50%">
-                            <button class="btn btn-secondary btn-sm" type="button" onclick="getRunStatus('{{ run._id }}')" id="status-{{ run._id }}">Check status</button>
+                            <button class="btn btn-secondary btn-sm" type="button"
+                                onclick="getRunStatus('{{ run._id }}', '{{ course._id }}', '{{ course.query_token }}')"
+                                id="status-{{ run._id }}">Check
+                                status</button>
                         </td>
                     </tr>
                 {% endfor %}

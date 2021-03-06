@@ -3,7 +3,7 @@ from http import HTTPStatus
 import logging
 from flask import render_template, abort, jsonify
 
-from config import TZ
+from config import TZ, BROADWAY_API_URL
 from src import db, util, auth, bw_api, sched_api
 from src.common import verify_staff, verify_admin
 
@@ -71,7 +71,8 @@ class StaffRoutes:
             return render_template("staff/assignment.html", netid=netid, course=course,
                                    assignment=assignment, student_runs=student_runs,
                                    scheduled_runs=scheduled_runs, sched_run_status=sched_api.ScheduledRunStatus,
-                                   tzname=str(TZ), is_admin=is_admin, visibility=db.Visibility)
+                                   tzname=str(TZ), is_admin=is_admin, visibility=db.Visibility,
+                                   broadway_api_url=BROADWAY_API_URL)
 
         @blueprint.route("/staff/course/<cid>/<aid>/config", methods=["GET"])
         @auth.require_auth
@@ -85,28 +86,6 @@ class StaffRoutes:
                 return abort(404)
 
             return jsonify(config)
-
-        @blueprint.route("/staff/course/<cid>/<aid>/<run_id>/status/", methods=["GET"])
-        @auth.require_auth
-        def staff_get_job_status(netid, cid, aid, run_id):
-            if not verify_staff(netid, cid):
-                return abort(HTTPStatus.FORBIDDEN)
-
-            status = bw_api.get_grading_job_status(cid, run_id)
-            if status:
-                return util.success(status, HTTPStatus.OK)
-            return util.error("")
-
-        @blueprint.route("/staff/course/<cid>/<aid>/<run_id>/state/", methods=["GET"])
-        @auth.require_auth
-        def staff_get_run_state(netid, cid, aid, run_id):
-            if not verify_staff(netid, cid):
-                return abort(HTTPStatus.FORBIDDEN)
-
-            state = bw_api.get_grading_run_state(cid, run_id)
-            if state:
-                return util.success(state, HTTPStatus.OK)
-            return util.error("")
 
         @blueprint.route("/staff/course/<cid>/<aid>/<run_id>/log/", methods=["GET"])
         @auth.require_auth
@@ -126,6 +105,6 @@ class StaffRoutes:
                 return abort(HTTPStatus.FORBIDDEN)
 
             workers = bw_api.get_workers(cid)
-            if workers:
+            if workers is not None:
                 return util.success(jsonify(workers), HTTPStatus.OK)
             return util.error("")

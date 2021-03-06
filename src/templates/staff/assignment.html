@@ -15,7 +15,9 @@
             '#mdl-edit-assn-save .loader', 
             '#mdl-edit-assn'
         );
+        {% if is_admin %}
         initializeSchedRunForm(); // For add scheduled run and edit scheduled run form submission
+        {% endif %}
         // Deal with bootstrap 4 doesn't support double modaling
         // https://stackoverflow.com/a/32712953/9059878
         $('.modal').on("hidden.bs.modal", function (e) { //fire on closing modal box
@@ -90,7 +92,6 @@
             url: "{{ url_for('.staff_get_extensions', cid=course._id, aid=assignment.assignment_id) }}",
             dataType: "json",
             success: function (result) {
-                console.log(result);
                 let tbody = $('#mdl-view-exts-body');
                 tbody.empty();
                 if (result == undefined || result.length == 0) {
@@ -457,7 +458,9 @@
                             <td>{{ run._id }}</td>
                             <td>{{ run.timestamp | round_timestamp | fmt_timestamp }}</td>
                             <td>
-                                <button class="btn btn-link btn-sm" type="button" data-toggle="tooltip" data-placement="top" title="Check status" onclick="getRunStatus('{{ run._id }}')" id="status-{{ run._id }}"><i class="fas fa-info-circle"></i>Status</button> 
+                                <button class="btn btn-link btn-sm" type="button" data-toggle="tooltip" data-placement="top" title="Check status"
+                                    onclick="getRunStatus('{{ run._id }}', '{{ course._id }}', '{{ course.query_token }}')" id="status-{{ run._id }}"><i
+                                        class="fas fa-info-circle"></i>Status</button>
                                 <button class="btn btn-link btn-sm" type="button" onclick="getRunLog('{{ run._id }}')" id="view-log-{{ run._id }}"><i class="fas fa-file-alt"></i>Log</button>
                             </td>
                         </tr>
@@ -492,7 +495,9 @@
                         <td>
                             {% if run.status == sched_run_status.SCHEDULED %}<div class="text-info"><i class="fas fa-clock"></i>Scheduled</div>
                             {% elif run.status == sched_run_status.FAILED %}<div class="text-danger"><i class="fas fa-times-circle"></i>Failed</div>
-                            {% elif run.status == sched_run_status.RAN %}<button class="btn btn-success btn-sm" onclick="getRunState('{{ run.broadway_run_id }}')" id="status-{{ run.broadway_run_id }}"><i class="fas fa-check-circle"></i>check status</button>
+                            {% elif run.status == sched_run_status.RAN %}<button class="btn btn-success btn-sm"
+                                onclick="getRunState('{{ run.broadway_run_id }}', '{{ course._id }}', '{{ course.query_token }}')"
+                                id="status-{{ run.broadway_run_id }}"><i class="fas fa-check-circle"></i>check status</button>
                             {% endif %}
                         </td>
                         <td>
