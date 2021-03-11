@@ -211,7 +211,7 @@
         es.onerror = (error) => {
             console.log(error);
             es.close(); // close the stream connection whenever an error occurs
-            updateAutoStatus(runId, "An error occurred, please try again", "text-warning", statusIconMap[ERROR]);
+            updateAutoStatus(runId, "An error occurred, please refresh the page", "text-warning", statusIconMap[ERROR]);
         }
     }
     /**
