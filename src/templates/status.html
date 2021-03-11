@@ -1,4 +1,16 @@
+<script src="{{ url_for('.static_file', path='eventsource.min.js') }}"></script>
 <script type="application/javascript">
+    const SCHEDULED = "scheduled", RUNNING = "running", SUCCESS = "success", FAILED = "failed", ERROR = "";
+    const statusClassMap = {
+        [SCHEDULED]: "info",
+        [RUNNING]: "info",
+        [SUCCESS]: "success",
+        [FAILED]: "danger",
+        [ERROR]: "info"
+    };
+    /**
+     * Manual status update: requires clicking the button multiple times.
+     */
     function updateButtonContent(runId, text, buttonType) {
         $("#status-" + runId).html("<i class=\"fas fa-sync-alt\"></i> " + text)
                              .attr("class", "btn btn-secondary btn-sm btn-text-break " + buttonType);
@@ -15,7 +27,7 @@
             headers: buildHeader(queryToken),
                 success: (result) => {
                 let status = result["data"]["state"]
-                if (status.indexOf("scheduled") != -1) {
+                if (status.indexOf(SCHEDULED) != -1) {
                     updateButtonContent(runId, status, "btn-info")
                 } else {
                     updateButtonContent(runId, status, "btn-success")
@@ -27,58 +39,166 @@
         })
     }
 
-    function getRunStatus(runId, cid, queryToken) {
-        $.ajax(
-            {
-                type: "get",
-                url: `{{ broadway_api_url }}/grading_run_status/${cid}/${runId}`,
-                headers: buildHeader(queryToken),
-                success: function (result) {
-                    let status = Object.values(result["data"]["student_jobs_state"])[0]
-                    let jobId = Object.keys(result["data"]["student_jobs_state"])[0]
-                    var status_map = {
-                        "scheduled": "btn-info",
-                        "running": "btn-info",
-                        "success": "btn-success",
-                        "failed": "btn-danger",
-                        "": "btn-info"
-                    };
+    function getRunWithSingleJobHelper(runId, cid, queryToken, successCallback, errorCallback, extraParams = {}) {
+        $.ajax({
+            type: "get",
+            url: `{{ broadway_api_url }}/grading_run_status/${cid}/${runId}`,
+            headers: buildHeader(queryToken),
+            success: function (result) {
+                let status = Object.values(result["data"]["student_jobs_state"])[0]
+                let jobId = Object.keys(result["data"]["student_jobs_state"])[0]
+                successCallback({ runId, cid, status, jobId, queryToken, ...extraParams })
+            },
+            error: function () {
+                errorCallback({ runId, cid, queryToken, ...extraParams });
+            }
+        })
+    } 
 
-                    for (var key in status_map) {
-                        if (status.indexOf(key) != -1) {
-                            if (key == "scheduled") {
-                                getQueuePosition(runId, jobId, cid, queryToken);
-                            } else {
-                                updateButtonContent(runId, status, status_map[key]);
-                            }
-                            break;
-                        }
+    function getRunStatus(runId, cid, queryToken) {
+        function onSuccess({ runId, cid, jobId, queryToken, status }) {
+            for (var key in statusClassMap) {
+                if (status.indexOf(key) != -1) {
+                    if (key == SCHEDULED) {
+                        getQueuePosition(runId, jobId, cid, queryToken);
+                    } else {
+                        updateButtonContent(runId, status, "btn-" + statusClassMap[key]);
                     }
-                },
-                error: function () {
-                    updateButtonContent(runId, "Unknown. Click to try again.", "btn-warning");
+                    break;
                 }
-            })
+            }
+        }
+
+        function onError(param) {
+            updateButtonContent(runId, "Unknown. Click to try again.", "btn-warning");
+        }
+
+        getRunWithSingleJobHelper(runId, cid, queryToken, onSuccess, onError);
     }
 
-    function getQueuePosition(runId, jobId, cid, queryToken) {
+    function queuePositionTextGenerator(position) {
+        const posInt = parseInt(position);
+        if (isNaN(posInt)) {
+            return "Your run is scheduled. Queue position unknown.";
+        }
+        let positionString = `Your job is scheduled after ${posInt} other job${posInt > 1 ? "s" : ""}`;
+        if (posInt === 0) {
+            positionString = "Your job is next";
+        }
+        return positionString;
+    }
+
+    function getQueuePositionHelper(runId, jobId, cid, queryToken, onSuccess, onError, extraParams = {}) {
         $.ajax(
             {
                 type: "get",
                 url: `{{ broadway_api_url }}/queue/${cid}/${jobId}/position`,
                 headers: buildHeader(queryToken),
                 success: function (result) {
-                    let position = result["data"]["position"]
-                    let queuePositionString = "Your job is scheduled after " + position + " other jobs";
-                    if (position == "0") {
-                        queuePositionString = "Your job is next";
-                    }
-                    updateButtonContent(runId, queuePositionString, "btn-info");
+                    let position = result["data"]["position"];
+                    onSuccess({runId, jobId, cid, queryToken, position, ...extraParams});
                 },
                 error: function () {
-                    updateButtonContent(runId, "Your run is scheduled. Queue position unknown.", "btn-info");
+                    onError({runId, jobId, cid, queryToken, ...extraParams});
                 }
             }
         )
+    }
+    const QUEUE_POSITION_QUERY_FAILED = "Your run is scheduled. Queue position unknown.";
+
+    function getQueuePosition(runId, jobId, cid, queryToken) {
+        function onSuccess({ runId, position }) {
+            let queuePositionString = queuePositionTextGenerator(position);
+            updateButtonContent(runId, queuePositionString, "btn-info");
+        }
+        function onError({ runId }) {
+            updateButtonContent(runId, QUEUE_POSITION_QUERY_FAILED, "btn-info");
+        }
+        getQueuePositionHelper(runId, jobId, cid, queryToken, onSuccess, onError);
+    }
+    /**
+     * Server Side Events "automatic" status update.
+     */
+    const statusIconMap = {
+        [SCHEDULED]: "fa-sync-alt",
+        [RUNNING]: "fa-sync-alt",
+        [SUCCESS]: "fa-check",
+        [FAILED]: "fa-times",
+        [ERROR]: "fa-exclamation-triangle" // Used in case of error
+    };
+    function updateAutoStatus(runId, textContent, divClass, iconClass) {
+        $(`#${runId}`).html(`<i class="fas ${iconClass}"></i> ${textContent}`)
+            .attr("class", `auto-status-update ${divClass}`);
+    }
+    function setUpSSEListener(runId, jobId, cid, queryToken) {
+        const es = new EventSourcePolyfill(
+            `{{ broadway_api_url }}/stream/${cid}/${jobId}`,
+            { headers: buildHeader(queryToken) }
+        );
+        es.addEventListener("status_update", (event) => {
+            const data = JSON.parse(event.data);
+            switch (data.type) {
+                case "state":
+                    switch (data.data) {
+                        case "STARTED":
+                            updateAutoStatus(runId, "Grading job is running", `text-${statusClassMap[RUNNING]}`, `${statusIconMap[RUNNING]} fa-spin`);
+                            break;
+                        case "FAILED":
+                            updateAutoStatus(runId, "Grading job failed", `text-${statusClassMap[FAILED]}`, statusIconMap[FAILED]);
+                            es.close();
+                            break;
+                        case "FINISHED":
+                            updateAutoStatus(runId, "Grading job was successful", `text-${statusClassMap[SUCCESS]}`, statusIconMap[SUCCESS]);
+                            es.close();
+                            break;
+                        default:
+                            updateAutoStatus(runId, "Unkown job state", "text-warning", statusIconMap[ERROR]);
+                            es.close();
+                    }
+                    break;
+                case "position":
+                    const queuePositionString = queuePositionTextGenerator(data.data);
+                    updateAutoStatus(runId, queuePositionString, `text-${statusClassMap[SCHEDULED]}`, `${statusIconMap[SCHEDULED]} fa-spin`);
+                    break;
+                default:
+                    updateAutoStatus(runId, "Unkown status", "text-warning", statusIconMap[ERROR]);
+            } 
+        })
+        es.onerror = (error) => {
+            console.log(error);
+            es.close();
+            updateAutoStatus(runId, "An error occurred, please try again", "text-warning", statusIconMap[ERROR]);
+        }
+    }
+    function autoUpdateStatus(runId, cid, queryToken) {
+        function onSuccess({runId, cid, status, jobId}) {
+            for (var key in statusClassMap) {
+                if (status.indexOf(key) != -1) {
+                    if (key == SCHEDULED) {
+                        updateAutoStatus(runId, "Fetching queue position...", "text-" + statusClassMap[key], `${statusIconMap[key]} fa-spin`)
+                        getQueuePositionHelper(runId, jobId, cid, queryToken, ({runId, position}) => {
+                            let queuePositionString = queuePositionTextGenerator(position);
+                            updateAutoStatus(runId, queuePositionString, "text-" + statusClassMap[key], `${statusIconMap[key]} fa-spin`)
+                            setUpSSEListener(runId, jobId, cid, queryToken);
+                        }, ({runId}) => {
+                            updateAutoStatus(runId, QUEUE_POSITION_QUERY_FAILED, "text-warning", statusIconMap[ERROR])
+                        })
+                    } else if (key == RUNNING) {
+                        updateAutoStatus(runId, status, "text-" + statusClassMap[key], `${statusIconMap[key]} fa-spin`)
+                        setUpSSEListener(runId, jobId, cid, queryToken);
+                    } else {
+                        // Job has succeeded / failed
+                        updateAutoStatus(runId, status, "text-" + statusClassMap[key], statusIconMap[key]);
+                    }
+                    break;
+                }
+            }
+        }
+
+        function onError({runId}) {
+            updateAutoStatus(runId, "Unknown. Please try again.", "text-warning", statusIconMap[ERROR])
+        }
+
+        getRunWithSingleJobHelper(runId, cid, queryToken, onSuccess, onError);
     }
 </script>
