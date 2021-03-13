@@ -2,6 +2,12 @@
 <script type="application/javascript">
     /** Status string constants, they appear as part of the "status" message fron broadway **/
     const SCHEDULED = "scheduled", RUNNING = "running", SUCCESS = "success", FAILED = "failed", ERROR = "";
+    
+    /** Common error messages **/
+    const QUEUE_POSITION_QUERY_FAILED = "Queue position query failed. Please refresh to try again";
+    const UNKNOWN_CLICK_TO_TRY_AGAIN = "Unknown. Click to try again.";
+    const UNKNOWN_PLEASE_TRY_AGAIN = "Unknown. Please try again.";
+    
     /** status string -> bootstrap text/button color class **/
     const statusClassMap = {
         [SCHEDULED]: "info",
@@ -44,15 +50,15 @@
                 }
             },
             error: () => {
-                updateButtonContent(runId, "Unknown. Click to try again", "btn-warning");
+                updateButtonContent(runId, UNKNOWN_CLICK_TO_TRY_AGAIN, "btn-warning");
             }
         })
     }
 
     /**
-     * Asyncronously gets the job id and status of a run. Assumes this run only has 1 job in it (which
-     * is true for student triggered pre-deadline runs). Once got the info, passes them into callback 
-     * functions within a signle object parameter. Example successCallback:
+     * Asynchronously gets the job id and status of a run. Assumes this run only has 1 job in it (which
+     * is true for student triggered pre-deadline runs). After getting the info, it is passed into callback 
+     * functions with a signle object parameter. Example successCallback:
      *     function onSuccess({ runId, cid, status, jobId, queryToken, <fields you passed in as "extraParams"> }) {
      *         console.log(`Grading job with id ${jobId}, has status ${status}`)
      *     }
@@ -79,7 +85,7 @@
         })
     } 
 
-    /** Get and update student job status within a gradinb run **/
+    /** Get and update student job status within a grading run **/
     function getRunStatus(runId, cid, queryToken) {
         function onSuccess({ runId, cid, jobId, queryToken, status }) {
             for (var key in statusClassMap) {
@@ -95,7 +101,7 @@
         }
 
         function onError(param) {
-            updateButtonContent(runId, "Unknown. Click to try again.", "btn-warning");
+            updateButtonContent(runId, UNKNOWN_CLICK_TO_TRY_AGAIN, "btn-warning");
         }
 
         getRunWithSingleJobHelper(runId, cid, queryToken, onSuccess, onError);
@@ -134,8 +140,7 @@
             }
         )
     }
-    const QUEUE_POSITION_QUERY_FAILED = "Queue position query failed. Please refresh to try again";
-
+    
     /** Get and display queue position for a scheduled run. */
     function getQueuePosition(runId, jobId, cid, queryToken) {
         function onSuccess({ runId, position }) {
@@ -179,7 +184,7 @@
         es.addEventListener("status_update", (event) => {
             const data = JSON.parse(event.data);
             switch (data.type) {
-                // "state" event happens when a grading job transition from 
+                // "state" event happens when a grading job transitions from 
                 // scheduled -> running, and running -> Finished/Failed
                 case "state":
                     switch (data.data) {
@@ -195,7 +200,7 @@
                             es.close();
                             break;
                         default:
-                            updateAutoStatus(runId, "Unkown job state", "text-warning", statusIconMap[ERROR]);
+                            updateAutoStatus(runId, UNKNOWN_PLEASE_TRY_AGAIN, "text-warning", statusIconMap[ERROR]);
                             es.close();
                     }
                     break;
@@ -205,7 +210,7 @@
                     updateAutoStatus(runId, queuePositionString, `text-${statusClassMap[SCHEDULED]}`, `${statusIconMap[SCHEDULED]} fa-spin`);
                     break;
                 default:
-                    updateAutoStatus(runId, "Unkown status", "text-warning", statusIconMap[ERROR]);
+                    updateAutoStatus(runId, UNKNOWN_PLEASE_TRY_AGAIN, "text-warning", statusIconMap[ERROR]);
             } 
         })
         es.onerror = (error) => {
@@ -215,7 +220,7 @@
         }
     }
     /**
-     * Call this function for each student run that needs automatic status update.
+     * Call this function for each student run that needs automatic status updates.
      */
     function autoUpdateStatus(runId, cid, queryToken) {
         function onSuccess({runId, cid, status, jobId}) {
@@ -245,7 +250,7 @@
         }
 
         function onError({runId}) {
-            updateAutoStatus(runId, "Unknown. Please try again.", "text-warning", statusIconMap[ERROR])
+            updateAutoStatus(runId, UNKNOWN_PLEASE_TRY_AGAIN, "text-warning", statusIconMap[ERROR])
         }
 
         getRunWithSingleJobHelper(runId, cid, queryToken, onSuccess, onError);
