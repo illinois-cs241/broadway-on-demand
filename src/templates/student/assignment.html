@@ -93,7 +93,7 @@
                     <p>
                         <strong>Start</strong> {{ assignment.start|fmt_timestamp }}
                         <br><strong>End</strong> {{ assignment.end|fmt_timestamp }}
-                        <hr/>
+                        <hr>
                         {% if not commit["sha"] %}
                           <strong class="text-danger">Latest Commit</strong>
                           <br>{{ commit["message"] }}
@@ -103,7 +103,12 @@
                           <span title="{{ commit['message'] }}">{{ commit["message"] | truncate(50, killwords=True) }}</span>
                         {% endif %}
                         <div id="grade-now-error" class="text-danger"></div>
-
+                        <hr>
+                        <div id="feedback-link">
+                          <strong>Feedback URL</strong>
+                          <br>
+                          <a href="github.com" rel="link">github.com</a>
+                        </div>
                     </p>
                 </div>
             </div>
