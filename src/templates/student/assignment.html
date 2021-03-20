@@ -103,12 +103,12 @@
                           <span title="{{ commit['message'] }}">{{ commit["message"] | truncate(50, killwords=True) }}</span>
                         {% endif %}
                         <div id="grade-now-error" class="text-danger"></div>
-                        <hr>
-                        <div id="feedback-link">
-                          <strong>Feedback URL</strong>
-                          <br>
-                          <a href="github.com" rel="link">github.com</a>
+			{% if runs and feedback_url %}
+			<hr/>
+			<div id="feedback-link">
+			  <a href="{{feedback_url}}" rel="link">Feedback branch</a>
                         </div>
+			{% endif %}
                     </p>
                 </div>
             </div>

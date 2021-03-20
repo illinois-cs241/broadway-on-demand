@@ -64,11 +64,11 @@ class StudentRoutes:
 
 			user = db.get_user(netid)
 			commit = get_latest_commit(netid, user["access_token"], course["github_org"])
-
+			feedback_url = f'https://github-dev.cs.illinois.edu/{course["github_org"]}/{netid}/tree/{course["feedback_branch_name"]}' if "feedback_branch_name" in course else None
 			if verify_staff(netid, cid):
 				num_available_runs = max(num_available_runs, 1)
 
-			return render_template("student/assignment.html", netid=netid, course=course, assignment=assignment, commit=commit, runs=runs, num_available_runs=num_available_runs, num_extension_runs=num_extension_runs, tzname=str(TZ), broadway_api_url=BROADWAY_API_URL)
+			return render_template("student/assignment.html", netid=netid, course=course, assignment=assignment, commit=commit, runs=runs, num_available_runs=num_available_runs, num_extension_runs=num_extension_runs, tzname=str(TZ), broadway_api_url=BROADWAY_API_URL, feedback_url=feedback_url)
 
 		@blueprint.route("/student/course/<cid>/<aid>/run/", methods=["POST"])
 		@util.disable_in_maintenance_mode
