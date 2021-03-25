@@ -9,6 +9,7 @@ from config import BROADWAY_API_URL
 from src import db
 from src.util import timestamp_to_bw_api_format, catch_request_errors
 
+STUDENT_ID = "STUDENT_ID"
 
 def build_header(cid):
 	token = db.get_course(cid)["token"]
@@ -28,7 +29,7 @@ def start_grading_run(cid, aid, netids, timestamp):
 	due_date_str = timestamp_to_bw_api_format(timestamp)
 	students_env = [
 		{
-			"STUDENT_ID": netid,
+			STUDENT_ID: netid,
 			"DUE_DATE": due_date_str,
 		} for netid in netids
 	]
@@ -110,14 +111,28 @@ def get_grading_job_log(cid, job_id):
 		logging.error(f"get_grading_job_log(cid={cid}, job_id={job_id}): {repr(e)}")
 		return None
 
+@catch_request_errors
+def get_grading_run_details(cid, run_id):
+	# Get all environment variables for this run
+	resp = requests.get(url=f"{BROADWAY_API_URL}/grading_run_env/{cid}/{run_id}", headers=build_header(cid))
+	student_env_data = resp.json()["data"]["student_env"]
+	detail_data = []
+	# Extract job id and student id pairs from environment variable
+	for job_id, env_data in student_env_data.items():
+		if STUDENT_ID not in env_data:
+			netid = STUDENT_ID + " not found in grading env"
+		else:
+			# Each env var is a list, but it will most likely only have 1 entry
+			netid = ", ".join(env_data[STUDENT_ID])
+		detail_data.append({"jobId": job_id, "netid": netid})
+	return detail_data
+
 
 def get_grading_run_log(cid, run_id):
 	job_id = get_grading_run_job_id(cid, run_id)
 	if job_id is None:
 		return None
-	log = get_grading_job_log(cid, job_id)
-	return log if log is not None else None
-
+	return get_grading_job_log(cid, job_id)
 
 def get_workers(cid):
 	try:

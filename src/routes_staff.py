@@ -87,13 +87,24 @@ class StaffRoutes:
 
             return jsonify(config)
 
-        @blueprint.route("/staff/course/<cid>/<aid>/<run_id>/log/", methods=["GET"])
+        @blueprint.route("/staff/course/<cid>/<aid>/<run_id>/run_log/", methods=["GET"])
         @auth.require_auth
         def staff_get_run_log(netid, cid, aid, run_id):
             if not verify_staff(netid, cid):
                 return abort(HTTPStatus.FORBIDDEN)
 
             log = bw_api.get_grading_run_log(cid, run_id)
+            if log:
+                return util.success(jsonify(log), HTTPStatus.OK)
+            return util.error("")
+            
+        @blueprint.route("/staff/course/<cid>/<aid>/<job_id>/job_log/", methods=["GET"])
+        @auth.require_auth
+        def staff_get_job_log(netid, cid, aid, job_id):
+            if not verify_staff(netid, cid):
+                return abort(HTTPStatus.FORBIDDEN)
+
+            log = bw_api.get_grading_job_log(cid, job_id)
             if log:
                 return util.success(jsonify(log), HTTPStatus.OK)
             return util.error("")
@@ -107,4 +118,19 @@ class StaffRoutes:
             workers = bw_api.get_workers(cid)
             if workers is not None:
                 return util.success(jsonify(workers), HTTPStatus.OK)
+            return util.error("")
+
+        @blueprint.route("/staff/course/<cid>/<aid>/<run_id>/detail", methods=["GET"])
+        @auth.require_auth
+        def staff_get_run_detail(netid, cid, aid, run_id):
+            """
+            Return details of the run in the following format 
+                [{jobId: <job id>, netid: <student net id>}, ...]
+            """
+            if not verify_staff(netid, cid):
+                return abort(HTTPStatus.FORBIDDEN)
+
+            detail = bw_api.get_grading_run_details(cid, run_id)
+            if detail is not None:
+                return util.success(jsonify(detail), HTTPStatus.OK)
             return util.error("")
