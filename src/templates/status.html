@@ -255,4 +255,24 @@
 
         getRunWithSingleJobHelper(runId, cid, queryToken, onSuccess, onError);
     }
+
+    function getJobStatus(runId, jobId, cid, queryToken) {
+        $.ajax({
+            type: "get",
+            url: `{{ broadway_api_url }}/grading_run_status/${cid}/${runId}`,
+            headers: buildHeader(queryToken),
+            success: function (result) {
+                const status = result["data"]["student_jobs_state"][jobId]
+                for (var key in statusClassMap) {
+                    if (status.indexOf(key) != -1) {
+                        updateButtonContent(jobId, status, "btn-" + statusClassMap[key]);
+                        break;
+                    }
+                }
+            },
+            error: function () {
+                updateButtonContent(jobId, UNKNOWN_CLICK_TO_TRY_AGAIN, "btn-warning");
+            }
+        })
+    } 
 </script>

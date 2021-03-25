@@ -170,23 +170,33 @@
         });
     }
 
-    function getRunLog(runId) {
+    function getLogHelper(id, logType) {
+        $(`#view-log-${id} i`).attr("class", "fas fa-spinner fa-spin")
         $('#mdl-view-log-stderr').html('');
         $('#mdl-view-log-stdout').html('');
-        $.ajax(
-            {
-                url: "./" + runId + "/log/",
+        $.ajax({
+                url: `./${id}/${logType}/`,
                 success: function (result) {
-                    $('#mdl-view-log-run-id').html(runId);
+                    $('#mdl-view-log-run-id').html(id);
                     $('#mdl-view-log-stderr').html(result['stderr']);
                     $('#mdl-view-log-stdout').html(result['stdout']);
                     $('#mdl-view-log').modal('show');
                 },
                 error: function () {
-                    $('#view-log-' + runId).html("<i class=\"fas fa-sync-alt\"></i> Failed. Click to try again.")
+                    $('#view-log-' + id).html("<i class=\"fas fa-sync-alt\"></i> Failed. Click to try again.")
                                          .attr("class", "btn btn-sm btn-warning");
-                }
-            })
+                },
+        }).always(() => {
+            $(`#view-log-${id} i`).attr("class", "fas fa-file-alt")
+        })
+    }
+
+    function getRunLog(runId) {
+       getLogHelper(runId, "run_log")
+    }
+
+    function getJobLog(jobId) {
+       getLogHelper(jobId, "job_log")
     }
 
     function deleteAssignment() {
@@ -211,6 +221,55 @@
         }).always(() => {
             $("#delete-assn").prop('disabled', false);
         });
+    }
+
+    /**
+     * Get all job id + net id pairs for a scheduled run, then display the info in a table
+     * @param runId id of the scheduled run on broadway
+     */
+    function seeScheduledRunJobs(runId, runName) {
+        function generateTableRow(jobId, netid) {
+            return `<tr>
+                        <th scope="row">${netid}</th>
+                        <td>${jobId}</td>
+                        <td>
+                            <button class="btn btn-link btn-sm" type="button" title="Check status"
+                                onclick="getJobStatus('${runId}', '${jobId}', '{{ course._id }}', '{{ course.query_token }}')" id="status-${jobId}">
+                                <i class="fas fa-info-circle"></i>Status</button>
+                            <button class="btn btn-link btn-sm" type="button" onclick="getJobLog('${jobId}')" id="view-log-${jobId}"><i class="fas fa-file-alt"></i>Log</button>
+                        </td>
+                    </tr>`
+        }
+
+        function generateSingleRow(content, textClass) {
+            return `<tr>
+                    <th colspan="3" class="${textClass}">${content}</th>
+                    </tr>`
+        }
+
+        $("#scheduledGradingRunDetailTitle").text(`Grading jobs of "${runName}"`)
+        $("#scheduledGradingJobsTable").html(generateSingleRow(`<i class="fas fa-spinner fa-spin fa-lg"></i>`, "text-center"))
+        $("#scheduledGradingJobsCollapse").collapse('show')
+        $.ajax({
+            type: "GET",
+            url: `./${runId}/detail`,
+            dataType: "json",
+            success: (detailData) => {
+                let tableContent = ""
+                for (const {jobId, netid} of detailData) {
+                    tableContent += generateTableRow(jobId, netid)
+                }
+                $("#scheduledGradingJobsTable").html(tableContent)
+            },
+            error: (jqXHR) => {
+                let errorMsg = "Detail query failed. Please try again."
+                if (jqXHR.responseText) {
+                    errorMsg = jqXHR.responseText
+                }
+                $("#scheduledGradingJobsTable").html(generateSingleRow(errorMsg, "text-danger"))
+                
+            }
+        })
     }
 </script>
 <style>
@@ -458,10 +517,13 @@
                             <td>{{ run._id }}</td>
                             <td>{{ run.timestamp | round_timestamp | fmt_timestamp }}</td>
                             <td>
-                                <button class="btn btn-link btn-sm" type="button" data-toggle="tooltip" data-placement="top" title="Check status"
-                                    onclick="getRunStatus('{{ run._id }}', '{{ course._id }}', '{{ course.query_token }}')" id="status-{{ run._id }}"><i
-                                        class="fas fa-info-circle"></i>Status</button>
-                                <button class="btn btn-link btn-sm" type="button" onclick="getRunLog('{{ run._id }}')" id="view-log-{{ run._id }}"><i class="fas fa-file-alt"></i>Log</button>
+                                <button class="btn btn-link btn-sm" type="button" title="Check status"
+                                    onclick="getRunStatus('{{ run._id }}', '{{ course._id }}', '{{ course.query_token }}')" id="status-{{ run._id }}">
+                                    <i class="fas fa-info-circle"></i>Status
+                                </button>
+                                <button class="btn btn-link btn-sm" type="button" onclick="getRunLog('{{ run._id }}')" id="view-log-{{ run._id }}">
+                                    <i class="fas fa-file-alt"></i>Log
+                                </button>
                             </td>
                         </tr>
                     {% endfor %}
@@ -504,16 +566,36 @@
                             {% if is_admin %}
                             <button class="btn btn-link btn-sm" type="button" onclick="editScheduledRun('{{ run._id }}')" id="edit-run-{{ run._id }}"><i class="fas fa-pen"></i>Edit</button>
                             {% endif %}
+                            {% if run.status == sched_run_status.RAN %}
+                            <button class="btn btn-link btn-sm" type="button" onclick="seeScheduledRunJobs('{{ run.broadway_run_id }}', '{{ run.name }}')"><i class="fas fa-table"></i>Details</button>
+                            {% endif %}
                         </td>
                     </tr>
                 {% endfor %}
                 {% if not scheduled_runs %}
                     <tr>
-                        <td colspan="3">No scheduled runs</td>
+                        <td colspan="4">No scheduled runs</td>
                     </tr>
                 {% endif %}
                 </tbody>
             </table>
+            <div class="collapse" id="scheduledGradingJobsCollapse">
+                <h5 id="scheduledGradingRunDetailTitle">Scheduled Run Details</h5>
+                <table class="table table-bordered table-bordered">
+                    <thead>
+                        <tr>
+                        <th scope="col">Net ID</th>
+                        <th scope="col">Job Id</th>
+                        <th scope="col">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="scheduledGradingJobsTable">
+                        <tr>
+                        <th colspan="3">No jobs available</th>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
 
         <div class="modal fade" id="mdl-view-log" tabindex="-1" role="dialog" aria-labelledby="mdl-view-log-label" aria-hidden="true">
