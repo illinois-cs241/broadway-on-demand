@@ -48,7 +48,7 @@ def get_latest_commit(netid, access_token, course):
 	commits_url += "?until=" + dt.now(tz=TZ).isoformat()
 	commits_url += "&sha=master"
 	try:
-                response = requests.get(commits_url, headers={"Authorization": "token {}".format(access_token)})
+		response = requests.get(commits_url, headers={"Authorization": "token {}".format(access_token)})
 	except requests.exceptions.RequestException as ex:
 		logger.error("Failed to fetch student commits\n{}".format(str(ex)))
 		return latest_commit
