@@ -29,7 +29,7 @@ def get_access_token(code):
 
 def get_login(access_token):
 	try:
-		resp = requests.get("%s/user" % GHE_API_URL, params={"access_token": access_token})
+		resp = requests.get("%s/user" % GHE_API_URL, headers={"Authorization": "token {}".format(access_token)})
 		return resp.json()["login"].lower()
 	except requests.exceptions.RequestException:
 		return None
@@ -48,7 +48,7 @@ def get_latest_commit(netid, access_token, course):
 	commits_url += "?until=" + dt.now(tz=TZ).isoformat()
 	commits_url += "&sha=master"
 	try:
-		response = requests.get(commits_url, params={"access_token": access_token})
+		response = requests.get(commits_url, headers={"Authorization": "token {}".format(access_token)})
 	except requests.exceptions.RequestException as ex:
 		logger.error("Failed to fetch student commits\n{}".format(str(ex)))
 		return latest_commit
