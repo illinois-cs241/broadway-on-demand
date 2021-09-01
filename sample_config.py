@@ -37,7 +37,7 @@ GHE_CLIENT_SECRET = "some_client_secret"
 # GitHub Enterprise OAuth base URL.
 GHE_OAUTH_URL = "https://some-github-enterprise-server.example/login/oauth"
 # GitHub Enterprise OAuth scopes to request from users (comma-separated string, no spaces).
-GHE_OAUTH_SCOPES = "repo"
+GHE_OAUTH_SCOPES = "none"
 GHE_LOGIN_URL = "%s/authorize?client_id=%s&scope=%s" % (GHE_OAUTH_URL, GHE_CLIENT_ID, GHE_OAUTH_SCOPES)
 
 # GitHub Enterprise API base URL.
