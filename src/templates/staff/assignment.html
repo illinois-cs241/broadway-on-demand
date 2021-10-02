@@ -271,6 +271,30 @@
             }
         })
     }
+
+    // change name later
+    function onExtensionDateChange(){
+        let startDate = $("#mdl-add-ext-start").val();
+        let endDate = $("#mdl-add-ext-end").val();
+
+        if(startDate && endDate){
+            startDate = moment(startDate);
+            endDate = moment(endDate);
+
+            startDate.hour(0);
+            startDate.minute(0);
+
+            let timeDifference = moment.duration(endDate.diff(startDate));
+            timeDifference = timeDifference.asDays();
+            
+            if(timeDifference > 0){
+                timeDifference = Math.ceil(timeDifference);
+                
+                // set the max runs
+                $("#mdl-add-ext-runs").val(timeDifference);
+            }
+        }
+    }
 </script>
 <style>
     .btn-fixed-width {
@@ -440,18 +464,18 @@
                                     <input type="text" class="form-control" id="mdl-add-ext-netids" name="netids">
                                 </div>
                                 <div class="form-group">
-                                    <label for="max_runs">Max Runs (total)</label>
-                                    <input type="number" min="1" max="100" class="form-control" id="mdl-add-ext-runs" name="max_runs">
-                                </div>
-                                <div class="form-group">
                                     <label for="start">Start Date & Time</label> <span class="badge badge-secondary">{{ tzname }}</span>
-                                    <input type="datetime-local" class="form-control" id="mdl-add-ext-start" name="start">
+                                    <input type="datetime-local" class="form-control" id="mdl-add-ext-start" name="start" onchange="onExtensionDateChange()">
                                 </div>
                                 <div class="form-group">
                                     <label for="start">End Date & Time</label> <span
                                         class="badge badge-secondary">{{ tzname }}</span>
                                     <input type="datetime-local" class="form-control" id="mdl-add-ext-end"
-                                            name="end">
+                                            name="end" onchange="onExtensionDateChange()">
+                                </div>
+                                <div class="form-group">
+                                    <label for="max_runs">Max Runs (total)</label>
+                                    <input type="number" min="1" max="100" class="form-control" id="mdl-add-ext-runs" name="max_runs">
                                 </div>
                                 <div id="mdl-add-ext-error" class="form-text text-danger"></div>
                             </form>
