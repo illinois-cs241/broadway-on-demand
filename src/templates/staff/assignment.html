@@ -277,7 +277,7 @@
         let startDate = $("#mdl-add-ext-start").val();
         let endDate = $("#mdl-add-ext-end").val();
 
-        if(startDate && endDate){
+        if(startDate && endDate) {
             startDate = moment(startDate);
             endDate = moment(endDate);
             
@@ -288,7 +288,7 @@
             let timeDifference = moment.duration(endDate.diff(startDate));
             timeDifference = timeDifference.asDays();
             
-            if(timeDifference > 0){
+            if(timeDifference > 0) {
                 timeDifference = Math.ceil(timeDifference);
                 
                 // set the max runs
