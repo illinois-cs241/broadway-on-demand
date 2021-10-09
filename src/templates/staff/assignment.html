@@ -272,15 +272,16 @@
         })
     }
 
-    // change name later
-    function onExtensionDateChange(){
+
+    function onExtensionDateChange() {
         let startDate = $("#mdl-add-ext-start").val();
         let endDate = $("#mdl-add-ext-end").val();
 
         if(startDate && endDate){
             startDate = moment(startDate);
             endDate = moment(endDate);
-
+            
+            // sets startDate time to 12:00 AM before calculating number of runs
             startDate.hour(0);
             startDate.minute(0);
 
