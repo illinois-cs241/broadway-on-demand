@@ -42,3 +42,9 @@ GHE_LOGIN_URL = "%s/authorize?client_id=%s&scope=%s" % (GHE_OAUTH_URL, GHE_CLIEN
 
 # GitHub Enterprise API base URL.
 GHE_API_URL = "https://some-github-enterprise-server.example/api/v3"
+
+# Google client ID for authentication (include the .apps.googleusercontent.com)
+GOOGLE_CLIENT_ID = "some_client_id.apps.googleusercontent.com"
+
+# Restricts Google Auth logins to emails with the given domain
+GOOGLE_AUTH_DOMAIN = "illinois.edu"

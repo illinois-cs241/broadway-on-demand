@@ -2,6 +2,8 @@ from flask import Flask, Blueprint, url_for, send_from_directory, render_templat
 from flask_session import Session
 from werkzeug.urls import url_parse
 from http import HTTPStatus
+from google.oauth2 import id_token
+from google.auth.transport import requests
 
 from config import *
 from src import db, bw_api, auth, ghe_api, util, common
@@ -31,7 +33,12 @@ ApiRoutes(blueprint)
 @blueprint.route("/login/", methods=["GET"])
 @auth.require_no_auth
 def login_page():
-	return render_template("login.html", login_url=GHE_LOGIN_URL)
+	return render_template(
+		"login.html",
+		login_url=GHE_LOGIN_URL,
+		google_client_id=GOOGLE_CLIENT_ID,
+		google_auth_domain=GOOGLE_AUTH_DOMAIN
+	)
 
 
 @blueprint.route("/login/ghe_callback/", methods=["GET"])
@@ -48,6 +55,22 @@ def login_ghe_callback():
 	db.set_user_access_token(netid, access_token)
 	auth.set_uid(netid)
 	return redirect(url_for(".root"))
+
+@blueprint.route("/login/google_auth/", methods=["POST"])
+def login_google_auth():
+	token = request.get_json()['id_token']
+	try:
+		idinfo = id_token.verify_oauth2_token(token, requests.Request(), GOOGLE_CLIENT_ID)
+		email = idinfo["email"]
+	except ValueError:
+		return url_for(".login_page") + '?error=1'
+
+	if not email.endswith(GOOGLE_AUTH_DOMAIN):
+		return url_for(".login_page") + '?error=1'
+
+	netid = email[:email.rfind('@')]
+	auth.set_uid(netid)
+	return url_for(".root")
 
 
 @blueprint.route("/loginas/", methods=["POST"])
@@ -118,7 +141,12 @@ def inject_header_values():
 
 		return url_for(f'.{mode}_{route}', **url_args)
 
-	return dict(is_staff=is_staff, switcher_endpoint=switcher_endpoint)
+	return dict(
+		is_staff=is_staff,
+		switcher_endpoint=switcher_endpoint,
+		google_client_id=GOOGLE_CLIENT_ID,
+		google_auth_domain=GOOGLE_AUTH_DOMAIN
+	)
 
 app.register_blueprint(blueprint)
 
