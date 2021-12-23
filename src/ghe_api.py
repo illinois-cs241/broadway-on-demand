@@ -37,16 +37,15 @@ def get_login(access_token):
 		return None
 
 
-def get_latest_commit(netid, access_token, course):
+def get_latest_commit(netid, access_token, github_org, github_repo_prefix):
 	if DEV_MODE:
 		return {"message": "This is a test commit.", "sha": "2db06991c7846ade1b505e80fbaf257e034c4bd5", "url": "https://github.com/illinois-cs241/broadway-on-demand"}
 
 	latest_commit = {"message": "An error occurred", "sha": "", "url": ""}
 
-	# retrieve all student repo commits (to master)
-	commits_url = "{}/repos/{}/{}/commits".format(GHE_API_URL, course, netid)
+	# retrieve all student repo commits
+	commits_url = f"{GHE_API_URL}/repos/{github_org}/{github_repo_prefix}_{netid}/commits"
 	commits_url += "?until=" + dt.now(tz=TZ).isoformat()
-	commits_url += "&sha=master"
 	try:
 		response = requests.get(commits_url, headers={"Authorization": "token {}".format(access_token)})
 	except requests.exceptions.RequestException as ex:
