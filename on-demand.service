@@ -3,7 +3,7 @@ Description=Gunicorn instance serving broadway-on-demand
 After=network.target
 
 [Service]
-User=andy2
+User=root
 Group=www-data
 WorkingDirectory=/srv/cs241/broadway-on-demand
 Environment="PATH=/srv/cs241/broadway-on-demand/env/bin"
