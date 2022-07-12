@@ -64,8 +64,8 @@ class StudentRoutes:
 
 			user = db.get_user(netid)
 			token = course.get("github_token", "")
-			commit = get_latest_commit(netid, token, course["github_org"])
-			feedback_url = f'https://github-dev.cs.illinois.edu/{course["github_org"]}/{netid}/tree/{course["feedback_branch_name"]}' if "feedback_branch_name" in course else None
+			commit = get_latest_commit(netid, token, course["github_org"], course["github_repo_prefix"])
+			feedback_url = f'https://github.com/{course["github_org"]}/{course["github_repo_prefix"]}_{netid}/tree/{course["feedback_branch_name"]}' if "feedback_branch_name" in course else None
 			if verify_staff(netid, cid):
 				num_available_runs = max(num_available_runs, 1)
 
