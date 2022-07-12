@@ -12,7 +12,7 @@ MarkupSafe==1.1.0
 pymongo==3.7.2
 pytz==2018.9
 requests==2.21.0
-urllib3==1.24.2
+urllib3==1.26.5
 werkzeug==0.15.5
 ansi2html==1.5.2
 gunicorn==20.0.4
