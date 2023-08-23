@@ -14,14 +14,18 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"
             integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy"
             crossorigin="anonymous"></script>
-    <script src="https://apis.google.com/js/platform.js?onload=onGoogleAPILoad" async defer></script>
-    <meta name="google-signin-client_id" content="{{google_client_id}}">
+    <script src="https://accounts.google.com/gsi/client?onload=onGoogleAPILoad" async defer></script>
     <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
     <link href="{{ url_for('.static_file', path='styles.css') }}" rel="stylesheet">
 
     <title>Log In | Broadway On Demand</title>
 </head>
 <body class="h-100">
+    <div id="g_id_onload"
+        data-client_id="{{google_client_id}}"
+        data-ux_mode="popup"
+	data-callback="onSignIn">
+    </div>
     <div class="h-100 d-flex flex-column">
         <nav class="navbar bg-dark">
             <a class="navbar-brand">Broadway On Demand</a>
@@ -34,7 +38,8 @@
                             <h4 class="card-title" style="margin-bottom: 0.5em;">Authentication Required</h4>
                             <div>
                                 <p>Make sure your Illinois Google account is enabled <a target="_blank" href="https://cloud-dashboard.illinois.edu/">here</a> before trying to sign in</p>
-                                <button id="google-signin-button" type="button" class="btn btn-primary m-1" disabled>Loading...</button>
+				<!-- <button id="google-signin-button" type="button" class="btn btn-primary m-1" disabled>Loading...</button> -->
+				<div class="g_id_signin" data-type="standard"></div>
                                 <br>
 <!--                                 <a href="{{login_url}}">
                                     <button type="submit" class="btn btn-primary m-1">Log in with GitHub Enterprise</button>
@@ -56,30 +61,8 @@
         </div>
     </div>
     <script>
-        function onGoogleAPILoad() {
-            const signinButton = document.getElementById('google-signin-button');
-            gapi.load('auth2', function() {
-                gapi.auth2.init({ hosted_domain: '{{google_auth_domain}}' })
-                    .then(() => {
-                        signinButton.addEventListener('click', () => {
-                            gapi.auth2.getAuthInstance().signIn()
-                                .then(onSignIn)
-                                .then(() => signinButton.innerText = 'Signed In')
-                                .catch(() => signinButton.innerText = 'Error signing in, click to try again');
-                        })
-                        signinButton.removeAttribute('disabled');
-                        signinButton.innerText = 'Log in with Google';
-                    })
-                    .catch((e) => {
-                        signinButton.classList.remove('btn-primary');
-                        signinButton.classList.add('btn-danger');
-                        signinButton.innerText = 'Google auth error';
-                    })
-            });
-        }
-
-        function onSignIn(googleUser) {
-            const id_token = googleUser.getAuthResponse().id_token;
+        function onSignIn(auth_data) {
+            const id_token = auth_data.credential
             const google_auth_url = "{{ url_for('.login_google_auth') }}"
             fetch(google_auth_url, {
                 method: 'POST',
