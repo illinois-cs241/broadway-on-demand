@@ -1,0 +1,13 @@
+[Unit]
+Description=Gunicorn for Broadway on Demand
+After=network.target
+
+[Service]
+User=root
+Group=root
+WorkingDirectory=/srv/broadway-on-demand
+Environment=/srv/broadway-on-demand/src/venv/bin
+ExecStart=/srv/broadway-on-demand/src/venv/bin/gunicorn --workers 4 --bind 127.0.0.1:4000 src:app
+
+[Install]
+WantedBy=multi-user.target
