@@ -3,8 +3,8 @@ services:
     build:
       context: .
       args:
-        - DEP_DIR=/opt/broadway-on-demand
-        - CODE_DIR=/srv/broadway-on-demand
+        DEP_DIR: /opt/broadway-on-demand
+        CODE_DIR: /srv/broadway-on-demand
       dockerfile: dev/web.Dockerfile
     ports:
       - "3000:5000"
@@ -15,6 +15,3 @@ services:
       context: .
       dockerfile: dev/db.Dockerfile
     restart: always
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: dev123

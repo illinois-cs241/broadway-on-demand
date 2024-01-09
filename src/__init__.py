@@ -4,6 +4,7 @@ from werkzeug.urls import url_parse
 from http import HTTPStatus
 from google.oauth2 import id_token
 from google.auth.transport import requests
+from pymongo import MongoClient
 
 from config import *
 from src import db, bw_api, auth, ghe_api, util, common
@@ -17,6 +18,7 @@ from src.util import generate_csrf_token
 
 app = Flask(__name__)
 app.config["SESSION_TYPE"] = SESSION_TYPE
+app.config["SESSION_MONGODB"] = MongoClient(host=SESSION_MONGODB)
 app.config["SESSION_MONGODB_DB"] = SESSION_MONGODB_DB
 app.config["MONGO_URI"] = MONGO_URI
 app.jinja_env.globals['csrf_token'] = generate_csrf_token
