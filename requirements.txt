@@ -16,4 +16,4 @@ urllib3==1.24.2
 werkzeug==0.15.5
 ansi2html==1.5.2
 gunicorn==20.0.4
-google-auth==2.3.3
+identity==0.3.2
