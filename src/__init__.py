@@ -2,17 +2,14 @@ from flask import Flask, Blueprint, url_for, send_from_directory, render_templat
 from flask_session import Session
 from werkzeug.urls import url_parse
 from http import HTTPStatus
-from google.oauth2 import id_token
-from google.auth.transport import requests
 from pymongo import MongoClient
 
 from config import *
-from src import db, bw_api, auth, ghe_api, util, common
+from src import db, auth, common
 from src.routes_admin import AdminRoutes
 from src.routes_staff import StaffRoutes
 from src.routes_api import ApiRoutes
 from src.routes_student import StudentRoutes
-from src.routes_system import SystemRoutes
 from src.template_filters import TemplateFilters
 from src.util import generate_csrf_token
 
@@ -31,48 +28,15 @@ StaffRoutes(blueprint)
 AdminRoutes(blueprint)
 ApiRoutes(blueprint)
 
-
 @blueprint.route("/login/", methods=["GET"])
 @auth.require_no_auth
 def login_page():
-	return render_template(
-		"login.html",
-		login_url=GHE_LOGIN_URL,
-		google_client_id=GOOGLE_CLIENT_ID,
-		google_auth_domain=GOOGLE_AUTH_DOMAIN
-	)
+    return auth.begin_login()
 
 
-@blueprint.route("/login/ghe_callback/", methods=["GET"])
-def login_ghe_callback():
-	code = request.args.get("code")
-	if code is None:
-		return util.error("Invalid request; missing code argument.")
-	access_token = ghe_api.get_access_token(code)
-	if access_token is None:
-		return redirect(url_for(".login_page") + '?error=1')
-	netid = ghe_api.get_login(access_token)
-	if netid is None:
-		return redirect(url_for(".login_page") + '?error=1')
-	db.set_user_access_token(netid, access_token)
-	auth.set_uid(netid)
-	return redirect(url_for(".root"))
-
-@blueprint.route("/login/google_auth/", methods=["POST"])
-def login_google_auth():
-	token = request.get_json()['id_token']
-	try:
-		idinfo = id_token.verify_oauth2_token(token, requests.Request(), GOOGLE_CLIENT_ID)
-		email = idinfo["email"]
-	except ValueError:
-		return url_for(".login_page") + '?error=1'
-
-	if not email.endswith(GOOGLE_AUTH_DOMAIN):
-		return url_for(".login_page") + '?error=1'
-
-	netid = email[:email.rfind('@')]
-	auth.set_uid(netid)
-	return url_for(".root")
+@blueprint.route("/login/login_callback/", methods=["GET"])
+def login_callback():
+    return auth.complete_login()
 
 
 @blueprint.route("/loginas/", methods=["POST"])
@@ -88,7 +52,6 @@ def login_as():
 	netid = request.form.get("loginNetId")
 	auth.set_uid(netid)
 	return redirect(path)
-
 
 @blueprint.route("/logout/", methods=["GET"])
 @auth.require_auth
@@ -146,8 +109,6 @@ def inject_header_values():
 	return dict(
 		is_staff=is_staff,
 		switcher_endpoint=switcher_endpoint,
-		google_client_id=GOOGLE_CLIENT_ID,
-		google_auth_domain=GOOGLE_AUTH_DOMAIN
 	)
 
 app.register_blueprint(blueprint)

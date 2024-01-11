@@ -40,15 +40,6 @@ def get_user(netid):
 	return mongo.db.users.find_one({"_id": netid})
 
 
-def set_user_access_token(netid, access_token):
-	"""
-	Updates the access token for the user with the given NetID, or adds a new user with the given NetID and access token
-	if the NetID does not exist.
-	:param netid: a user's NetID.
-	:param access_token: a GitHub Enterprise access token for the user.
-	"""
-	mongo.db.users.update_one({"_id": netid}, {"$set": {"access_token": access_token}}, upsert=True)
-
 def get_courses_for_student_or_staff(netid):
 	student_course = get_courses_for_student(netid)
 	staff_course = get_courses_for_staff(netid)
