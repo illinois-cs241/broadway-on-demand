@@ -9,7 +9,7 @@ RUN echo $DEP_DIR
 RUN echo $CODE_DIR
 
 WORKDIR ${DEP_DIR}
-RUN apk add --no-cache gcc musl-dev linux-headers
+RUN apk add --no-cache gcc musl-dev linux-headers libffi-dev
 COPY requirements.txt requirements.txt
 RUN python3 -m venv ./env
 RUN source ./env/bin/activate && pip install -r requirements.txt
