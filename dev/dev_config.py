@@ -31,20 +31,12 @@ BROADWAY_API_URL = "http://some-broadway-api-server.example/api/v1"
 # API token used to authenticate /system/ routes.
 SYSTEM_API_TOKEN = "some_token"
 
-# GitHub Enterprise OAuth client ID and secret.
-GHE_CLIENT_ID = "some_client_id"
-GHE_CLIENT_SECRET = "some_client_secret"
-# GitHub Enterprise OAuth base URL.
-GHE_OAUTH_URL = "https://some-github-enterprise-server.example/login/oauth"
-# GitHub Enterprise OAuth scopes to request from users (comma-separated string, no spaces).
-GHE_OAUTH_SCOPES = "none"
-GHE_LOGIN_URL = "%s/authorize?client_id=%s&scope=%s" % (GHE_OAUTH_URL, GHE_CLIENT_ID, GHE_OAUTH_SCOPES)
-
-# GitHub Enterprise API base URL.
+# GitHub API base URL.
 GHE_API_URL = "https://api.github.com"
 
-# Google client ID for authentication (include the .apps.googleusercontent.com)
-GOOGLE_CLIENT_ID = "some_client_id.apps.googleusercontent.com"
-
-# Restricts Google Auth logins to emails with the given domain
-GOOGLE_AUTH_DOMAIN = "illinois.edu"
+# Microsoft Azure auth config
+AUTH_DOMAIN = "some auth domain like `illinois.edu`"
+MIP_SCOPES = ["email"]
+MIP_AUTHORITY = "some authority or `https://login.microsoftonline.com/common` for multi-tenant world-wide cloud"
+MIP_CLIENT_ID = "some_client_id"
+MIP_CLIENT_SECRET = "some_client_secret"
