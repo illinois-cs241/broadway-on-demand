@@ -2,7 +2,6 @@ from functools import wraps
 from http import HTTPStatus
 
 from flask import session, redirect, url_for, abort, request, render_template, make_response
-from src import db
 from src.common import verify_staff, verify_admin
 
 import identity.web
