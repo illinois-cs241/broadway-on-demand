@@ -1,0 +1,17 @@
+services:
+  web:
+    build:
+      context: .
+      args:
+        DEP_DIR: /opt/broadway-on-demand
+        CODE_DIR: /srv/broadway-on-demand
+      dockerfile: dev/web.Dockerfile
+    ports:
+      - "3000:5000"
+    volumes:
+      - ${PWD}/:/srv/broadway-on-demand
+  db:
+    build:
+      context: .
+      dockerfile: dev/db.Dockerfile
+    restart: always

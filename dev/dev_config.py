@@ -6,7 +6,7 @@ MAINTENANCE_MODE = False
 MAINTENANCE_MODE_MESSAGE = "Maintenance will conclude at __:__ on __/__."
 
 # When true, GitHub Enterprise login can be bypassed to log in as the username below.
-DEV_MODE = False
+DEV_MODE = True
 
 # Server time zone, used for displaying times and specifying due date for Broadway API.
 TZ = timezone("America/Chicago")
@@ -16,11 +16,11 @@ BASE_URL = "/on-demand"
 
 # Flask-Session configuration. See https://pythonhosted.org/Flask-Session/
 SESSION_TYPE = "mongodb"
-SESSION_MONGODB = "localhost:27017"
+SESSION_MONGODB = "db:27017"
 SESSION_MONGODB_DB = "flask_session"
 
 # MongoDB URI for Broadway on Demand data.
-MONGO_URI = "mongodb://localhost:27017/broadway_on_demand"
+MONGO_URI = "mongodb://db:27017/broadway_on_demand"
 
 # Scheduler URI for scheduling runs
 SCHEDULER_URI = "http://localhost:3000/scheduler"
@@ -35,7 +35,7 @@ SYSTEM_API_TOKEN = "some_token"
 GHE_API_URL = "https://api.github.com"
 
 # Microsoft Azure auth config
-AUTH_DOMAIN = "some auth domain like `example.edu`"
+AUTH_DOMAIN = "some auth domain like `illinois.edu`"
 MIP_SCOPES = ["email"]
 MIP_AUTHORITY = "some authority or `https://login.microsoftonline.com/common` for multi-tenant world-wide cloud"
 MIP_CLIENT_ID = "some_client_id"

@@ -4,27 +4,12 @@ from http import HTTPStatus
 from datetime import datetime as dt
 
 from config import (
-	GHE_OAUTH_URL, GHE_API_URL, GHE_CLIENT_ID, GHE_CLIENT_SECRET, DEV_MODE, TZ
+	GHE_API_URL, DEV_MODE, TZ
 )
 
 logger = logging.getLogger(__name__)
 
 ACCEPT_JSON = {"Accept": "application/json"}
-
-
-def get_access_token(code):
-	data = {
-		"client_id": GHE_CLIENT_ID,
-		"client_secret": GHE_CLIENT_SECRET,
-		"code": code
-	}
-	try:
-		resp = requests.post("%s/access_token" % GHE_OAUTH_URL, json=data, headers=ACCEPT_JSON)
-		return resp.json()["access_token"]
-	except requests.exceptions.RequestException:
-		return None
-	except KeyError:
-		return None
 
 
 def get_login(access_token):

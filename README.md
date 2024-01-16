@@ -1,6 +1,15 @@
 # Broadway on Demand
 
-### Developer setup
+### Developer Setup (Docker Compose)
+
+- Copy `dev/dev_config.py` to repo root as `config.py`
+- Run `docker compose up`. Server runs at `localhost:3000` by default. This can be changed in the docker compose file.
+- To log in, navigate to <http://localhost:3000/on-demand/login/>. You can login as any user. In the test database there are three users:
+    - student (student of the test course)
+    - non-admin (a staff, but not an admin of the test course)
+    - admin (staff and admin of the test course)
+
+### Developer setup (Local)
 
 - Install and start [MongoDB Server](https://www.mongodb.com/download-center/community). To ensure that MongoDB is running, run `mongo`.
 - Clone the repository and `cd` into the repository root.
