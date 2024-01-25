@@ -78,7 +78,10 @@ def require_token_auth(func):
 	@wraps(func)
 	def wrapper(*arg, **kwargs):
 		token = request.headers["Authorization"]
-		course = kwargs[CID_KEY]
+		cid = kwargs[CID_KEY]
+		if cid is None or token is None:
+			return abort(HTTPStatus.FORBIDDEN)
+		course = db.get_course(cid)
 		if course is None or course.get("github_token", None) != token:
 			return abort(HTTPStatus.FORBIDDEN)
 		return func(*arg, **kwargs)
