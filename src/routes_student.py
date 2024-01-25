@@ -22,10 +22,12 @@ class StudentRoutes:
 		@util.disable_in_maintenance_mode
 		@auth.require_auth
 		def student_get_course(netid, cid):
+			course = db.get_course(cid)
+			if course is None:
+				return abort(HTTPStatus.NOT_FOUND)
 			if not verify_student_or_staff(netid, cid):
 				return abort(HTTPStatus.FORBIDDEN)
 
-			course = db.get_course(cid)
 			if verify_staff(netid, cid):
 				assignments = db.get_assignments_for_course(cid)
 			else:
