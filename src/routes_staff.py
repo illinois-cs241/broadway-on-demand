@@ -46,10 +46,12 @@ class StaffRoutes:
         @blueprint.route("/staff/course/<cid>/", methods=["GET"])
         @auth.require_auth
         def staff_get_course(netid, cid):
+            course = db.get_course(cid) 
+            if course is None:
+                return abort(HTTPStatus.NOT_FOUND)
             if not verify_staff(netid, cid):
                 return abort(HTTPStatus.FORBIDDEN)
 
-            course = db.get_course(cid)
             assignments = db.get_assignments_for_course(cid)
             is_admin = verify_admin(netid, cid)
             now = util.now_timestamp()
