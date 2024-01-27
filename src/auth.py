@@ -6,7 +6,7 @@ from src.common import verify_staff, verify_admin
 
 import identity.web
 
-from config import SYSTEM_API_TOKEN, MIP_AUTHORITY, MIP_CLIENT_ID, MIP_CLIENT_SECRET, MIP_SCOPES, AUTH_DOMAIN
+from config import SYSTEM_API_TOKEN, BROADWAY_API_TOKEN, MIP_AUTHORITY, MIP_CLIENT_ID, MIP_CLIENT_SECRET, MIP_SCOPES, AUTH_DOMAIN
 
 UID_KEY = "netid"
 CID_KEY = "cid"
@@ -77,9 +77,9 @@ def require_token_auth(func):
 	"""
 	@wraps(func)
 	def wrapper(*arg, **kwargs):
-		token = request.headers["Authorization"]
+		token = request.headers.get("Authorization", None)
 		course = kwargs[CID_KEY]
-		if course is None or course.get("github_token", None) != token:
+		if course is None or token is None or token != BROADWAY_API_TOKEN:
 			return abort(HTTPStatus.FORBIDDEN)
 		return func(*arg, **kwargs)
 	return wrapper
@@ -94,9 +94,9 @@ def require_admin_status(func):
 	"""
 	@wraps(func)
 	def wrapper(*args, **kwargs):
-		netid = kwargs[UID_KEY]
+		netid = kwargs.get(UID_KEY, request.headers.get('netid', None))
 		cid = kwargs[CID_KEY]
-		if not verify_staff(netid, cid) or not verify_admin(netid, cid):
+		if netid is None or not verify_staff(netid, cid) or not verify_admin(netid, cid):
 			return abort(HTTPStatus.FORBIDDEN)
 		return func(*args, **kwargs)
 	return wrapper

@@ -87,11 +87,8 @@ def verify_admin(netid, cid):
 	:param cid: a course ID.
 	:return: a boolean value.
 	"""
-	staff = db.get_course(cid)["staff"]
-	if netid not in staff:
-		return False
-	else:
-		return staff[netid]["is_admin"]
+	course = db.get_course(cid)
+	return course is not None and netid in course["staff"] and course["staff"][netid]["is_admin"]
 
 
 def verify_staff(netid, cid):
@@ -101,4 +98,5 @@ def verify_staff(netid, cid):
 	:param cid: a course ID.
 	:return: a boolean value.
 	"""
-	return netid in db.get_course(cid)["staff"]
+	course = db.get_course(cid)
+	return course is not None and netid in course["staff"]
