@@ -3,10 +3,11 @@ from http import HTTPStatus
 
 from flask import session, redirect, url_for, abort, request, render_template, make_response
 from src.common import verify_staff, verify_admin
+from db import get_course
 
 import identity.web
 
-from config import SYSTEM_API_TOKEN, BROADWAY_API_TOKEN, MIP_AUTHORITY, MIP_CLIENT_ID, MIP_CLIENT_SECRET, MIP_SCOPES, AUTH_DOMAIN
+from config import SYSTEM_API_TOKEN, MIP_AUTHORITY, MIP_CLIENT_ID, MIP_CLIENT_SECRET, MIP_SCOPES, AUTH_DOMAIN
 
 UID_KEY = "netid"
 CID_KEY = "cid"
@@ -70,16 +71,17 @@ def require_system_auth(func):
                 return func(*args, **kwargs)
         return wrapper
 
-def require_token_auth(func):
+def require_course_auth(func):
 	"""
 	A route decorator check user's course token for login. 
 	This is useful for api calls to this site. A session is not created for such access.
 	"""
 	@wraps(func)
 	def wrapper(*arg, **kwargs):
-		token = request.headers.get("Authorization", None)
-		course = kwargs[CID_KEY]
-		if course is None or token is None or token != BROADWAY_API_TOKEN:
+		token = request.headers("Authorization", None)
+		cid = kwargs[CID_KEY]
+		course = get_course(cid)
+		if course is None or ("token" in course and token != course["token"]):
 			return abort(HTTPStatus.FORBIDDEN)
 		return func(*arg, **kwargs)
 	return wrapper
