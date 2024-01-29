@@ -3,7 +3,8 @@ from http import HTTPStatus
 
 from flask import session, redirect, url_for, abort, request, render_template, make_response
 from src.common import verify_staff, verify_admin
-from db import get_course
+from src.db import get_course
+import sys # TODO remove
 
 import identity.web
 
@@ -78,7 +79,7 @@ def require_course_auth(func):
 	"""
 	@wraps(func)
 	def wrapper(*arg, **kwargs):
-		token = request.headers("Authorization", None)
+		token = request.headers.get("Authorization", None)
 		cid = kwargs[CID_KEY]
 		course = get_course(cid)
 		if course is None or ("token" in course and token != course["token"]):
@@ -96,7 +97,7 @@ def require_admin_status(func):
 	"""
 	@wraps(func)
 	def wrapper(*args, **kwargs):
-		netid = kwargs.get(UID_KEY, request.form.get(UID_KEY, None))
+		netid = kwargs.get(UID_KEY, request.json.get(UID_KEY, None))
 		cid = kwargs[CID_KEY]
 		if netid is None or not verify_staff(netid, cid) or not verify_admin(netid, cid):
 			return abort(HTTPStatus.FORBIDDEN)
