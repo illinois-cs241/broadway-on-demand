@@ -4,7 +4,6 @@ from http import HTTPStatus
 from flask import session, redirect, url_for, abort, request, render_template, make_response
 from src.common import verify_staff, verify_admin
 from src.db import get_course
-import sys # TODO remove
 
 import identity.web
 
