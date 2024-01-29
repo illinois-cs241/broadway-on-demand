@@ -8,10 +8,10 @@ from src.sched_api import ScheduledRunStatus
 class ApiRoutes:
     def __init__(self, blueprint):
         @blueprint.route("/api/<cid>/update_roster", methods=["POST"])
-        @auth.require_token_auth
+        @auth.require_course_auth
         @auth.require_admin_status
-        def admin_update_roster(netid, cid):
-            netids = request.form["roster"].strip().lower().split("\n")
+        def admin_update_roster(cid):
+            netids = request.json["roster"].strip().lower().split("\n")
 
             for i, student_id in enumerate(netids):
                 if not util.is_valid_netid(student_id):
