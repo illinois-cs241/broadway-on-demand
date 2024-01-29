@@ -96,7 +96,7 @@ def require_admin_status(func):
 	"""
 	@wraps(func)
 	def wrapper(*args, **kwargs):
-		netid = kwargs.get(UID_KEY, request.form.get('netid', None))
+		netid = kwargs.get(UID_KEY, request.form.get(UID_KEY, None))
 		cid = kwargs[CID_KEY]
 		if netid is None or not verify_staff(netid, cid) or not verify_admin(netid, cid):
 			return abort(HTTPStatus.FORBIDDEN)
