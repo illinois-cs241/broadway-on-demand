@@ -108,3 +108,12 @@ config.py
 .idea/
 
 .vscode/
+
+# Miscellanous local stuff
+db/
+
+misc/
+
+requirements.txt
+
+.gitignore
