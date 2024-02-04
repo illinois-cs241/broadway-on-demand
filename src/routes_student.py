@@ -1,7 +1,7 @@
 from flask import render_template, request, abort
 from http import HTTPStatus
 
-from config import TZ, BROADWAY_API_URL
+from config import TZ, BROADWAY_API_URL, DEV_MODE
 from src import bw_api, auth, util, db
 from src.common import verify_student_or_staff, verify_staff, get_available_runs, get_active_extensions
 from src.ghe_api import get_latest_commit
@@ -66,7 +66,9 @@ class StudentRoutes:
 
 			user = db.get_user(netid)
 			token = course.get("github_token", "")
-			commit = get_latest_commit(netid, token, course["github_org"], course["github_repo_prefix"])
+			commit = {"message": "This is a test commit.", "sha": "2db06991c7846ade1b505e80fbaf257e034c4bd5", "url": "https://github.com/illinois-cs241/broadway-on-demand"}
+			if not DEV_MODE:
+				commit = get_latest_commit(netid, token, course["github_org"], course["github_repo_prefix"])
 			feedback_url = f'https://github.com/{course["github_org"]}/{course["github_repo_prefix"]}_{netid}/tree/{course["feedback_branch_name"]}' if "feedback_branch_name" in course else None
 			if verify_staff(netid, cid):
 				num_available_runs = max(num_available_runs, 1)

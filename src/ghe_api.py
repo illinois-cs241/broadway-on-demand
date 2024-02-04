@@ -4,7 +4,7 @@ from http import HTTPStatus
 from datetime import datetime as dt
 
 from config import (
-	GHE_API_URL, DEV_MODE, TZ
+	GHE_API_URL, TZ
 )
 
 logger = logging.getLogger(__name__)
@@ -23,9 +23,6 @@ def get_login(access_token):
 
 
 def get_latest_commit(netid, access_token, github_org, github_repo_prefix):
-	if DEV_MODE:
-		return {"message": "This is a test commit.", "sha": "2db06991c7846ade1b505e80fbaf257e034c4bd5", "url": "https://github.com/illinois-cs241/broadway-on-demand"}
-
 	latest_commit = {"message": "An error occurred", "sha": "", "url": ""}
 
 	# retrieve all student repo commits

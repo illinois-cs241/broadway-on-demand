@@ -47,6 +47,20 @@ a.navbar-brand {
     color: inherit;
 }
 
+#extension-runs-container {
+    display: grid;
+    align-items: center;
+    justify-content: start;
+}
+
+#extension-runs {
+    grid-row: 1;
+}
+
+#extension-runs-info {
+    grid-row: 1;
+}
+
 a:link, a:visited, a:hover, a:active {
   text-decoration: none;
 }

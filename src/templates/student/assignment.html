@@ -6,6 +6,7 @@
         $(".auto-status-update").each((i, div) => {
             autoUpdateStatus(div.id, "{{ course._id }}", "{{ course.query_token }}");
         })
+        $("[data-toggle=popover]").popover();
     })
     function confirmGradeNow() {
         let proceed = window.confirm("The current latest commit in your repository will be graded, using 1 available run.\nIn addition, by proceeding you certify that you have read and understand the course policies regarding plagarism and academic integrity and that the work you are submitting is your own and original unless explicitly allowed otherwise.\nAre you sure you want to proceed?" );
@@ -82,7 +83,12 @@
                 <div class="card-body">
                     <h5 class="card-title">Available Runs: {{ num_available_runs }}/{{ assignment.max_runs }} ({{ assignment.quota }})</h5>
                     {% if num_extension_runs > 0 %}
-                        <h5 class="card-title">+ {{ num_extension_runs }} Extension Runs</h5>
+                        <div id="extension-runs-container">
+                            <h5 id="extension-runs" class="card-title">+ {{ num_extension_runs }} Extra Runs</h5>
+                            <button type="button" id="extension-runs-info" class="btn btn-link" data-container="body" data-toggle="popover" data-placement="left" data-trigger="focus" data-content="Extra runs are pre-deadline runs which may be used at any time until the end date below.">
+                                (what is this?)
+                            </button>
+                        </div>
                     {% endif %}
                     {% set has_runs = num_available_runs + num_extension_runs > 0 %}
                     {% set has_commits = not not commit["sha"] %}

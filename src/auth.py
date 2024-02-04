@@ -3,6 +3,7 @@ from http import HTTPStatus
 
 from flask import session, redirect, url_for, abort, request, render_template, make_response
 from src.common import verify_staff, verify_admin
+from src.db import get_course
 
 import identity.web
 
@@ -70,16 +71,17 @@ def require_system_auth(func):
                 return func(*args, **kwargs)
         return wrapper
 
-def require_token_auth(func):
+def require_course_auth(func):
 	"""
 	A route decorator check user's course token for login. 
 	This is useful for api calls to this site. A session is not created for such access.
 	"""
 	@wraps(func)
 	def wrapper(*arg, **kwargs):
-		token = request.headers["Authorization"]
-		course = kwargs[CID_KEY]
-		if course is None or course.get("github_token", None) != token:
+		token = request.headers.get("Authorization", None)
+		cid = kwargs[CID_KEY]
+		course = get_course(cid)
+		if course is None or ("token" in course and token != course["token"]):
 			return abort(HTTPStatus.FORBIDDEN)
 		return func(*arg, **kwargs)
 	return wrapper
@@ -94,9 +96,11 @@ def require_admin_status(func):
 	"""
 	@wraps(func)
 	def wrapper(*args, **kwargs):
-		netid = kwargs[UID_KEY]
+		netid = kwargs.get(UID_KEY, None)
+		if request.json is not None:
+			netid = request.json.get(UID_KEY, netid)
 		cid = kwargs[CID_KEY]
-		if not verify_staff(netid, cid) or not verify_admin(netid, cid):
+		if netid is None or not verify_staff(netid, cid) or not verify_admin(netid, cid):
 			return abort(HTTPStatus.FORBIDDEN)
 		return func(*args, **kwargs)
 	return wrapper
