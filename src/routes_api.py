@@ -4,6 +4,7 @@ from http import HTTPStatus
 
 from src import db, util, auth, bw_api
 from src.sched_api import ScheduledRunStatus
+from src.common import verify_student
 
 class ApiRoutes:
     def __init__(self, blueprint):
@@ -51,4 +52,43 @@ class ApiRoutes:
                 db.update_scheduled_run_status(sched_run["_id"], ScheduledRunStatus.RAN)
                 db.update_scheduled_run_bw_run_id(sched_run["_id"], bw_run_id)
             return util.success("")
+        
+        # Want to avoid stuff like this, with overlaps in function definitions
+        # Best way is to consider an AdminOperations class and have AdminRoutes and APIRoutes
+        # use the functionality defined in there, instead of whatever I did with AdminRoutes currently
+        @blueprint.route("/api/<cid>/add_extensions", methods=["POST"])
+        @auth.require_course_auth
+        @auth.require_admin_status
+        def add_extensions(netid, cid, aid):
+            assignment = db.get_assignment(cid, aid)
+            if not assignment:
+                return util.error("Invalid course or assignment. Please try again.")
+            
+            if util.check_missing_fields(request.json, "extensions"):
+                return util.error("Missing fields. Please try again.")
+            
+            for ext_json in request.json:
+                if util.check_missing_fields(ext_json, "netids", "max_runs", "start", "end"):
+                    return util.error("Missing fields. Please try again.")
 
+                student_netids = ext_json["netids"].replace(" ", "").lower().split(",")
+                for student_netid in student_netids:
+                    if not util.valid_id(student_netid) or not verify_student(student_netid, cid):
+                        return util.error(f"Invalid or non-existent student NetID: {student_netid}")
+
+                try:
+                    max_runs = int(ext_json["max_runs"])
+                    if max_runs < 1:
+                        return util.error("Max Runs must be a positive integer.")
+                except ValueError:
+                    return util.error("Max Runs must be a positive integer.")
+
+                start = util.parse_form_datetime(ext_json["start"]).timestamp()
+                end = util.parse_form_datetime(ext_json["end"]).timestamp()
+                if start >= end:
+                    return util.error("Start must be before End.")
+
+                for student_netid in student_netids:
+                    db.add_extension(cid, aid, student_netid, max_runs, start, end)
+            return util.success("")
+        
