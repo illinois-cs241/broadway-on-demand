@@ -1,9 +1,13 @@
 import logging
 from flask import request
 from http import HTTPStatus
+import json
 
 from src import db, util, auth, bw_api
-from src.sched_api import ScheduledRunStatus
+from src.sched_api import ScheduledRunStatus, schedule_run, update_scheduled_run
+from src.common import verify_student
+
+MIN_PREDEADLINE_RUNS = 1  # Minimum pre-deadline runs for every assignment
 
 class ApiRoutes:
     def __init__(self, blueprint):
@@ -52,3 +56,169 @@ class ApiRoutes:
                 db.update_scheduled_run_bw_run_id(sched_run["_id"], bw_run_id)
             return util.success("")
 
+        
+        # Want to avoid stuff like this, with overlaps in function definitions
+        # Best way is to consider an AdminOperations class and have AdminRoutes and APIRoutes
+        # use the functionality defined in there, instead of whatever I did with AdminRoutes currently
+        @blueprint.route("/api/<cid>/add_extensions", methods=["POST"])
+        @auth.require_course_auth
+        @auth.require_admin_status
+        def add_extensions(netid, cid, aid):
+            assignment = db.get_assignment(cid, aid)
+            if not assignment:
+                return util.error("Invalid course or assignment. Please try again.")
+            
+            if util.check_missing_fields(request.json, "extensions"):
+                return util.error("Missing fields. Please try again.")
+            
+            for ext_json in request.json:
+                if util.check_missing_fields(ext_json, "netids", "max_runs", "start", "end"):
+                    return util.error("Missing fields. Please try again.")
+
+                student_netids = ext_json["netids"].replace(" ", "").lower().split(",")
+                for student_netid in student_netids:
+                    if not util.valid_id(student_netid) or not verify_student(student_netid, cid):
+                        return util.error(f"Invalid or non-existent student NetID: {student_netid}")
+
+                try:
+                    max_runs = int(ext_json["max_runs"])
+                    if max_runs < 1:
+                        return util.error("Max Runs must be a positive integer.")
+                except ValueError:
+                    return util.error("Max Runs must be a positive integer.")
+
+                start = util.parse_form_datetime(ext_json["start"]).timestamp()
+                end = util.parse_form_datetime(ext_json["end"]).timestamp()
+                if start >= end:
+                    return util.error("Start must be before End.")
+
+                for student_netid in student_netids:
+                    db.add_extension(cid, aid, student_netid, max_runs, start, end)
+            return util.success("")
+        
+        @blueprint.route("/api/<cid>/add_assignment", methods=["POST"])
+        @auth.require_course_auth
+        @auth.require_admin_status
+        def api_add_assignment(netid, cid):
+            form = request.json
+            missing = util.check_missing_fields(form,
+                                                *["aid", "max_runs", "quota", "start", "end", "config", "visibility"])
+            if missing:
+                return util.error(f"Missing fields ({', '.join(missing)}).")
+
+            aid = form["aid"]
+            if not util.valid_id(aid):
+                return util.error("Invalid Assignment ID. Allowed characters: a-z A-Z _ - .")
+
+            new_assignment = db.get_assignment(cid, aid)
+            if new_assignment:
+                return util.error("Assignment ID already exists.")
+
+            try:
+                max_runs = int(form["max_runs"])
+                if max_runs < MIN_PREDEADLINE_RUNS:
+                    return util.error(f"Max Runs must be at least {MIN_PREDEADLINE_RUNS}.")
+            except ValueError:
+                return util.error("Max Runs must be a positive integer.")
+
+            quota = form["quota"]
+            if not db.Quota.is_valid(quota):
+                return util.error("Quota Type is invalid.")
+
+            start = util.parse_form_datetime(form["start"]).timestamp()
+            end = util.parse_form_datetime(form["end"]).timestamp()
+            if start is None or end is None:
+                return util.error("Missing or invalid Start or End.")
+            if start >= end:
+                return util.error("Start must be before End.")
+
+            try:
+                config = json.loads(form["config"])
+                msg = bw_api.set_assignment_config(cid, aid, config)
+
+                if msg:
+                    return util.error(f"Failed to add assignment to Broadway: {msg}")
+            except json.decoder.JSONDecodeError:
+                return util.error("Failed to decode config JSON")
+
+            visibility = form["visibility"]
+
+            db.add_assignment(cid, aid, max_runs, quota, start, end, visibility)
+            return util.success("")
+        
+        def add_or_edit_scheduled_run(cid, aid, run_id, form, scheduled_run_id):
+            # course and assignment name validation
+            course = db.get_course(cid)
+            assignment = db.get_assignment(cid, aid)
+            if course is None or assignment is None:
+                return util.error("Could not find assignment", HTTPStatus.NOT_FOUND)
+
+            # form validation
+            missing = util.check_missing_fields(form, "run_time", "due_time", "name", "config")
+            if missing:
+                return util.error(f"Missing fields ({', '.join(missing)}).")
+            run_time = util.parse_form_datetime(form["run_time"]).timestamp()
+            if run_time is None:
+                return util.error("Missing or invalid run time.")
+            if run_time <= util.now_timestamp():
+                return util.error("Run time must be in the future.")
+            due_time = util.parse_form_datetime(form["due_time"]).timestamp()
+            if due_time is None:
+                return util.error("Missing or invalid due time.")
+            if "roster" not in form or not form["roster"]:
+                roster = None
+            else:
+                roster = form["roster"].replace(" ", "").lower().split(",")
+                for student_netid in roster:
+                    if not util.valid_id(student_netid) or not verify_student(student_netid, cid):
+                        return util.error(f"Invalid or non-existent student NetID: {student_netid}")
+            try:
+                config = json.loads(form["config"])
+                msg = bw_api.set_assignment_config(cid, f"{aid}_{run_id}", config)
+                if msg:
+                    return util.error(f"Failed to upload config to Broadway: {msg}")
+            except json.decoder.JSONDecodeError:
+                return util.error("Failed to decode config JSON")
+
+            # Schedule a new run with scheduler
+            if scheduled_run_id is None:
+                scheduled_run_id = schedule_run(run_time, cid, aid)
+                if scheduled_run_id is None:
+                    return util.error("Failed to schedule run with scheduler")
+            # Or if the run was already scheduled, update the time
+            else:
+                if not update_scheduled_run(scheduled_run_id, run_time):
+                    return util.error("Failed to update scheduled run time with scheduler")
+
+            assert scheduled_run_id is not None
+
+            if not db.add_or_update_scheduled_run(run_id, cid, aid, run_time, due_time, roster, form["name"], scheduled_run_id):
+                return util.error("Failed to save the changes, please try again.")
+            return util.success("")
+        
+        @blueprint.route("/staff/course/<cid>/<aid>/schedule_run/", methods=["POST"])
+        @auth.require_auth
+        @auth.require_admin_status
+        def api_add_scheduled_run(netid, cid, aid):
+            # generate new id for this scheduled run
+            run_id = db.generate_new_id()
+            return add_or_edit_scheduled_run(cid, aid, run_id, request.json, None)
+
+        @blueprint.route("/staff/course/<cid>/<aid>/schedule_runs/", methods=["POST"])
+        @auth.require_auth
+        @auth.require_admin_status
+        def api_add_scheduled_runs(netid, cid, aid):
+            # generate new id for this scheduled run
+            missing = util.check_missing_fields(request.json, "runs")
+            if missing:
+                return util.error(f"Missing fields {', '.join(missing)}")
+            # TODO: there's probably a better way to do this
+            if isinstance(request.json["runs"], list):
+                return util.error("runs field must be a list of run configs!")
+            for run_config in request.json["runs"]:
+                run_id = db.generate_new_id()
+                retval = add_or_edit_scheduled_run(cid, aid, run_id, run_config, None)
+                # TODO: There should be a distinction between good and bad responses
+                if retval[1] != HTTPStatus.NO_CONTENT:
+                    return retval
+            return util.success("")
