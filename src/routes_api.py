@@ -55,7 +55,6 @@ class ApiRoutes:
                 db.update_scheduled_run_status(sched_run["_id"], ScheduledRunStatus.RAN)
                 db.update_scheduled_run_bw_run_id(sched_run["_id"], bw_run_id)
             return util.success("")
-
         
         # Want to avoid stuff like this, with overlaps in function definitions
         # Best way is to consider an AdminOperations class and have AdminRoutes and APIRoutes
