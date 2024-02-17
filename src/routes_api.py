@@ -195,16 +195,16 @@ class ApiRoutes:
                 return util.error("Failed to save the changes, please try again.")
             return util.success("")
         
-        @blueprint.route("/staff/course/<cid>/<aid>/schedule_run/", methods=["POST"])
-        @auth.require_auth
+        @blueprint.route("/api/<cid>/<aid>/schedule_run/", methods=["POST"])
+        @auth.require_course_auth
         @auth.require_admin_status
         def api_add_scheduled_run(netid, cid, aid):
             # generate new id for this scheduled run
             run_id = db.generate_new_id()
             return add_or_edit_scheduled_run(cid, aid, run_id, request.json, None)
 
-        @blueprint.route("/staff/course/<cid>/<aid>/schedule_runs/", methods=["POST"])
-        @auth.require_auth
+        @blueprint.route("/api/<cid>/<aid>/schedule_runs/", methods=["POST"])
+        @auth.require_course_auth
         @auth.require_admin_status
         def api_add_scheduled_runs(netid, cid, aid):
             # generate new id for this scheduled run
