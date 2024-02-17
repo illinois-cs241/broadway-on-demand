@@ -1,6 +1,7 @@
 import logging
 from flask import request
 from http import HTTPStatus
+from functools import wraps
 import json
 
 from src import db, util, auth, bw_api
@@ -8,6 +9,7 @@ from src.sched_api import ScheduledRunStatus, schedule_run, update_scheduled_run
 from src.common import verify_student
 
 MIN_PREDEADLINE_RUNS = 1  # Minimum pre-deadline runs for every assignment
+
 
 class ApiRoutes:
     def __init__(self, blueprint):
@@ -62,15 +64,22 @@ class ApiRoutes:
         @blueprint.route("/api/<cid>/add_extensions", methods=["POST"])
         @auth.require_course_auth
         @auth.require_admin_status
-        def add_extensions(netid, cid, aid):
+        def add_extensions(cid, aid):
+            form = request.json
+            if isinstance(form, str):
+                try:
+                    form = json.loads(request.json)
+                except json.JSONDecodeError:
+                    return util.error("Failed to decode config JSON")
+            
             assignment = db.get_assignment(cid, aid)
             if not assignment:
                 return util.error("Invalid course or assignment. Please try again.")
             
-            if util.check_missing_fields(request.json, "extensions"):
+            if util.check_missing_fields(form, "extensions"):
                 return util.error("Missing fields. Please try again.")
             
-            for ext_json in request.json:
+            for ext_json in form:
                 if util.check_missing_fields(ext_json, "netids", "max_runs", "start", "end"):
                     return util.error("Missing fields. Please try again.")
 
@@ -98,8 +107,13 @@ class ApiRoutes:
         @blueprint.route("/api/<cid>/add_assignment", methods=["POST"])
         @auth.require_course_auth
         @auth.require_admin_status
-        def api_add_assignment(netid, cid):
+        def api_add_assignment(cid):
             form = request.json
+            if isinstance(form, str):
+                try:
+                    form = json.loads(request.json)
+                except json.JSONDecodeError:
+                    return util.error("Failed to decode config JSON")
             missing = util.check_missing_fields(form,
                                                 *["aid", "max_runs", "quota", "start", "end", "config", "visibility"])
             if missing:
@@ -124,15 +138,19 @@ class ApiRoutes:
             if not db.Quota.is_valid(quota):
                 return util.error("Quota Type is invalid.")
 
-            start = util.parse_form_datetime(form["start"]).timestamp()
-            end = util.parse_form_datetime(form["end"]).timestamp()
+            start = util.parse_form_datetime(form["start"])
+            end = util.parse_form_datetime(form["end"])
             if start is None or end is None:
                 return util.error("Missing or invalid Start or End.")
+            start = start.timestamp()
+            end = end.timestamp()
             if start >= end:
                 return util.error("Start must be before End.")
 
             try:
-                config = json.loads(form["config"])
+                config = form["config"]
+                if not isinstance(config, dict):
+                    config = json.loads(config)
                 msg = bw_api.set_assignment_config(cid, aid, config)
 
                 if msg:
@@ -172,7 +190,9 @@ class ApiRoutes:
                     if not util.valid_id(student_netid) or not verify_student(student_netid, cid):
                         return util.error(f"Invalid or non-existent student NetID: {student_netid}")
             try:
-                config = json.loads(form["config"])
+                config = form["config"]
+                if not isinstance(config, dict):
+                    config = json.loads(config)
                 msg = bw_api.set_assignment_config(cid, f"{aid}_{run_id}", config)
                 if msg:
                     return util.error(f"Failed to upload config to Broadway: {msg}")
@@ -198,23 +218,35 @@ class ApiRoutes:
         @blueprint.route("/api/<cid>/<aid>/schedule_run/", methods=["POST"])
         @auth.require_course_auth
         @auth.require_admin_status
-        def api_add_scheduled_run(netid, cid, aid):
+        def api_add_scheduled_run(cid, aid):
             # generate new id for this scheduled run
+            form = request.json
+            if isinstance(form, str):
+                try:
+                    form = json.loads(request.json)
+                except json.JSONDecodeError:
+                    return util.error("Failed to decode config JSON")
             run_id = db.generate_new_id()
-            return add_or_edit_scheduled_run(cid, aid, run_id, request.json, None)
+            return add_or_edit_scheduled_run(cid, aid, run_id, form, None)
 
         @blueprint.route("/api/<cid>/<aid>/schedule_runs/", methods=["POST"])
         @auth.require_course_auth
         @auth.require_admin_status
-        def api_add_scheduled_runs(netid, cid, aid):
+        def api_add_scheduled_runs(cid, aid):
+            form = request.json
+            if isinstance(form, str):
+                try:
+                    form = json.loads(request.json)
+                except json.JSONDecodeError:
+                    return util.error("Failed to decode config JSON")
             # generate new id for this scheduled run
-            missing = util.check_missing_fields(request.json, "runs")
+            missing = util.check_missing_fields(form, "runs")
             if missing:
                 return util.error(f"Missing fields {', '.join(missing)}")
             # TODO: there's probably a better way to do this
-            if isinstance(request.json["runs"], list):
+            if isinstance(form["runs"], list):
                 return util.error("runs field must be a list of run configs!")
-            for run_config in request.json["runs"]:
+            for run_config in form["runs"]:
                 run_id = db.generate_new_id()
                 retval = add_or_edit_scheduled_run(cid, aid, run_id, run_config, None)
                 # TODO: There should be a distinction between good and bad responses

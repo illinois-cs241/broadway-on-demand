@@ -97,7 +97,6 @@ def verify_csrf_token(client_token):
 def valid_id(id_str):
 	return bool(fullmatch(r'[a-zA-Z0-9_.\-]+', id_str))
 
-
 def parse_form_datetime(datetime_local_str):
 	try:
 		return TZ.localize(datetime.strptime(datetime_local_str, "%Y-%m-%dT%H:%M"))

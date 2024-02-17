@@ -1,5 +1,6 @@
 from functools import wraps
 from http import HTTPStatus
+import json
 
 from flask import session, redirect, url_for, abort, request, render_template, make_response
 from src.common import verify_staff, verify_admin
@@ -81,6 +82,7 @@ def require_course_auth(func):
 		token = request.headers.get("Authorization", None)
 		cid = kwargs[CID_KEY]
 		course = get_course(cid)
+		print(course["token"]==token)
 		if course is None or ("token" in course and token != course["token"]):
 			return abort(HTTPStatus.FORBIDDEN)
 		return func(*arg, **kwargs)
@@ -97,8 +99,14 @@ def require_admin_status(func):
 	@wraps(func)
 	def wrapper(*args, **kwargs):
 		netid = kwargs.get(UID_KEY, None)
-		if request.json is not None:
-			netid = request.json.get(UID_KEY, netid)
+		if netid is None and request.json is not None:
+			_json = request.json
+			if isinstance(_json, str):
+				try:
+					_json = json.loads(request.json)
+				except json.JSONDecodeError:
+					return abort(HTTPStatus.BAD_REQUEST)
+			netid = _json.get(UID_KEY, netid)
 		cid = kwargs[CID_KEY]
 		if netid is None or not verify_staff(netid, cid) or not verify_admin(netid, cid):
 			return abort(HTTPStatus.FORBIDDEN)
