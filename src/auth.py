@@ -105,21 +105,6 @@ def require_admin_status(func):
 		return func(*args, **kwargs)
 	return wrapper
 
-def require_auth_or_course_token(func):
-	"""
-	A route decorator that merges the functionalities of `require_auth` and `require_course_auth`.
-	Useful for overlapping functionalities of two routes where one requires API auth and the other
-	requires non-api auth.
-	"""
-	@wraps(func)
-	def wrapper(*args, **kwargs):
-		if '/api' in request.path:
-			return require_course_auth(func)
-		else:
-			return require_auth(func)
-	return wrapper
-
-
 def begin_login():
 	"""
 	Render the login page for the user using external IAM service
