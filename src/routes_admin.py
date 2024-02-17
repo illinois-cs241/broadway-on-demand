@@ -25,8 +25,8 @@ class AdminRoutes:
             course = db.get_course(cid)
             return render_template("staff/roster.html", netid=netid, course=course)
 
-        @blueprint.route("/api/course/<cid>/get_staff_roster", methods=["GET"], api=True)
-        @blueprint.route("/staff/course/<cid>/staff_roster", methods=["GET"], api=False)
+        
+        @blueprint.route("/staff/course/<cid>/staff_roster", methods=["GET"])
         @auth.require_auth_or_course_token
         @auth.require_admin_status
         def get_course_staff_roster(netid, cid):
@@ -41,20 +41,20 @@ class AdminRoutes:
             
             return jsonify(admin_ids=admin, staff_ids=total_staff, user=netid)
 
-        @blueprint.route("/api/course/<cid>/get_student_roster", methods=["GET"], api=True)
-        @blueprint.route("/staff/course/<cid>/student_roster", methods=["GET"], api=False)
+        
+        @blueprint.route("/staff/course/<cid>/student_roster", methods=["GET"])
         @auth.require_auth_or_course_token
         @auth.require_admin_status
         def get_course_student_roster(netid, cid):
             course = db.get_course(cid)
             return jsonify(course['student_ids'])
 
-        @blueprint.route("/api/course/<cid>/add_staff", methods=["POST"], api=True)
-        @blueprint.route("/staff/course/<cid>/add_staff", methods=["POST"], api=False)
+        
+        @blueprint.route("/staff/course/<cid>/add_staff", methods=["POST"])
         @auth.require_auth_or_course_token
         @auth.require_admin_status
         def add_course_staff(netid, cid):
-            form = request.json if request.api else request.form
+            form = request.form
             new_staff_id = form.get('netid').lower()
             if new_staff_id is None:
                 return util.error("Cannot find netid field")
@@ -65,24 +65,24 @@ class AdminRoutes:
                 return util.error(f"'{new_staff_id}' is already a course staff")
             return util.success(f"Successfully added {new_staff_id}")
 
-        @blueprint.route("/api/course/<cid>/remove_staff", methods=["POST"], api=True)
-        @blueprint.route("/staff/course/<cid>/remove_staff", methods=["POST"], api=False)
+        
+        @blueprint.route("/staff/course/<cid>/remove_staff", methods=["POST"])
         @auth.require_auth_or_course_token
         @auth.require_admin_status
         def remove_course_staff(netid, cid):
-            form = request.json if request.api else request.form
+            form = request.form
             staff_id = form.get('netid')
             result = db.remove_staff_from_course(cid, staff_id)
             if none_modified(result):
                 return util.error(f"'{staff_id}' is not a staff")
             return util.success(f"Successfully removed '{staff_id}'")
 
-        @blueprint.route("/api/course/<cid>/promote_staff", methods=["POST"], api=True)
-        @blueprint.route("/staff/course/<cid>/promote_staff", methods=["POST"], api=False)
+        
+        @blueprint.route("/staff/course/<cid>/promote_staff", methods=["POST"])
         @auth.require_auth_or_course_token
         @auth.require_admin_status
         def promote_course_staff(netid, cid):
-            form = request.json if request.api else request.form
+            form = request.form
             staff_id = form.get('netid')
             if not verify_staff(staff_id, cid):
                 return util.error(f"'{staff_id}' is not a staff")
@@ -91,24 +91,24 @@ class AdminRoutes:
                 return util.error(f"'{staff_id}' is already an admin")
             return util.success(f"Successfully made '{staff_id}' admin")
 
-        @blueprint.route("/api/course/<cid>/demote_admin", methods=["POST"], api=True)
-        @blueprint.route("/staff/course/<cid>/demote_admin", methods=["POST"], api=False)
+        
+        @blueprint.route("/staff/course/<cid>/demote_admin", methods=["POST"])
         @auth.require_auth_or_course_token
         @auth.require_admin_status
         def demote_course_admin(netid, cid):
-            form = request.json if request.api else request.form
+            form = request.form
             staff_id = form.get('netid')
             if not verify_staff(staff_id, cid) or not verify_admin(staff_id, cid):
                 return util.error(f"'{staff_id}' is not a admin")
             db.remove_admin_from_course(cid, staff_id)
             return util.success(f"Successfully removed '{staff_id}' from admin")
 
-        @blueprint.route("/api/course/<cid>/add_student", methods=["POST"], api=True)
-        @blueprint.route("/staff/course/<cid>/add_student", methods=["POST"], api=False)
+        
+        @blueprint.route("/staff/course/<cid>/add_student", methods=["POST"])
         @auth.require_auth_or_course_token
         @auth.require_admin_status
         def add_course_student(netid, cid):
-            form = request.json if request.api else request.form
+            form = request.form
             new_student_id = form.get('netid').lower()
             if new_student_id is None:
                 return util.error("Cannot find netid field")
@@ -119,20 +119,20 @@ class AdminRoutes:
                 return util.error(f"'{new_student_id}' is already a student")
             return util.success(f"Successfully added {new_student_id}")
 
-        @blueprint.route("/api/course/<cid>/remove_student", methods=["POST"], api=True)
-        @blueprint.route("/staff/course/<cid>/remove_student", methods=["POST"], api=False)
+        
+        @blueprint.route("/staff/course/<cid>/remove_student", methods=["POST"])
         @auth.require_auth_or_course_token
         @auth.require_admin_status
         def remove_course_student(netid, cid):
-            form = request.json if request.api else request.form
+            form = request.form
             student_id = form.get('netid')
             result = db.remove_student_from_course(cid, student_id)
             if none_modified(result):
                 return util.error(f"'{student_id}' is not a student")
             return util.success(f"Successfully removed '{student_id}'")
 
-        @blueprint.route("/api/course/<cid>/upload_roster_file", methods=["POST"], api=True)
-        @blueprint.route("/staff/course/<cid>/upload_roster_file", methods=["POST"], api=False)
+        
+        @blueprint.route("/staff/course/<cid>/upload_roster_file", methods=["POST"])
         @auth.require_auth_or_course_token
         @auth.require_admin_status
         def upload_roster_file(netid, cid):
@@ -147,12 +147,12 @@ class AdminRoutes:
                 return util.error("The new roster is the same as the current one.")
             return util.success("Successfully updated roster.")
         
-        @blueprint.route("/api/course/<cid>/add_assignment", methods=["POST"], api=True)
-        @blueprint.route("/staff/course/<cid>/add_assignment/", methods=["POST"], api=False)
+        
+        @blueprint.route("/staff/course/<cid>/add_assignment/", methods=["POST"])
         @auth.require_auth_or_course_token
         @auth.require_admin_status
         def add_assignment(netid, cid):
-            form = request.json if request.api else request.form
+            form = request.form
             missing = util.check_missing_fields(form,
                                                 *["aid", "max_runs", "quota", "start", "end", "config", "visibility"])
             if missing:
@@ -199,12 +199,12 @@ class AdminRoutes:
             return util.success("")
 
         
-        @blueprint.route("/api/course/<cid>/<aid>/edit_assignment", methods=["POST"], api=True)
-        @blueprint.route("/staff/course/<cid>/<aid>/edit/", methods=["POST"], api=False)
+        
+        @blueprint.route("/staff/course/<cid>/<aid>/edit/", methods=["POST"])
         @auth.require_auth_or_course_token
         @auth.require_admin_status
         def edit_assignment(netid, cid, aid):
-            form = request.json if request.api else request.form
+            form = request.form
             course = db.get_course(cid)
             assignment = db.get_assignment(cid, aid)
             if course is None or assignment is None:
@@ -250,8 +250,8 @@ class AdminRoutes:
                 return util.error("Save failed or no changes were made.")
             return util.success("")
         
-        @blueprint.route("/api/course/<cid>/<aid>/delete_assignment", methods=["POST"], api=True)
-        @blueprint.route("/staff/course/<cid>/<aid>/delete/", methods=["POST"], api=False)
+        
+        @blueprint.route("/staff/course/<cid>/<aid>/delete/", methods=["POST"])
         @auth.require_auth_or_course_token
         @auth.require_admin_status
         def delete_assignment(netid, cid, aid):
@@ -259,8 +259,8 @@ class AdminRoutes:
                 return util.error("Assignment doesn't exist")
             return util.success("")
 
-        @blueprint.route("/api/course/<cid>/<aid>/get_extensions", methods=["GET"], api=True)
-        @blueprint.route("/staff/course/<cid>/<aid>/extensions/", methods=["GET"], api=False)
+        
+        @blueprint.route("/staff/course/<cid>/<aid>/extensions/", methods=["GET"])
         @auth.require_auth_or_course_token
         @auth.require_admin_status
         def staff_get_extensions(netid, cid, aid):
@@ -269,12 +269,12 @@ class AdminRoutes:
                 ext["_id"] = str(ext["_id"])
             return util.success(jsonify(extensions), HTTPStatus.OK)
 
-        @blueprint.route("/api/course/<cid>/<aid>/add_extension", methods=["POST"], api=True)
-        @blueprint.route("/staff/course/<cid>/<aid>/extensions/", methods=["POST"], api=False)
+        
+        @blueprint.route("/staff/course/<cid>/<aid>/extensions/", methods=["POST"])
         @auth.require_auth_or_course_token
         @auth.require_admin_status
         def staff_add_extension(netid, cid, aid):
-            form = request.json if request.api else request.form
+            form = request.form
             assignment = db.get_assignment(cid, aid)
             if not assignment:
                 return util.error("Invalid course or assignment. Please try again.")
@@ -303,12 +303,12 @@ class AdminRoutes:
                 db.add_extension(cid, aid, student_netid, max_runs, start, end)
             return util.success("")
         
-        @blueprint.route("/api/course/<cid>/<aid>/delete_extension", methods=["DELETE"], api=True)
-        @blueprint.route("/staff/course/<cid>/<aid>/extensions/", methods=["DELETE"], api=False)
+        
+        @blueprint.route("/staff/course/<cid>/<aid>/extensions/", methods=["DELETE"])
         @auth.require_auth_or_course_token
         @auth.require_admin_status
         def staff_delete_extension(netid, cid, aid):
-            form = request.json if request.api else request.form
+            form = request.form
             extension_id = form["_id"]
             delete_result = db.delete_extension(extension_id)
 
@@ -370,22 +370,22 @@ class AdminRoutes:
                 return util.error("Failed to save the changes, please try again.")
             return util.success("")
 
-        @blueprint.route("/api/course/<cid>/<aid>/schedule_run", methods=["POST"], api=True)
-        @blueprint.route("/staff/course/<cid>/<aid>/schedule_run/", methods=["POST"], api=False)
+        
+        @blueprint.route("/staff/course/<cid>/<aid>/schedule_run/", methods=["POST"])
         @auth.require_auth_or_course_token
         @auth.require_admin_status
         def staff_schedule_run(netid, cid, aid):
-            form = request.json if request.api else request.form
+            form = request.form
             # generate new id for this scheduled run
             run_id = db.generate_new_id()
             return add_or_edit_scheduled_run(cid, aid, run_id, form, None)
 
-        @blueprint.route("/api/course/<cid>/<aid>/schedule_run/<run_id>", methods=["POST"], api=True)
-        @blueprint.route("/staff/course/<cid>/<aid>/schedule_run/<run_id>", methods=["POST"], api=False)
+        
+        @blueprint.route("/staff/course/<cid>/<aid>/schedule_run/<run_id>", methods=["POST"])
         @auth.require_auth_or_course_token
         @auth.require_admin_status
         def staff_edit_scheduled_run(netid, cid, aid, run_id):
-            form = request.json if request.api else request.form
+            form = request.form
             sched_run = db.get_scheduled_run(cid, aid, run_id)
             if sched_run is None:
                 return util.error("Could not find this scheduled run. Please refresh and try again.")
@@ -394,8 +394,8 @@ class AdminRoutes:
             scheduled_run_id = sched_run["scheduled_run_id"]
             return add_or_edit_scheduled_run(cid, aid, run_id, form, scheduled_run_id)
 
-        @blueprint.route("/api/course/<cid>/<aid>/schedule_run/<run_id>", methods=["GET"], api=True)
-        @blueprint.route("/staff/course/<cid>/<aid>/schedule_run/<run_id>", methods=["GET"], api=False)
+        
+        @blueprint.route("/staff/course/<cid>/<aid>/schedule_run/<run_id>", methods=["GET"])
         @auth.require_auth_or_course_token
         @auth.require_admin_status
         def staff_get_scheduled_run(netid, cid, aid, run_id):
@@ -405,8 +405,8 @@ class AdminRoutes:
             del sched_run["_id"]
             return util.success(json.dumps(sched_run), 200)
 
-        @blueprint.route("/api/course/<cid>/<aid>/schedule_run/<run_id>", methods=["DELETE"], api=True)
-        @blueprint.route("/staff/course/<cid>/<aid>/schedule_run/<run_id>", methods=["DELETE"], api=False)
+        
+        @blueprint.route("/staff/course/<cid>/<aid>/schedule_run/<run_id>", methods=["DELETE"])
         @auth.require_auth_or_course_token
         @auth.require_admin_status
         def staff_delete_scheduled_run(netid, cid, aid, run_id):
