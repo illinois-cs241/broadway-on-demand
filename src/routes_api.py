@@ -61,7 +61,7 @@ class ApiRoutes:
         # Want to avoid stuff like this, with overlaps in function definitions
         # Best way is to consider an AdminOperations class and have AdminRoutes and APIRoutes
         # use the functionality defined in there, instead of whatever I did with AdminRoutes currently
-        @blueprint.route("/api/<cid>/add_extensions", methods=["POST"])
+        @blueprint.route("/api/<cid>/<aid>/add_extensions", methods=["POST"])
         @auth.require_course_auth
         @auth.require_admin_status
         def add_extensions(cid, aid):
@@ -77,11 +77,12 @@ class ApiRoutes:
                 return util.error("Invalid course or assignment. Please try again.")
             
             if util.check_missing_fields(form, "extensions"):
-                return util.error("Missing fields. Please try again.")
+                return util.error(f"Missing fields extensions.\nPlease try again.")
             
-            for ext_json in form:
-                if util.check_missing_fields(ext_json, "netids", "max_runs", "start", "end"):
-                    return util.error("Missing fields. Please try again.")
+            for ext_json in form["extensions"]:
+                missing = util.check_missing_fields(ext_json, "netids", "max_runs", "start", "end")
+                if missing:
+                    return util.error(f"Extension missing fields {', '.join(missing)}. Please try again.")
 
                 student_netids = ext_json["netids"].replace(" ", "").lower().split(",")
                 for student_netid in student_netids:
@@ -95,14 +96,22 @@ class ApiRoutes:
                 except ValueError:
                     return util.error("Max Runs must be a positive integer.")
 
-                start = util.parse_form_datetime(ext_json["start"]).timestamp()
-                end = util.parse_form_datetime(ext_json["end"]).timestamp()
+                print(ext_json["start"], ext_json["end"])
+
+                start = util.parse_form_datetime(ext_json["start"])
+                if not start:
+                    return util.error("Failed to parse timestamp")
+                start = start.timestamp()
+                end = util.parse_form_datetime(ext_json["end"])
+                if not end:
+                    return util.error("Failed to parse timestamp")
+                end = end.timestamp()
                 if start >= end:
                     return util.error("Start must be before End.")
 
                 for student_netid in student_netids:
                     db.add_extension(cid, aid, student_netid, max_runs, start, end)
-            return util.success("")
+            return util.success("Successfully uploaded extensions", HTTPStatus.OK)
         
         @blueprint.route("/api/<cid>/add_assignment", methods=["POST"])
         @auth.require_course_auth
@@ -124,7 +133,7 @@ class ApiRoutes:
                 return util.error("Invalid Assignment ID. Allowed characters: a-z A-Z _ - .")
 
             new_assignment = db.get_assignment(cid, aid)
-            if new_assignment:
+            if new_assignment and not request.args.get('overwrite', False):
                 return util.error("Assignment ID already exists.")
 
             try:
@@ -161,7 +170,9 @@ class ApiRoutes:
             visibility = form["visibility"]
 
             db.add_assignment(cid, aid, max_runs, quota, start, end, visibility)
-            return util.success("")
+            msg = "Successfully added assignment." if not new_assignment else \
+                "Successfully updated assignment."
+            return util.success(msg, HTTPStatus.OK)
         
         def add_or_edit_scheduled_run(cid, aid, run_id, form, scheduled_run_id):
             # course and assignment name validation
@@ -202,20 +213,20 @@ class ApiRoutes:
             # Schedule a new run with scheduler
             if scheduled_run_id is None:
                 scheduled_run_id = schedule_run(run_time, cid, aid)
-                if scheduled_run_id is None:
-                    return util.error("Failed to schedule run with scheduler")
+                # if scheduled_run_id is None:
+                #     return util.error("Failed to schedule run with scheduler")
             # Or if the run was already scheduled, update the time
             else:
                 if not update_scheduled_run(scheduled_run_id, run_time):
                     return util.error("Failed to update scheduled run time with scheduler")
 
-            assert scheduled_run_id is not None
+            # assert scheduled_run_id is not None
 
             if not db.add_or_update_scheduled_run(run_id, cid, aid, run_time, due_time, roster, form["name"], scheduled_run_id):
                 return util.error("Failed to save the changes, please try again.")
-            return util.success("")
+            return util.success("Successfully scheduled run.", HTTPStatus.OK)
         
-        @blueprint.route("/api/<cid>/<aid>/schedule_run/", methods=["POST"])
+        @blueprint.route("/api/<cid>/<aid>/schedule_run", methods=["POST"])
         @auth.require_course_auth
         @auth.require_admin_status
         def api_add_scheduled_run(cid, aid):
@@ -229,7 +240,7 @@ class ApiRoutes:
             run_id = db.generate_new_id()
             return add_or_edit_scheduled_run(cid, aid, run_id, form, None)
 
-        @blueprint.route("/api/<cid>/<aid>/schedule_runs/", methods=["POST"])
+        @blueprint.route("/api/<cid>/<aid>/schedule_runs", methods=["POST"])
         @auth.require_course_auth
         @auth.require_admin_status
         def api_add_scheduled_runs(cid, aid):
@@ -244,12 +255,14 @@ class ApiRoutes:
             if missing:
                 return util.error(f"Missing fields {', '.join(missing)}")
             # TODO: there's probably a better way to do this
-            if isinstance(form["runs"], list):
+            print(form["runs"])
+            print(type(form["runs"]))
+            if not isinstance(form["runs"], list):
                 return util.error("runs field must be a list of run configs!")
             for run_config in form["runs"]:
                 run_id = db.generate_new_id()
                 retval = add_or_edit_scheduled_run(cid, aid, run_id, run_config, None)
-                # TODO: There should be a distinction between good and bad responses
-                if retval[1] != HTTPStatus.NO_CONTENT:
+                # TODO: There should be a better distinction between good and bad responses
+                if retval[1] != HTTPStatus.OK:
                     return retval
-            return util.success("")
+            return util.success("Successfully scheduled runs", HTTPStatus.OK)
