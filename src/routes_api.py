@@ -169,7 +169,10 @@ class ApiRoutes:
 
             visibility = form["visibility"]
 
-            db.add_assignment(cid, aid, max_runs, quota, start, end, visibility)
+            if new_assignment:
+                db.update_assignment(cid, aid, max_runs, quota, start, end, visibility)
+            else:
+                db.add_assignment(cid, aid, max_runs, quota, start, end, visibility)
             msg = "Successfully added assignment." if not new_assignment else \
                 "Successfully updated assignment."
             return util.success(msg, HTTPStatus.OK)
