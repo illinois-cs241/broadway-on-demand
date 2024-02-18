@@ -216,14 +216,14 @@ class ApiRoutes:
             # Schedule a new run with scheduler
             if scheduled_run_id is None:
                 scheduled_run_id = schedule_run(run_time, cid, aid)
-                # if scheduled_run_id is None:
-                #     return util.error("Failed to schedule run with scheduler")
+                if scheduled_run_id is None:
+                    return util.error("Failed to schedule run with scheduler")
             # Or if the run was already scheduled, update the time
             else:
                 if not update_scheduled_run(scheduled_run_id, run_time):
                     return util.error("Failed to update scheduled run time with scheduler")
 
-            # assert scheduled_run_id is not None
+            assert scheduled_run_id is not None
 
             if not db.add_or_update_scheduled_run(run_id, cid, aid, run_time, due_time, roster, form["name"], scheduled_run_id):
                 return util.error("Failed to save the changes, please try again.")
