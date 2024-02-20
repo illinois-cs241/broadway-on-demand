@@ -66,11 +66,6 @@ class ApiRoutes:
         @auth.require_admin_status
         def add_extensions(cid, aid):
             form = request.json
-            if isinstance(form, str):
-                try:
-                    form = json.loads(request.json)
-                except json.JSONDecodeError:
-                    return util.error("Failed to decode config JSON")
             
             assignment = db.get_assignment(cid, aid)
             if not assignment:
@@ -118,11 +113,6 @@ class ApiRoutes:
         @auth.require_admin_status
         def api_add_assignment(cid):
             form = request.json
-            if isinstance(form, str):
-                try:
-                    form = json.loads(request.json)
-                except json.JSONDecodeError:
-                    return util.error("Failed to decode config JSON")
             missing = util.check_missing_fields(form,
                                                 *["aid", "max_runs", "quota", "start", "end", "config", "visibility"])
             if missing:
@@ -235,11 +225,6 @@ class ApiRoutes:
         def api_add_scheduled_run(cid, aid):
             # generate new id for this scheduled run
             form = request.json
-            if isinstance(form, str):
-                try:
-                    form = json.loads(request.json)
-                except json.JSONDecodeError:
-                    return util.error("Failed to decode config JSON")
             run_id = db.generate_new_id()
             return add_or_edit_scheduled_run(cid, aid, run_id, form, None)
 
@@ -248,11 +233,6 @@ class ApiRoutes:
         @auth.require_admin_status
         def api_add_scheduled_runs(cid, aid):
             form = request.json
-            if isinstance(form, str):
-                try:
-                    form = json.loads(request.json)
-                except json.JSONDecodeError:
-                    return util.error("Failed to decode config JSON")
             # generate new id for this scheduled run
             missing = util.check_missing_fields(form, "runs")
             if missing:
