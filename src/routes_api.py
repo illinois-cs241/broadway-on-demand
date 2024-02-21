@@ -69,10 +69,15 @@ class ApiRoutes:
             
             assignment = db.get_assignment(cid, aid)
             if not assignment:
-                return util.error("Invalid course or assignment. Please try again.")
+                return util.error("Invalid course or assignment.\nPlease try again.")
             
             if util.check_missing_fields(form, "extensions"):
                 return util.error(f"Missing fields extensions.\nPlease try again.")
+
+            if type(form["extensions"]) != list:
+                return util.error(f"Field extensions must be a list.\nPlease try again.")
+
+            extensions_to_add = []
             
             for ext_json in form["extensions"]:
                 missing = util.check_missing_fields(ext_json, "netids", "max_runs", "start", "end")
@@ -105,7 +110,11 @@ class ApiRoutes:
                     return util.error("Start must be before End.")
 
                 for student_netid in student_netids:
-                    db.add_extension(cid, aid, student_netid, max_runs, start, end)
+                    extensions_to_add.append((student_netid, max_runs, start, end))
+
+            for student_netid, max_runs, start, end in extensions_to_add:
+                db.add_extension(cid, aid, student_netid, max_runs, start, end)
+
             return util.success("Successfully uploaded extensions", HTTPStatus.OK)
         
         @blueprint.route("/api/<cid>/add_assignment", methods=["POST"])
