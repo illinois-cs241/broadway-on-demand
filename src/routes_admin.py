@@ -167,7 +167,8 @@ class AdminRoutes:
                 return util.error("Start must be before End.")
 
             try:
-                config = json.loads(request.form["config"])
+                if not isinstance(request.form["config"], dict):
+                    config = json.loads(request.form["config"])
                 msg = bw_api.set_assignment_config(cid, aid, config)
 
                 if msg:
