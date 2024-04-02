@@ -88,7 +88,7 @@ class ApiRoutes:
             except ValueError:
                 return util.error("Max Runs must be a positive integer.")
 
-            print(form["start"], form["end"])
+            # print(form["start"], form["end"])
 
             start = util.parse_form_datetime(form["start"])
             if not start:
