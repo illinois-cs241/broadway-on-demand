@@ -109,7 +109,10 @@ class ApiRoutes:
             run_id = db.generate_new_id()
 
             # Add scheduled run if specified in query
-            if request.args.get("add_run"):
+            parsed_bool, err = util.parse_bool(request.args.get("add_run"))
+            if err:
+                return util.error(err)
+            if parsed_bool:
                 msg, status = add_or_edit_scheduled_run(cid, aid, run_id, form, None)
                 if status != HTTPStatus.OK:
                     # Rollback changes to db
