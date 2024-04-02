@@ -61,52 +61,61 @@ class ApiRoutes:
         # Want to avoid stuff like this, with overlaps in function definitions
         # Best way is to consider an AdminOperations class and have AdminRoutes and APIRoutes
         # use the functionality defined in there, instead of whatever I did with AdminRoutes currently
-        @blueprint.route("/api/<cid>/<aid>/add_extensions", methods=["POST"])
+        @blueprint.route("/api/<cid>/<aid>/add_extension", methods=["POST"])
         @auth.require_course_auth
         @auth.require_admin_status
-        def add_extensions(cid, aid):
+        def add_extension(cid, aid):
             form = request.json
             
             assignment = db.get_assignment(cid, aid)
             if not assignment:
                 return util.error("Invalid course or assignment. Please try again.")
             
-            if util.check_missing_fields(form, "extensions"):
-                return util.error(f"Missing fields extensions.\nPlease try again.")
-            
-            for ext_json in form["extensions"]:
-                missing = util.check_missing_fields(ext_json, "netids", "max_runs", "start", "end")
-                if missing:
-                    return util.error(f"Extension missing fields {', '.join(missing)}. Please try again.")
+        
+            missing = util.check_missing_fields(form, "netids", "max_runs", "start", "end")
+            if missing:
+                return util.error(f"Extension missing fields {', '.join(missing)}. Please try again.")
 
-                student_netids = ext_json["netids"].replace(" ", "").lower().split(",")
-                for student_netid in student_netids:
-                    if not util.valid_id(student_netid) or not verify_student(student_netid, cid):
-                        return util.error(f"Invalid or non-existent student NetID: {student_netid}")
+            student_netids = form["netids"].replace(" ", "").lower().split(",")
+            for student_netid in student_netids:
+                if not util.valid_id(student_netid) or not verify_student(student_netid, cid):
+                    return util.error(f"Invalid or non-existent student NetID: {student_netid}")
 
-                try:
-                    max_runs = int(ext_json["max_runs"])
-                    if max_runs < 1:
-                        return util.error("Max Runs must be a positive integer.")
-                except ValueError:
+            try:
+                max_runs = int(form["max_runs"])
+                if max_runs < 1:
                     return util.error("Max Runs must be a positive integer.")
+            except ValueError:
+                return util.error("Max Runs must be a positive integer.")
 
-                print(ext_json["start"], ext_json["end"])
+            print(form["start"], form["end"])
 
-                start = util.parse_form_datetime(ext_json["start"])
-                if not start:
-                    return util.error("Failed to parse timestamp")
-                start = start.timestamp()
-                end = util.parse_form_datetime(ext_json["end"])
-                if not end:
-                    return util.error("Failed to parse timestamp")
-                end = end.timestamp()
-                if start >= end:
-                    return util.error("Start must be before End.")
+            start = util.parse_form_datetime(form["start"])
+            if not start:
+                return util.error("Failed to parse timestamp")
+            start = start.timestamp()
+            end = util.parse_form_datetime(form["end"])
+            if not end:
+                return util.error("Failed to parse timestamp")
+            end = end.timestamp()
+            if start >= end:
+                return util.error("Start must be before End")
 
-                for student_netid in student_netids:
-                    db.add_extension(cid, aid, student_netid, max_runs, start, end)
-            return util.success("Successfully uploaded extensions", HTTPStatus.OK)
+            ext_res = db.add_extension(cid, aid, ','.join(student_netids), max_runs, start, end)
+            if not ext_res.acknowledged:
+                return util.error("Failed to add extension to db")
+            
+            form = request.json
+            run_id = db.generate_new_id()
+
+            # Add scheduled run if specified in query
+            if request.args.get("add_run"):
+                msg, status = add_or_edit_scheduled_run(cid, aid, run_id, form, None)
+                if status != HTTPStatus.OK:
+                    # Rollback changes to db
+                    db.delete_extension(ext_res.inserted_id)
+                    return util.error(msg)
+            return util.success("Successfully uploaded extension", HTTPStatus.OK)
         
         @blueprint.route("/api/<cid>/add_assignment", methods=["POST"])
         @auth.require_course_auth
