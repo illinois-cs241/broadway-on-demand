@@ -58,7 +58,6 @@ def disable_in_maintenance_mode(func):
 		return func(*args, **kwargs)
 	return wrapper
 
-
 def error(content, status=HTTPStatus.BAD_REQUEST):
 	"""
 	Builds a response pair with the error content and status code. The Bad Request status is used if none is
