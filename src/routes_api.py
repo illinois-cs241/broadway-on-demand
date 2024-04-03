@@ -69,7 +69,7 @@ class ApiRoutes:
             
             assignment = db.get_assignment(cid, aid)
             if not assignment:
-                return util.error("Invalid course or assignment. Please try again.")
+                return util.error("Invalid course or assignment.\nPlease try again.")
             
         
             missing = util.check_missing_fields(form, "netids", "max_runs", "start", "end")
