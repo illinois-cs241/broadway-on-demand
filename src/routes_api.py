@@ -105,7 +105,6 @@ class ApiRoutes:
             if not ext_res.acknowledged:
                 return util.error("Failed to add extension to db")
             
-            form = request.json
             run_id = db.generate_new_id()
 
             # Add scheduled run if specified in query
