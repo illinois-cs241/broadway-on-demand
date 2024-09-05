@@ -7,7 +7,7 @@ from src.db import get_course
 
 import identity.web
 
-from config import SYSTEM_API_TOKEN, MIP_AUTHORITY, MIP_CLIENT_ID, MIP_CLIENT_SECRET, MIP_SCOPES, AUTH_DOMAIN
+from config import SYSTEM_API_TOKEN, MIP_AUTHORITY, MIP_CLIENT_ID, MIP_CLIENT_SECRET, MIP_SCOPES, AUTH_DOMAIN, WEBHOOK_API_TOKEN
 
 UID_KEY = "netid"
 CID_KEY = "cid"
@@ -67,6 +67,20 @@ def require_system_auth(func):
         def wrapper(*args, **kwargs):
                 token = request.headers["Authorization"]
                 if token != f"Bearer {SYSTEM_API_TOKEN}":
+                        return abort(HTTPStatus.FORBIDDEN)
+                return func(*args, **kwargs)
+        return wrapper
+
+
+def require_webhook_auth(func):
+        """
+        A route decorator to check for the SYSTEM_API_TOKEN in the headers.
+        Returns Forbidden if the token is not set
+        """
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+                token = request.headers["Authorization"]
+                if not WEBHOOK_API_TOKEN or WEBHOOK_API_TOKEN == "" or token != f"Bearer {WEBHOOK_API_TOKEN}":
                         return abort(HTTPStatus.FORBIDDEN)
                 return func(*args, **kwargs)
         return wrapper

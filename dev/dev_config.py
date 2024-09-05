@@ -5,7 +5,7 @@ MAINTENANCE_MODE = False
 # Message to show when in maintenance mode; appended to "Broadway on Demand is currently under maintenance."
 MAINTENANCE_MODE_MESSAGE = "Maintenance will conclude at __:__ on __/__."
 
-# When true, GitHub Enterprise login can be bypassed to log in as the username below.
+# When true, Azure AD login can be bypassed to log in as the username below.
 DEV_MODE = True
 
 # Server time zone, used for displaying times and specifying due date for Broadway API.
@@ -30,6 +30,7 @@ BROADWAY_API_URL = "http://some-broadway-api-server.example/api/v1"
 
 # API token used to authenticate /system/ routes.
 SYSTEM_API_TOKEN = "some_token"
+WEBHOOK_API_TOKEN = "some_webhook_token"
 
 # GitHub API base URL.
 GHE_API_URL = "https://api.github.com"

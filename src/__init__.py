@@ -10,6 +10,7 @@ from src.routes_admin import AdminRoutes
 from src.routes_staff import StaffRoutes
 from src.routes_api import ApiRoutes
 from src.routes_student import StudentRoutes
+from src.routes_webhook import WebhookRoutes
 from src.template_filters import TemplateFilters
 from src.util import generate_csrf_token
 
@@ -23,6 +24,7 @@ db.init(app)
 Session(app)
 
 blueprint = Blueprint('on-demand', __name__, url_prefix=BASE_URL)
+WebhookRoutes(blueprint)
 StudentRoutes(blueprint)
 StaffRoutes(blueprint)
 AdminRoutes(blueprint)

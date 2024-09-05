@@ -11,7 +11,7 @@ from http import HTTPStatus
 from flask import request, session
 from pytz import utc
 
-from config import TZ, MAINTENANCE_MODE, MAINTENANCE_MODE_MESSAGE
+from config import TZ, MAINTENANCE_MODE, MAINTENANCE_MODE_MESSAGE, WEBHOOK_API_TOKEN
 
 
 def check_missing_fields(data, *args):
@@ -57,7 +57,6 @@ def disable_in_maintenance_mode(func):
 			return "Broadway on Demand is currently under maintenance.\n{}".format(MAINTENANCE_MODE_MESSAGE), 503
 		return func(*args, **kwargs)
 	return wrapper
-
 
 def error(content, status=HTTPStatus.BAD_REQUEST):
 	"""

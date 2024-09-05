@@ -108,3 +108,4 @@ config.py
 .idea/
 
 .vscode/
+.mise.toml

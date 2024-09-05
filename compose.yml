@@ -15,5 +15,5 @@ services:
       context: .
       dockerfile: dev/db.Dockerfile
     ports:
-      - "27018:27017"
+      - "27017:27017"
     restart: always
