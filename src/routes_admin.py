@@ -96,7 +96,7 @@ class AdminRoutes:
         @auth.require_auth
         @auth.require_admin_status
         def add_course_student(netid, cid):
-            semicolon_seperated = request.form.get('student_data').lower()
+            semicolon_seperated = request.form.get('netid').lower()
             try:
                 new_student_id, new_student_uin, new_student_name = semicolon_seperated.split(";")
             except Exception:
