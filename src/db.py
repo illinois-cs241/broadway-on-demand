@@ -66,11 +66,22 @@ def add_staff_to_course(cid, new_staff_id):
 def remove_staff_from_course(cid, staff_id):
 	return mongo.db.courses.update({"_id": cid},{"$unset" : {f"staff.{staff_id}": 1}})
 
-def add_student_to_course(cid, new_student_id):
-	return mongo.db.courses.update({"_id": cid}, {"$addToSet": {"student_ids": new_student_id}})
+def add_student_to_course(cid, new_student_id, new_student_uin, new_student_name):
+	return mongo.db.courses.update({"_id": cid}, {"$addToSet": {
+			"student_ids": new_student_id,
+			"student_enhanced_mapping": {"name": new_student_name, "uin": new_student_uin, "netid": new_student_id}
+	}})
 
 def remove_student_from_course(cid, student_id):
-	return mongo.db.courses.update({"_id": cid}, {"$pull": {"student_ids": student_id}})
+	return mongo.db.courses.update(
+		{"_id": cid}, 
+		{
+			"$pull": {
+				"student_ids": student_id,
+				"student_enhanced_mapping": {"netid": student_id}
+			}
+		}
+	)
 
 def add_admin_to_course(cid, staff_id):
 	# the way an admin should be added to the course
