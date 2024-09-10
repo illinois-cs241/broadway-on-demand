@@ -105,7 +105,7 @@ class AdminRoutes:
                 return util.error("Cannot find all fields")
             if not util.is_valid_netid(new_student_id):
                 return util.error(f"Poorly formatted NetID: '{new_student_id}'")
-            if not util.is_valid_netid(new_student_uin):
+            if not util.is_valid_uin(new_student_uin):
                 return util.error(f"Poorly formatted UIN: '{new_student_uin}'")
             result = db.add_student_to_course(cid, str(new_student_id), str(new_student_uin), str(new_student_name))
             if none_modified(result):
