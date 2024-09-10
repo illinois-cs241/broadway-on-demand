@@ -45,7 +45,7 @@ class AdminRoutes:
         @auth.require_admin_status
         def get_course_student_roster(netid, cid):
             course = db.get_course(cid)
-            return jsonify(course['student_enhanced_mapping'])
+            return jsonify(sorted(course['student_enhanced_mapping'], key=lambda d: d['name']))
 
         @blueprint.route("/staff/course/<cid>/add_staff", methods=["POST"])
         @auth.require_auth
