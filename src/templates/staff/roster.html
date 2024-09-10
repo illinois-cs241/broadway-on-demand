@@ -49,14 +49,14 @@
         <div class="card-header">
           <h5 class="card-title mb-0 d-inline"><i class="fas fa-users"></i> Manage Student</h5>
           <button class="btn btn-outline-secondary btn-sm float-right" data-toggle="modal"
-                  data-target="#uploadRosterModal">
-            <i class="fas fa-file-upload"></i> Upload File
+                  data-target="#uploadRosterModal" disabled>
+            <i class="fas fa-file-upload"></i> Upload File (temporarily disabled)
           </button>
         </div>
         <div class="card-body px-md-4">
           <div class="form-group">
             <form autocomplete="off" class="d-flex align-items-center" style="flex-wrap: nowrap;">
-              <input id="student-id" name="netid" placeholder="Enter a NetID" type="text" class="mr-3 form-control"
+              <input id="student-id" name="netid" placeholder="Enter semicolon-seperated NetID;UIN;Name" type="text" class="mr-3 form-control"
                      value="" required>
               <button type="button" class="btn btn-primary d-block" id="add-student">Add student</button>
             </form>
@@ -168,9 +168,9 @@
       for (let i = 0; i < students.length; i++) {
         let firstItemOnlyClass = i === 0 ? 'border-top-0' : '';
         $("#student-table").append(`
-          <li class="list-group-item ${firstItemOnlyClass}">${students[i]}
+          <li class="list-group-item ${firstItemOnlyClass}">${students[i].name} <small class="text-muted">${students[i].netid}</small>
             <div class="float-right">
-              <i class="clickable remove-student fas fa-lg fa-trash-alt text-danger" data-netid="${students[i]}"></i>
+              <i class="clickable remove-student fas fa-lg fa-trash-alt text-danger" data-netid="${students[i].netid}"></i>
             </div>
           </li>
         `)

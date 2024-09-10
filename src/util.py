@@ -129,6 +129,13 @@ def is_valid_netid(netid):
 	"""
 	return fullmatch(r"[a-zA-Z0-9\-]+", netid) is not None
 
+def is_valid_uin(uin):
+    """
+    Return true if the UIN passed in is a valid UIN (a 9-digit string).
+    :param uin: A uin string to be tested
+    """
+    return fullmatch(r"\d{9}", uin) is not None
+
 def catch_request_errors(func):
 	"""
 	Decorator used to catch common request errors such as RequestException,

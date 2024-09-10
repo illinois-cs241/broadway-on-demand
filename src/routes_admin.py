@@ -1,3 +1,4 @@
+from xxlimited import new
 from flask import render_template, abort, request, jsonify
 from http import HTTPStatus
 import json, re
@@ -44,7 +45,7 @@ class AdminRoutes:
         @auth.require_admin_status
         def get_course_student_roster(netid, cid):
             course = db.get_course(cid)
-            return jsonify(course['student_ids'])
+            return jsonify(sorted(course['student_enhanced_mapping'], key=lambda d: d['name']))
 
         @blueprint.route("/staff/course/<cid>/add_staff", methods=["POST"])
         @auth.require_auth
@@ -96,12 +97,17 @@ class AdminRoutes:
         @auth.require_auth
         @auth.require_admin_status
         def add_course_student(netid, cid):
-            new_student_id = request.form.get('netid').lower()
-            if new_student_id is None:
-                return util.error("Cannot find netid field")
+            semicolon_seperated = request.form.get('netid')
+            try:
+                new_student_id, new_student_uin, new_student_name = semicolon_seperated.split(";")
+                new_student_id = new_student_id.lower()
+            except Exception:
+                return util.error("Cannot find all fields")
             if not util.is_valid_netid(new_student_id):
                 return util.error(f"Poorly formatted NetID: '{new_student_id}'")
-            result = db.add_student_to_course(cid, str(new_student_id))
+            if not util.is_valid_uin(new_student_uin):
+                return util.error(f"Poorly formatted UIN: '{new_student_uin}'")
+            result = db.add_student_to_course(cid, str(new_student_id), str(new_student_uin), str(new_student_name))
             if none_modified(result):
                 return util.error(f"'{new_student_id}' is already a student")
             return util.success(f"Successfully added {new_student_id}")
