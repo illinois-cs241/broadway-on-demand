@@ -1,3 +1,4 @@
+from xxlimited import new
 from flask import render_template, abort, request, jsonify
 from http import HTTPStatus
 import json, re
@@ -96,9 +97,10 @@ class AdminRoutes:
         @auth.require_auth
         @auth.require_admin_status
         def add_course_student(netid, cid):
-            semicolon_seperated = request.form.get('netid').lower()
+            semicolon_seperated = request.form.get('netid')
             try:
                 new_student_id, new_student_uin, new_student_name = semicolon_seperated.split(";")
+                new_student_id = new_student_id.lower()
             except Exception:
                 return util.error("Cannot find all fields")
             if not util.is_valid_netid(new_student_id):
