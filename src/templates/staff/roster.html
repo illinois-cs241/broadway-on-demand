@@ -168,7 +168,7 @@
       for (let i = 0; i < students.length; i++) {
         let firstItemOnlyClass = i === 0 ? 'border-top-0' : '';
         $("#student-table").append(`
-          <li class="list-group-item ${firstItemOnlyClass}">${students[i].name} <p><small class="text-muted">${students[i].netid}</small></p>
+          <li class="list-group-item ${firstItemOnlyClass}">${students[i].name} <small class="text-muted">${students[i].netid}</small>
             <div class="float-right">
               <i class="clickable remove-student fas fa-lg fa-trash-alt text-danger" data-netid="${students[i].netid}"></i>
             </div>
