@@ -7,19 +7,6 @@ from src.sched_api import ScheduledRunStatus
 
 class ApiRoutes:
     def __init__(self, blueprint):
-        @blueprint.route("/api/<cid>/update_roster", methods=["POST"])
-        @auth.require_course_auth
-        @auth.require_admin_status
-        def admin_update_roster(cid):
-            netids = request.json["roster"].strip().lower().split("\n")
-
-            for i, student_id in enumerate(netids):
-                if not util.is_valid_netid(student_id):
-                    return util.error(f"Poorly formatted NetID on line {i + 1}: '{student_id}'")
-
-            db.overwrite_student_roster(cid, netids)
-            return util.success("Successfully updated roster.", HTTPStatus.OK)
-
         @blueprint.route("/api/<cid>/<aid>/trigger_scheduled_run/<scheduled_run_id>", methods=["POST"])
         @auth.require_system_auth
         def trigger_scheduled_run(cid, aid, scheduled_run_id):
