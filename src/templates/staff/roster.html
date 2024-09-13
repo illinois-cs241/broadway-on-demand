@@ -48,9 +48,8 @@
       <div class="card">
         <div class="card-header">
           <h5 class="card-title mb-0 d-inline"><i class="fas fa-users"></i> Manage Student</h5>
-          <button class="btn btn-outline-secondary btn-sm float-right" data-toggle="modal"
-                  data-target="#uploadRosterModal" disabled>
-            <i class="fas fa-file-upload"></i> Upload File (temporarily disabled)
+          <button class="btn btn-outline-secondary btn-sm float-right" data-toggle="modal" data-target="#uploadRosterModal">
+            <i class="fas fa-file-upload"></i> Upload File
           </button>
         </div>
         <div class="card-body px-md-4">
@@ -81,12 +80,14 @@
       </div>
       <div class="modal-body">
         <p>
-          Upload a <b>.txt</b> file that contains <b>newline separated NetIDs</b>.
+          Upload a <b>.csv</b> file from
+          <a href="https://my.siebelschool.illinois.edu/" target="_blank">my.siebelschool.illinois.edu/</a>
+          that contains <b>newline separated students</b>.
         </p>
         <div id="roster-upload-box" class="file-drop-box mb-1" draggable="true">
           Drag & drop or click to upload
         </div>
-        <input type="file" id="roster-upload" accept="text/plain" class="form-control-file" style="display: none;">
+        <input type="file" id="roster-upload" accept="text/csv" class="form-control-file" style="display: none;">
         <small class="text-danger">Warning: This upload will replace all current students.<br></small>
         <small class="text-danger" id="roster-error" style="display: none;">Error!</small>
       </div>
