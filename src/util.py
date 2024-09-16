@@ -136,6 +136,14 @@ def is_valid_uin(uin):
     """
     return fullmatch(r"\d{9}", uin) is not None
 
+def is_valid_student(netid, uin, name):
+	if not netid or not uin or not name:
+		return False
+	if not is_valid_netid(netid) or not is_valid_uin(uin):
+		return False
+
+	return True
+
 def catch_request_errors(func):
 	"""
 	Decorator used to catch common request errors such as RequestException,

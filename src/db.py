@@ -91,8 +91,15 @@ def remove_admin_from_course(cid, staff_id):
 	return mongo.db.courses.update({"_id": cid}, {"$set" : {f"staff.{staff_id}.is_admin": False}})
 
 
-def overwrite_student_roster(cid, student_ids):
-	return mongo.db.courses.update({"_id": cid}, {"$set": {"student_ids": student_ids}})
+def overwrite_student_roster(cid, students):
+	student_ids = list(map(lambda student: student[0], students))
+	student_enhanced = list(map(lambda student: {
+		"netid": student[0],
+		"uin": student[1], 
+		"name": student[2]
+	}, students))
+
+	return mongo.db.courses.update({"_id": cid}, {"$set": {"student_ids": student_ids, "student_enhanced_mapping": student_enhanced}})
 
 
 def get_assignments_for_course(cid, visible_only=False):

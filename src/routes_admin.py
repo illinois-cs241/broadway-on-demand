@@ -1,3 +1,4 @@
+import csv
 from xxlimited import new
 from flask import render_template, abort, request, jsonify
 from http import HTTPStatus
@@ -7,7 +8,6 @@ from src import db, util, auth, bw_api, sched_api
 from src.common import verify_staff, verify_admin, verify_student
 
 MIN_PREDEADLINE_RUNS = 1  # Minimum pre-deadline runs for every assignment
-
 
 class AdminRoutes:
     def __init__(self, blueprint):
@@ -127,12 +127,19 @@ class AdminRoutes:
         @auth.require_admin_status
         def upload_roster_file(netid, cid):
             file_content = request.form.get('content')
-            netids = file_content.strip().lower().split('\n')
-            for i, student_id in enumerate(netids):
-                if not util.is_valid_netid(student_id):
-                    return util.error(f"Poorly formatted NetID on line {i + 1}: '{student_id}'")
+            reader = csv.DictReader(file_content.strip().split("\n"), dialect=csv.excel)
 
-            result = db.overwrite_student_roster(cid, netids)
+            students = []
+
+            for i, row in enumerate(reader):
+                netid, uin, name = row.get("Net ID"), row.get("UIN"), row.get("Name")
+                
+                if not util.is_valid_student(netid, uin, name):
+                    return util.error(f"Invalid student on line {i + 1} ({row}): netid='{netid}', uin={uin}, name='{name}'")
+                
+                students.append((netid, uin, name))
+
+            result = db.overwrite_student_roster(cid, students)
             if none_modified(result):
                 return util.error("The new roster is the same as the current one.")
             return util.success("Successfully updated roster.")
