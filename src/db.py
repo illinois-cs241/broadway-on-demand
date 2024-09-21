@@ -92,12 +92,12 @@ def remove_admin_from_course(cid, staff_id):
 
 
 def overwrite_student_roster(cid, students):
-	student_ids = list(map(lambda student: student[0], students))
-	student_enhanced = list(map(lambda student: {
+	student_ids = list(set(list(map(lambda student: student[0], students))))
+	student_enhanced = list(set(list(map(lambda student: {
 		"netid": student[0],
 		"uin": student[1], 
 		"name": student[2]
-	}, students))
+	}, students))))
 
 	return mongo.db.courses.update({"_id": cid}, {"$set": {"student_ids": student_ids, "student_enhanced_mapping": student_enhanced}})
 
