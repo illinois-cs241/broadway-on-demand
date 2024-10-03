@@ -13,6 +13,14 @@
            '#mdl-add-assn-save .loader', 
            '#mdl-add-assn'
        );
+       modifyTemplates(
+           "course-templates", 
+           `{{ url_for('.set_template_values', cid=course._id) }}`, 
+           '#mdl-course-templates-error', 
+           '#mdl-course-templates-save',
+           '#mdl-course-templates-save .loader', 
+           '#mdl-course-templates'
+       );
    });
    
    function viewWorkerStatus() {
@@ -115,7 +123,7 @@
                            </form>
                         </div>
                         <div class="modal-footer">
-                           <button type="submit" form="add-assn" class="btn btn-primary" id="mdl-course-templates-save">
+                           <button type="submit" form="course-templates" class="btn btn-primary" id="mdl-course-templates-save">
                            <span class="fa fa-cog loader" style="margin-right: 0.2em;"></span>
                            Save
                            </button>

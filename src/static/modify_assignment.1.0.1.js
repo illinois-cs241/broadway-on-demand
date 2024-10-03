@@ -94,3 +94,65 @@ function modifyAssignment(formName, postUrl, errorSelector, saveBtn, saveBtnIcon
         }
     });
 }
+
+function modifyTemplates(formName, postUrl, errorSelector, saveBtn, saveBtnIcon, modalSelector) {
+    // form validation
+    $(`form[name="${formName}"]`).validate({
+        errorClass: "text-danger",
+        errorElement: "small",
+        rules: {
+            config: "required",
+            grading_config: "required",
+        },
+        errorPlacement: function(error, element) {
+            if (element.attr("type") == "radio") {
+                // radio are grouped by divs, so insert at the end of one level above
+                let parent = element.parent().parent();
+                parent.append("<br/>");
+                parent.append(error);
+            } else {
+                // normally insert right after input element
+                error.insertAfter(element);
+            }
+        },
+        submitHandler: function(form, event) {
+            event.preventDefault();
+            // raw data has the form: [{name: "name of input field", value: "input value"}, ...]
+            let rawData = $(form).serializeArray();
+            let formData = {};
+            for (let i = 0; i < rawData.length; i++) {
+                let fieldName = rawData[i].name;
+                let fieldVal = rawData[i].value;
+                // Convert date string to special format
+                if (fieldName == "start" || fieldName == "end") {
+                    fieldVal = moment(fieldVal).format("YYYY-MM-DDTHH:mm");
+                }
+                formData[fieldName] = fieldVal;
+            }
+            $.ajax({
+                type: "POST",
+                url: postUrl,
+                data: formData,
+                beforeSend: function () {
+                    $(errorSelector).html('').fadeOut();
+                    $(saveBtnIcon).addClass("fa-spin");
+                    $(saveBtn).prop('disabled', true);
+                },
+                success: function () {
+                    $(modalSelector).modal('hide');
+                    location.reload();
+                },
+                error: function (xhr) {
+                    if (!xhr.responseText) {
+                        $(errorSelector).html("Save failed. Please try again.").fadeIn();
+                    } else {
+                        $(errorSelector).html(xhr.responseText).fadeIn();
+                    }
+                }
+            }).always(() => {
+                $(saveBtnIcon).removeClass("fa-spin");
+                $(saveBtn).prop('disabled', false);
+            });
+        }
+    });
+}

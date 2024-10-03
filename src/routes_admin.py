@@ -145,6 +145,23 @@ class AdminRoutes:
                 return util.error("The new roster is the same as the current one.")
             return util.success("Successfully updated roster.")
 
+        @blueprint.route("/staff/course/<cid>/set_template_configs/", methods=["POST"])
+        @auth.require_auth
+        @auth.require_admin_status
+        def set_template_values(netid, cid):
+            missing = util.check_missing_fields(request.form,
+                                                *["config", "grading_config"])
+            if missing:
+                return util.error(f"Missing fields ({', '.join(missing)}).")
+            try:
+                config = json.loads(request.form["config"])
+                grading_config = json.loads(request.form["grading_config"])
+            except Exception as e:
+                return util.error("Failed to decode config JSON")
+            
+            return util.success("")
+
+
         @blueprint.route("/staff/course/<cid>/add_assignment/", methods=["POST"])
         @auth.require_auth
         @auth.require_admin_status
