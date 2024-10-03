@@ -175,6 +175,9 @@ class AdminRoutes:
 
             start = util.parse_form_datetime(request.form["start"]).timestamp()
             end = util.parse_form_datetime(request.form["end"]).timestamp()
+            run_start_str = (util.parse_form_datetime(request.form["end"]) + timedelta(minutes=5)).strftime("%Y-%m-%dT%H:%M")
+            end_str = util.parse_form_datetime(request.form["end"]).strftime("%Y-%m-%dT%H:%M")
+            run_id = db.generate_new_id()
             if start is None or end is None:
                 return util.error("Missing or invalid Start or End.")
             if start >= end:
@@ -192,6 +195,9 @@ class AdminRoutes:
             visibility = request.form["visibility"]
 
             db.add_assignment(cid, aid, max_runs, quota, start, end, visibility)
+            # Schedule Final Grading Run 
+            schedule_result = add_or_edit_scheduled_run(cid, aid, run_id, {"run_time": run_start_str, "due_time": end_str, "name": "Final Grading Run", "config": request.form['config']}, None)
+            print("Add assignment - schedule result:", schedule_result, flush=True)
             return util.success("")
 
         @blueprint.route("/staff/course/<cid>/<aid>/edit/", methods=["POST"])
