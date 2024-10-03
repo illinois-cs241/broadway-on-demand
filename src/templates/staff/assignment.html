@@ -395,7 +395,7 @@
                                 </div>
                                 <div class="form-group">
                                     <label for="start">End Date & Time</label> <span class="badge badge-secondary">{{ tzname }}</span>
-                                    <input type="datetime-local" class="form-control" id="mdl-edit-assn-end" name="end" value="{{ assignment.end|fmt_datetime_local }}">
+                                    <input type="datetime-local" class="form-control" id="mdl-edit-assn-end" name="end" value="{{ (assignment.end + timedelta(minutes=1))|fmt_datetime_local }}">
                                 </div>
                                 <div class="form-group">
                                     <label class="form-check-label">Visibility</label><br>
