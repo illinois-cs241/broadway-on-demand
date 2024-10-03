@@ -285,14 +285,15 @@ class AdminRoutes:
 
             start = util.parse_form_datetime(request.form["start"]).timestamp()
             end = util.parse_form_datetime(request.form["end"]).timestamp()
-            # avoid that weird race condition - start run 5 min after, but with a container due date of the original time
-            ext_end = (util.parse_form_datetime(request.form["end"]) + timedelta(minutes=5)).strftime("%Y-%m-%dT%H:%M")
             if start >= end:
                 return util.error("Start must be before End.")
 
             for student_netid in student_netids:
+                end_str = util.parse_form_datetime(request.form["end"]).strftime("%Y-%m-%dT%H:%M")
+                # avoid that weird race condition - start run 5 min after, but with a container due date of the original time
+                ext_end = (util.parse_form_datetime(request.form["end"]) + timedelta(minutes=5)).strftime("%Y-%m-%dT%H:%M")
                 run_id = db.generate_new_id()
-                add_or_edit_scheduled_run(cid, aid, run_id, {"run_time": ext_end, "due_time": end, "name": f"Extension Run - {student_netid}", "config": {}, "roster": [student_netid]}, None)
+                add_or_edit_scheduled_run(cid, aid, run_id, {"run_time": ext_end, "due_time": end_str, "name": f"Extension Run - {student_netid}", "config": {}, "roster": [student_netid]}, None)
                 db.add_extension(cid, aid, student_netid, max_runs, start, end, run_id)
             return util.success("")
         
