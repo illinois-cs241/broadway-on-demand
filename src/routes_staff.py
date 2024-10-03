@@ -69,7 +69,7 @@ class StaffRoutes:
             student_runs = list(db.get_assignment_runs(cid, aid))
             scheduled_runs = list(db.get_scheduled_runs(cid, aid))
             is_admin = verify_admin(netid, cid)
-
+            assignment['end_plus_one_minute'] = assignment['end'] + 60000
             return render_template("staff/assignment.html", netid=netid, course=course,
                                    assignment=assignment, student_runs=student_runs,
                                    scheduled_runs=scheduled_runs, sched_run_status=sched_api.ScheduledRunStatus,
