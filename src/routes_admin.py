@@ -286,7 +286,7 @@ class AdminRoutes:
             start = util.parse_form_datetime(request.form["start"]).timestamp()
             end = util.parse_form_datetime(request.form["end"]).timestamp()
             # avoid that weird race condition - start run 5 min after, but with a container due date of the original time
-            ext_end = (util.parse_form_datetime(request.form["end"]) + timedelta(minutes = 5)).timestamp()
+            ext_end = (util.parse_form_datetime(request.form["end"]) + timedelta(minutes=5)).strftime("%Y-%m-%dT%H:%M")
             if start >= end:
                 return util.error("Start must be before End.")
 
