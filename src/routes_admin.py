@@ -149,16 +149,25 @@ class AdminRoutes:
         @auth.require_auth
         @auth.require_admin_status
         def set_template_values(netid, cid):
+            if not db.get_course(cid):
+                return abort(HTTPStatus.NOT_FOUND)
+
             missing = util.check_missing_fields(request.form,
                                                 *["config", "grading_config"])
             if missing:
                 return util.error(f"Missing fields ({', '.join(missing)}).")
             try:
-                config = json.loads(request.form["config"])
-                grading_config = json.loads(request.form["grading_config"])
-            except Exception as e:
-                return util.error("Failed to decode config JSON")
-            
+                json.loads(request.form["config"])
+            except Exception:
+                return util.error("Failed to decode student job JSON.")
+            try:
+                json.loads(request.form["grading_config"])
+            except Exception:
+                return util.error("Failed to decode grading job JSON.")
+            try:
+                db.set_templates_for_course(cid, request.form['config'], request.form['grading_config'])
+            except Exception:
+                return util.error("Failed to save template to database.")
             return util.success("")
 
 

@@ -63,6 +63,10 @@ def get_course(cid):
 def add_staff_to_course(cid, new_staff_id):
 	return mongo.db.courses.update({"_id": cid}, {"$set" : {f"staff.{new_staff_id}": {"is_admin": False}}})
 
+
+def set_templates_for_course(cid, assignment_config: str, grading_config: str):
+	return mongo.db.courses.update({"_id": cid}, {"$set" : {"default_assignment_config": assignment_config, "default_grading_config": grading_config}})
+
 def remove_staff_from_course(cid, staff_id):
 	return mongo.db.courses.update({"_id": cid},{"$unset" : {f"staff.{staff_id}": 1}})
 
