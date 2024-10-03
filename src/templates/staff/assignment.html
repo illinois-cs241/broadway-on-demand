@@ -51,6 +51,11 @@
             addExtErr("Max Runs is required.");
             return;
         }
+        let config = $('#mdl-ext-run-config').val();
+        if (!config) {
+            addExtErr("Run config is required.");
+            return;
+        }
         let start = $('#mdl-add-ext-start').val();
         let end = $('#mdl-add-ext-end').val();
         if (!start || !end) {
@@ -63,7 +68,7 @@
         $.ajax({
             type: "POST",
             url: "{{ url_for('.staff_add_extension', cid=course._id, aid=assignment.assignment_id) }}",
-            data: {netids: netids, max_runs: maxRuns, start: start, end: end},
+            data: {netids: netids, max_runs: maxRuns, start: start, end: end, config: config},
             beforeSend: function () {
                 $('#mdl-add-ext-error').html('').hide();
                 $("#mdl-add-ext-save").prop('disabled', true);
@@ -477,6 +482,10 @@
                                 <div class="form-group">
                                     <label for="max_runs">Max Runs (total)</label>
                                     <input type="number" min="1" max="100" class="form-control" id="mdl-add-ext-runs" name="max_runs">
+                                </div>
+                                <div class="form-group">
+                                    <label for="start">Configuration</label>
+                                    <textarea type="text" class="form-control" id="mdl-ext-run-config" name="config" rows="5" style="font-family: monospace;" placeholder="JSON configuration for broadway"></textarea>
                                 </div>
                                 <div id="mdl-add-ext-error" class="form-text text-danger"></div>
                             </form>
