@@ -131,7 +131,6 @@ def get_assignments_for_course(cid, visible_only=False):
 def get_assignment(cid, aid):
 	return mongo.db.assignments.find_one({"course_id": cid, "assignment_id": aid})
 
-
 def add_assignment(cid, aid, max_runs, quota, start, end, visibility):
 	"""
 	Add a new assignment.
@@ -235,6 +234,12 @@ def get_extensions(cid, aid, netid=None):
 		return mongo.db.extensions.find({"course_id": cid, "assignment_id": aid, "netid": netid})
 
 
+def pair_assignment_final_grading_run(cid: str, aid: str, scheduled_run_id: ObjectId):
+	return mongo.db.assignments.update(
+		{"course_id": cid, "assignment_id": aid},
+		{"$set": {"final_grading_run_id": str(scheduled_run_id)}}
+	)
+	
 def add_extension(cid, aid, netid, max_runs, start, end, scheduled_run_id: ObjectId = None):
 	return mongo.db.extensions.insert_one({"course_id": cid, "assignment_id": aid, "netid": netid, "max_runs": max_runs, "remaining_runs": max_runs, "start": start, "end": end, "run_id": None or str(scheduled_run_id)})
 

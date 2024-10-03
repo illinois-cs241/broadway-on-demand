@@ -198,6 +198,7 @@ class AdminRoutes:
             # Schedule Final Grading Run 
             schedule_result = add_or_edit_scheduled_run(cid, aid, run_id, {"run_time": run_start_str, "due_time": end_str, "name": "Final Grading Run", "config": request.form['config']}, None)
             print("Add assignment - schedule result:", schedule_result, flush=True)
+            db.pair_assignment_final_grading_run(cid, aid, str(run_id))
             return util.success("")
 
         @blueprint.route("/staff/course/<cid>/<aid>/edit/", methods=["POST"])
