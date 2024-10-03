@@ -169,46 +169,6 @@ class AdminRoutes:
             except Exception:
                 return util.error("Failed to save template to database.")
             return util.success("")
-        
-
-        @blueprint.route("/staff/course/<cid>/template_configs/", methods=["POST"])
-        @auth.require_auth
-        @auth.require_admin_status
-        def set_template_values(netid, cid):
-            if not db.get_course(cid):
-                return abort(HTTPStatus.NOT_FOUND)
-
-            missing = util.check_missing_fields(request.form,
-                                                *["config", "grading_config"])
-            if missing:
-                return util.error(f"Missing fields ({', '.join(missing)}).")
-            try:
-                json.loads(request.form["config"])
-            except Exception:
-                return util.error("Failed to decode student job JSON.")
-            try:
-                json.loads(request.form["grading_config"])
-            except Exception:
-                return util.error("Failed to decode grading job JSON.")
-            try:
-                db.set_templates_for_course(cid, request.form['config'], request.form['grading_config'])
-            except Exception:
-                return util.error("Failed to save template to database.")
-            return util.success("")
-        
-        @blueprint.route("/staff/course/<cid>/template_configs/", methods=["GET"])
-        @auth.require_auth
-        @auth.require_admin_status
-        def get_template_values(netid, cid):
-            if not db.get_course(cid):
-                return abort(HTTPStatus.NOT_FOUND)
-
-            try:
-                db.set_templates_for_course(cid, request.form['config'], request.form['grading_config'])
-            except Exception:
-                return util.error("Failed to save template to database.")
-            return util.success("")
-
 
 
         @blueprint.route("/staff/course/<cid>/add_assignment/", methods=["POST"])
