@@ -95,6 +95,37 @@
          <div class="card">
             <div class="card-body">
                <h5 class="card-title">Course actions</h5>
+               <button type="button" class="btn btn-outline-primary mt-3" data-toggle="modal" data-target="#mdl-worker-status" onclick="viewWorkerStatus()">
+               <i class="fas fa-server"></i> Worker status
+               </button>
+               <div class="modal fade" id="mdl-worker-status" tabindex="-1" role="dialog" aria-labelledby="mdl-worker-status-label" aria-hidden="true">
+                  <div class="modal-dialog" role="document">
+                     <div class="modal-content">
+                        <div class="modal-header">
+                           <h5 class="modal-title" id="mdl-view-worker-status-label">Worker status</h5>
+                           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                           <span aria-hidden="true">&times;</span>
+                           </button>
+                        </div>
+                        <div class="modal-body">
+                           <div class="table-responsive">
+                              <table class="table table-fit table-hover">
+                                 <thead>
+                                    <tr>
+                                       <th scope="col">Host</th>
+                                       <th scope="col">Jobs Processed</th>
+                                       <th scope="col">Alive</th>
+                                       <th scope="col">Busy</th>
+                                    </tr>
+                                 </thead>
+                                 <tbody id="mdl-worker-status-body">
+                                 </tbody>
+                              </table>
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+               </div>
                {% if is_admin %}
                <button type="button" class="btn btn-outline-primary mt-3" data-toggle="modal" data-target="#mdl-course-templates">
                <i class="fas fa-file-code"></i> Modify configuration templates
@@ -213,37 +244,6 @@
                </button>
                </a>
                {% endif %}
-               <button type="button" class="btn btn-outline-primary mt-3" data-toggle="modal" data-target="#mdl-worker-status" onclick="viewWorkerStatus()">
-               <i class="fas fa-server"></i> Worker status
-               </button>
-               <div class="modal fade" id="mdl-worker-status" tabindex="-1" role="dialog" aria-labelledby="mdl-worker-status-label" aria-hidden="true">
-                  <div class="modal-dialog" role="document">
-                     <div class="modal-content">
-                        <div class="modal-header">
-                           <h5 class="modal-title" id="mdl-view-worker-status-label">Worker status</h5>
-                           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                           <span aria-hidden="true">&times;</span>
-                           </button>
-                        </div>
-                        <div class="modal-body">
-                           <div class="table-responsive">
-                              <table class="table table-fit table-hover">
-                                 <thead>
-                                    <tr>
-                                       <th scope="col">Host</th>
-                                       <th scope="col">Jobs Processed</th>
-                                       <th scope="col">Alive</th>
-                                       <th scope="col">Busy</th>
-                                    </tr>
-                                 </thead>
-                                 <tbody id="mdl-worker-status-body">
-                                 </tbody>
-                              </table>
-                           </div>
-                        </div>
-                     </div>
-                  </div>
-               </div>
             </div>
          </div>
       </div>
