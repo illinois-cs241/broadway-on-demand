@@ -150,7 +150,7 @@ class AdminRoutes:
         @auth.require_admin_status
         def add_assignment(netid, cid):
             missing = util.check_missing_fields(request.form,
-                                                *["aid", "max_runs", "quota", "start", "end", "config", "visibility"])
+                                                *["aid", "max_runs", "quota", "start", "end", "config", "visibility", "grading_config"])
             if missing:
                 return util.error(f"Missing fields ({', '.join(missing)}).")
 
@@ -196,7 +196,7 @@ class AdminRoutes:
 
             db.add_assignment(cid, aid, max_runs, quota, start, end, visibility)
             # Schedule Final Grading Run 
-            schedule_result = add_or_edit_scheduled_run(cid, aid, run_id, {"run_time": run_start_str, "due_time": end_str, "name": "Final Grading Run", "config": request.form['config']}, None)
+            schedule_result = add_or_edit_scheduled_run(cid, aid, run_id, {"run_time": run_start_str, "due_time": end_str, "name": "Final Grading Run", "config": request.form['grading_config']}, None)
             print("Add assignment - schedule result:", schedule_result, flush=True)
             db.pair_assignment_final_grading_run(cid, aid, str(run_id))
             return util.success("")

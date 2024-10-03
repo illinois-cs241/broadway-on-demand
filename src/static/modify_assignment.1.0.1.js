@@ -40,6 +40,7 @@ function modifyAssignment(formName, postUrl, errorSelector, saveBtn, saveBtnIcon
             },
             visibility: "required",
             config: "required",
+            grading_config: "required",
         },
         errorPlacement: function(error, element) {
             if (element.attr("type") == "radio") {
