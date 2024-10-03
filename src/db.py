@@ -235,8 +235,8 @@ def get_extensions(cid, aid, netid=None):
 		return mongo.db.extensions.find({"course_id": cid, "assignment_id": aid, "netid": netid})
 
 
-def add_extension(cid, aid, netid, max_runs, start, end, scheduled_run_id = None):
-	return mongo.db.extensions.insert_one({"course_id": cid, "assignment_id": aid, "netid": netid, "max_runs": max_runs, "remaining_runs": max_runs, "start": start, "end": end, "run_id": scheduled_run_id})
+def add_extension(cid, aid, netid, max_runs, start, end, scheduled_run_id: ObjectId = None):
+	return mongo.db.extensions.insert_one({"course_id": cid, "assignment_id": aid, "netid": netid, "max_runs": max_runs, "remaining_runs": max_runs, "start": start, "end": end, "run_id": None or str(scheduled_run_id)})
 
 def delete_extension(extension_id):
 	try:
