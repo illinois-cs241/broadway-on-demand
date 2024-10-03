@@ -472,7 +472,7 @@
                                 </div>
                                 <div class="form-group">
                                     <label for="start">Start Date & Time</label> <span class="badge badge-secondary">{{ tzname }}</span>
-                                    <input type="datetime-local" class="form-control" id="mdl-add-ext-start" name="start" onchange="onExtensionDateChange()">
+                                    <input type="datetime-local" class="form-control" id="mdl-add-ext-start" name="start" value="{{ assignment.end|fmt_datetime_local }}" onchange="onExtensionDateChange()">
                                 </div>
                                 <div class="form-group">
                                     <label for="start">End Date & Time</label> <span
