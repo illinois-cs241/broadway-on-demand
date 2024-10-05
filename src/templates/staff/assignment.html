@@ -6,9 +6,6 @@
 <script src="{{ url_for('.static_file', path='moment.min.js') }}"></script>
 <script src="{{ url_for('.static_file', path='modify_assignment.1.0.1.js') }}"></script>
 <script type="application/javascript">
-    $('#mdl-view-exts').on('hidden.bs.modal', function () {
-        location.reload(true); // Reload the page when modal is closed
-    });
     $(() => { // on load
         modifyAssignment(
             "edit-assn", 
@@ -38,6 +35,10 @@
         setTimeout(function() {
             $('.modal-backdrop').not('.modal-stack').css('z-index', zIndex - 1).addClass('modal-stack');
         }, 0);
+    });
+
+    $('#mdl-view-exts').on('hide.bs.modal', '.modal', function () {
+        location.reload(true); // Reload the page when modal is closed
     });
 
     function addExtErr(msg) {
