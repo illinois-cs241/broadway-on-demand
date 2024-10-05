@@ -221,8 +221,7 @@ class AdminRoutes:
 
             db.add_assignment(cid, aid, max_runs, quota, start, end, visibility)
             # Schedule Final Grading Run 
-            schedule_result = add_or_edit_scheduled_run(cid, aid, run_id, {"run_time": run_start_str, "due_time": end_str, "name": "Final Grading Run", "config": request.form['grading_config']}, None)
-            print("Add assignment - schedule result:", schedule_result, flush=True)
+            add_or_edit_scheduled_run(cid, aid, run_id, {"run_time": run_start_str, "due_time": end_str, "name": "Final Grading Run", "config": request.form['grading_config']}, None)
             db.pair_assignment_final_grading_run(cid, aid, str(run_id))
             return util.success("")
 
@@ -325,7 +324,7 @@ class AdminRoutes:
                 # avoid that weird race condition - start run 5 min after, but with a container due date of the original time
                 ext_end = (util.parse_form_datetime(request.form["end"]) + timedelta(minutes=5)).strftime("%Y-%m-%dT%H:%M")
                 run_id = db.generate_new_id()
-                print("Schedule result:", add_or_edit_scheduled_run(cid, aid, run_id, {"run_time": ext_end, "due_time": end_str, "name": f"Extension Run - {student_netid}", "config": request.form['config'], "roster": student_netid}, None), flush=True)
+                add_or_edit_scheduled_run(cid, aid, run_id, {"run_time": ext_end, "due_time": end_str, "name": f"Extension Run - {student_netid}", "config": request.form['config'], "roster": student_netid}, None)
                 db.add_extension(cid, aid, student_netid, max_runs, start, end, run_id)
             return util.success("")
         

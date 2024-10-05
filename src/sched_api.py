@@ -39,7 +39,6 @@ def update_scheduled_run(scheduled_run_id, time):
     data = {
         "time": util.timestamp_to_iso(time),
     }
-    print(util.timestamp_to_iso(time))
     resp = requests.post(url=url, data=data)
     is_success = resp.status_code == HTTPStatus.OK
     if not is_success:
