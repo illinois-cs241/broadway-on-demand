@@ -130,7 +130,7 @@
             url: "{{ url_for('.staff_delete_extension', cid=course._id, aid=assignment.assignment_id) }}",
             data: {"_id": extensionId},
             success: function (result) {
-                viewExtensions();
+                location.reload(true);
             },
             error: function (xhr) {
                 alert(xhr.responseText);
