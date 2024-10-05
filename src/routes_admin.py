@@ -2,7 +2,7 @@ import csv
 from datetime import timedelta
 from flask import render_template, abort, request, jsonify
 from http import HTTPStatus
-
+import json
 from src import db, util, auth, bw_api, sched_api
 from src.common import wrap_delete_scheduled_run
 from src.common import verify_staff, verify_admin, verify_student
@@ -33,7 +33,7 @@ class AdminRoutes:
             
             staff = course["staff"]
             # get all admin_ids by filtering out all non-admins
-            admin = dict(filter(lambda x : x[1].get("is_admin") == True, staff.items()))
+            admin = dict(filter(lambda x : x[1].get("is_admin"), staff.items()))
             admin = list(admin.keys())
             # get the entire staff
             total_staff = list(staff.keys())

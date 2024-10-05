@@ -1,7 +1,7 @@
 from flask_pymongo import PyMongo, ASCENDING, DESCENDING
 from bson.objectid import ObjectId
 from bson.errors import InvalidId
-from src import common, util
+from src import util
 from src.common import wrap_delete_scheduled_run
 from src.sched_api import ScheduledRunStatus
 
