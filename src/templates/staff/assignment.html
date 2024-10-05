@@ -6,6 +6,9 @@
 <script src="{{ url_for('.static_file', path='moment.min.js') }}"></script>
 <script src="{{ url_for('.static_file', path='modify_assignment.1.0.1.js') }}"></script>
 <script type="application/javascript">
+    $('#modal-view-exts').on('hidden.bs.modal', function () {
+        location.reload(true); // Reload the page when modal is closed
+    });
     $(() => { // on load
         modifyAssignment(
             "edit-assn", 
@@ -504,7 +507,7 @@
                     <div class="modal-content">
                         <div class="modal-header">
                             <h5 class="modal-title" id="mdl-view-exts-label">View extensions</h5>
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Close" onclick="location.reload(true)">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                 <span aria-hidden="true">&times;</span>
                             </button>
                         </div>
