@@ -12,6 +12,16 @@ from flask import request, session
 from pytz import utc
 
 from config import TZ, MAINTENANCE_MODE, MAINTENANCE_MODE_MESSAGE
+from src import db, sched_api
+
+def wrap_delete_scheduled_run(cid, aid, run_id):
+    sched_run = db.get_scheduled_run(cid, aid, run_id)
+    if sched_run is None:
+        raise Exception("Cannot find scheduled run")
+    sched_api.delete_scheduled_run(sched_run["scheduled_run_id"])
+    if not db.delete_scheduled_run(cid, aid, run_id):
+        raise Exception("Failed to delete scheduled run.")
+    return True
 
 
 def check_missing_fields(data, *args):

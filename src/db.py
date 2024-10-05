@@ -247,7 +247,17 @@ def pair_assignment_final_grading_run(cid: str, aid: str, scheduled_run_id: Obje
 def add_extension(cid, aid, netid, max_runs, start, end, scheduled_run_id: ObjectId = None):
 	return mongo.db.extensions.insert_one({"course_id": cid, "assignment_id": aid, "netid": netid, "max_runs": max_runs, "remaining_runs": max_runs, "start": start, "end": end, "run_id": None or str(scheduled_run_id)})
 
-def delete_extension(extension_id):
+def delete_extension(cid, aid, extension_id):
+	document = mongo.db.extensions.find_one({"_id": ObjectId(extension_id)})
+	if not document:
+		return None
+	run_id = document.get("run_id", None)
+	if run_id:
+		try:
+			util.wrap_delete_scheduled_run(cid, aid, run_id)
+		except Exception as e:
+			print(f"Failed to delete scheduled run for extension id {extension_id} run id {run_id}: ", str(e), flush=True)
+			pass
 	try:
 		return mongo.db.extensions.delete_one({"_id": ObjectId(extension_id)})
 	except InvalidId:

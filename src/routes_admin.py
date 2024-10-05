@@ -9,7 +9,7 @@ from src import db, util, auth, bw_api, sched_api
 from src.common import verify_staff, verify_admin, verify_student
 
 MIN_PREDEADLINE_RUNS = 1  # Minimum pre-deadline runs for every assignment
-
+        
 class AdminRoutes:
     def __init__(self, blueprint):
         def none_modified(result):
@@ -335,7 +335,7 @@ class AdminRoutes:
         @auth.require_admin_status
         def staff_delete_extension(netid, cid, aid):
             extension_id = request.form["_id"]
-            delete_result = db.delete_extension(extension_id)
+            delete_result = db.delete_extension(cid, aid, extension_id)
 
             if delete_result is None:
                 return util.error("Invalid extension, please refresh the page.")
@@ -428,13 +428,8 @@ class AdminRoutes:
         @auth.require_auth
         @auth.require_admin_status
         def staff_delete_scheduled_run(netid, cid, aid, run_id):
-            sched_run = db.get_scheduled_run(cid, aid, run_id)
-            if sched_run is None:
-                return util.error("Cannot find scheduled run")
-            sched_api.delete_scheduled_run(sched_run["scheduled_run_id"])
-            if not db.delete_scheduled_run(cid, aid, run_id):
-                return util.error("Failed to delete scheduled run. Please try again")
-            return util.success("")
-
-        
-        
+            try:
+                util.wrap_delete_scheduled_run(cid, aid, run_id)
+                return util.success("")
+            except Exception as e:
+                return util.error(str(e))
