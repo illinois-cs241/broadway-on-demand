@@ -2,6 +2,7 @@ from flask_pymongo import PyMongo, ASCENDING, DESCENDING
 from bson.objectid import ObjectId
 from bson.errors import InvalidId
 from src import util
+from src.common import wrap_delete_scheduled_run
 from src.sched_api import ScheduledRunStatus
 
 mongo = PyMongo()
@@ -62,6 +63,10 @@ def get_course(cid):
 
 def add_staff_to_course(cid, new_staff_id):
 	return mongo.db.courses.update({"_id": cid}, {"$set" : {f"staff.{new_staff_id}": {"is_admin": False}}})
+
+
+def set_templates_for_course(cid, assignment_config: str, grading_config: str):
+	return mongo.db.courses.update({"_id": cid}, {"$set" : {"default_assignment_config": assignment_config, "default_grading_config": grading_config}})
 
 def remove_staff_from_course(cid, staff_id):
 	return mongo.db.courses.update({"_id": cid},{"$unset" : {f"staff.{staff_id}": 1}})
@@ -130,7 +135,6 @@ def get_assignments_for_course(cid, visible_only=False):
 
 def get_assignment(cid, aid):
 	return mongo.db.assignments.find_one({"course_id": cid, "assignment_id": aid})
-
 
 def add_assignment(cid, aid, max_runs, quota, start, end, visibility):
 	"""
@@ -235,10 +239,26 @@ def get_extensions(cid, aid, netid=None):
 		return mongo.db.extensions.find({"course_id": cid, "assignment_id": aid, "netid": netid})
 
 
-def add_extension(cid, aid, netid, max_runs, start, end):
-	return mongo.db.extensions.insert_one({"course_id": cid, "assignment_id": aid, "netid": netid, "max_runs": max_runs, "remaining_runs": max_runs, "start": start, "end": end})
+def pair_assignment_final_grading_run(cid: str, aid: str, scheduled_run_id: ObjectId):
+	return mongo.db.assignments.update(
+		{"course_id": cid, "assignment_id": aid},
+		{"$set": {"final_grading_run_id": str(scheduled_run_id)}}
+	)
+	
+def add_extension(cid, aid, netid, max_runs, start, end, scheduled_run_id: ObjectId = None):
+	return mongo.db.extensions.insert_one({"course_id": cid, "assignment_id": aid, "netid": netid, "max_runs": max_runs, "remaining_runs": max_runs, "start": start, "end": end, "run_id": None or str(scheduled_run_id)})
 
-def delete_extension(extension_id):
+def delete_extension(cid, aid, extension_id):
+	document = mongo.db.extensions.find_one({"_id": ObjectId(extension_id)})
+	if not document:
+		return None
+	run_id = document.get("run_id", None)
+	if run_id:
+		try:
+			wrap_delete_scheduled_run(cid, aid, run_id)
+		except Exception as e:
+			print(f"Failed to delete scheduled run for extension id {extension_id} run id {run_id}: ", str(e), flush=True)
+			pass
 	try:
 		return mongo.db.extensions.delete_one({"_id": ObjectId(extension_id)})
 	except InvalidId:

@@ -1,14 +1,14 @@
 import csv
-from xxlimited import new
+from datetime import timedelta
 from flask import render_template, abort, request, jsonify
 from http import HTTPStatus
-import json, re
-
+import json
 from src import db, util, auth, bw_api, sched_api
+from src.common import wrap_delete_scheduled_run
 from src.common import verify_staff, verify_admin, verify_student
 
 MIN_PREDEADLINE_RUNS = 1  # Minimum pre-deadline runs for every assignment
-
+        
 class AdminRoutes:
     def __init__(self, blueprint):
         def none_modified(result):
@@ -33,7 +33,7 @@ class AdminRoutes:
             
             staff = course["staff"]
             # get all admin_ids by filtering out all non-admins
-            admin = dict(filter(lambda x : x[1].get("is_admin") == True, staff.items()))
+            admin = dict(filter(lambda x : x[1].get("is_admin"), staff.items()))
             admin = list(admin.keys())
             # get the entire staff
             total_staff = list(staff.keys())
@@ -144,12 +144,38 @@ class AdminRoutes:
                 return util.error("The new roster is the same as the current one.")
             return util.success("Successfully updated roster.")
 
+        @blueprint.route("/staff/course/<cid>/set_template_configs/", methods=["POST"])
+        @auth.require_auth
+        @auth.require_admin_status
+        def set_template_values(netid, cid):
+            if not db.get_course(cid):
+                return abort(HTTPStatus.NOT_FOUND)
+
+            missing = util.check_missing_fields(request.form,
+                                                *["config", "grading_config"])
+            if missing:
+                return util.error(f"Missing fields ({', '.join(missing)}).")
+            try:
+                json.loads(request.form["config"])
+            except Exception:
+                return util.error("Failed to decode student job JSON.")
+            try:
+                json.loads(request.form["grading_config"])
+            except Exception:
+                return util.error("Failed to decode grading job JSON.")
+            try:
+                db.set_templates_for_course(cid, request.form['config'], request.form['grading_config'])
+            except Exception:
+                return util.error("Failed to save template to database.")
+            return util.success("")
+
+
         @blueprint.route("/staff/course/<cid>/add_assignment/", methods=["POST"])
         @auth.require_auth
         @auth.require_admin_status
         def add_assignment(netid, cid):
             missing = util.check_missing_fields(request.form,
-                                                *["aid", "max_runs", "quota", "start", "end", "config", "visibility"])
+                                                *["aid", "max_runs", "quota", "start", "end", "config", "visibility", "grading_config"])
             if missing:
                 return util.error(f"Missing fields ({', '.join(missing)}).")
 
@@ -174,6 +200,9 @@ class AdminRoutes:
 
             start = util.parse_form_datetime(request.form["start"]).timestamp()
             end = util.parse_form_datetime(request.form["end"]).timestamp()
+            run_start_str = (util.parse_form_datetime(request.form["end"]) + timedelta(minutes=5)).strftime("%Y-%m-%dT%H:%M")
+            end_str = util.parse_form_datetime(request.form["end"]).strftime("%Y-%m-%dT%H:%M")
+            run_id = db.generate_new_id()
             if start is None or end is None:
                 return util.error("Missing or invalid Start or End.")
             if start >= end:
@@ -191,6 +220,9 @@ class AdminRoutes:
             visibility = request.form["visibility"]
 
             db.add_assignment(cid, aid, max_runs, quota, start, end, visibility)
+            # Schedule Final Grading Run 
+            add_or_edit_scheduled_run(cid, aid, run_id, {"run_time": run_start_str, "due_time": end_str, "name": "Final Grading Run", "config": request.form['grading_config']}, None)
+            db.pair_assignment_final_grading_run(cid, aid, str(run_id))
             return util.success("")
 
         @blueprint.route("/staff/course/<cid>/<aid>/edit/", methods=["POST"])
@@ -288,7 +320,12 @@ class AdminRoutes:
                 return util.error("Start must be before End.")
 
             for student_netid in student_netids:
-                db.add_extension(cid, aid, student_netid, max_runs, start, end)
+                end_str = util.parse_form_datetime(request.form["end"]).strftime("%Y-%m-%dT%H:%M")
+                # avoid that weird race condition - start run 5 min after, but with a container due date of the original time
+                ext_end = (util.parse_form_datetime(request.form["end"]) + timedelta(minutes=5)).strftime("%Y-%m-%dT%H:%M")
+                run_id = db.generate_new_id()
+                add_or_edit_scheduled_run(cid, aid, run_id, {"run_time": ext_end, "due_time": end_str, "name": f"Extension Run - {student_netid}", "config": request.form['config'], "roster": student_netid}, None)
+                db.add_extension(cid, aid, student_netid, max_runs, start, end, run_id)
             return util.success("")
         
         @blueprint.route("/staff/course/<cid>/<aid>/extensions/", methods=["DELETE"])
@@ -296,7 +333,7 @@ class AdminRoutes:
         @auth.require_admin_status
         def staff_delete_extension(netid, cid, aid):
             extension_id = request.form["_id"]
-            delete_result = db.delete_extension(extension_id)
+            delete_result = db.delete_extension(cid, aid, extension_id)
 
             if delete_result is None:
                 return util.error("Invalid extension, please refresh the page.")
@@ -313,26 +350,26 @@ class AdminRoutes:
                 return abort(HTTPStatus.NOT_FOUND)
 
             # form validation
-            missing = util.check_missing_fields(request.form, "run_time", "due_time", "name", "config")
+            missing = util.check_missing_fields(form, "run_time", "due_time", "name", "config")
             if missing:
                 return util.error(f"Missing fields ({', '.join(missing)}).")
-            run_time = util.parse_form_datetime(request.form["run_time"]).timestamp()
+            run_time = util.parse_form_datetime(form["run_time"]).timestamp()
             if run_time is None:
                 return util.error("Missing or invalid run time.")
             if run_time <= util.now_timestamp():
                 return util.error("Run time must be in the future.")
-            due_time = util.parse_form_datetime(request.form["due_time"]).timestamp()
+            due_time = util.parse_form_datetime(form["due_time"]).timestamp()
             if due_time is None:
                 return util.error("Missing or invalid due time.")
-            if "roster" not in request.form or not request.form["roster"]:
+            if "roster" not in form or not form["roster"]:
                 roster = None
             else:
-                roster = request.form["roster"].replace(" ", "").lower().split(",")
+                roster = form["roster"].replace(" ", "").lower().split(",")
                 for student_netid in roster:
                     if not util.valid_id(student_netid) or not verify_student(student_netid, cid):
                         return util.error(f"Invalid or non-existent student NetID: {student_netid}")
             try:
-                config = json.loads(request.form["config"])
+                config = json.loads(form["config"])
                 msg = bw_api.set_assignment_config(cid, f"{aid}_{run_id}", config)
                 if msg:
                     return util.error(f"Failed to upload config to Broadway: {msg}")
@@ -351,7 +388,7 @@ class AdminRoutes:
 
             assert scheduled_run_id is not None
 
-            if not db.add_or_update_scheduled_run(run_id, cid, aid, run_time, due_time, roster, request.form["name"], scheduled_run_id):
+            if not db.add_or_update_scheduled_run(run_id, cid, aid, run_time, due_time, roster, form["name"], scheduled_run_id):
                 return util.error("Failed to save the changes, please try again.")
             return util.success("")
 
@@ -389,13 +426,8 @@ class AdminRoutes:
         @auth.require_auth
         @auth.require_admin_status
         def staff_delete_scheduled_run(netid, cid, aid, run_id):
-            sched_run = db.get_scheduled_run(cid, aid, run_id)
-            if sched_run is None:
-                return util.error("Cannot find scheduled run")
-            sched_api.delete_scheduled_run(sched_run["scheduled_run_id"])
-            if not db.delete_scheduled_run(cid, aid, run_id):
-                return util.error("Failed to delete scheduled run. Please try again")
-            return util.success("")
-
-        
-        
+            try:
+                wrap_delete_scheduled_run(cid, aid, run_id)
+                return util.success("")
+            except Exception as e:
+                return util.error(str(e))

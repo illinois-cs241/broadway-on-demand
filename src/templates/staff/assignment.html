@@ -37,6 +37,10 @@
         }, 0);
     });
 
+    $('#mdl-view-exts').on('hide.bs.modal', '.modal', function () {
+        location.reload(true); // Reload the page when modal is closed
+    });
+
     function addExtErr(msg) {
         $('#mdl-add-ext-error').html(msg).show();
     }
@@ -51,6 +55,11 @@
             addExtErr("Max Runs is required.");
             return;
         }
+        let config = $('#mdl-ext-run-config').val();
+        if (!config) {
+            addExtErr("Run config is required.");
+            return;
+        }
         let start = $('#mdl-add-ext-start').val();
         let end = $('#mdl-add-ext-end').val();
         if (!start || !end) {
@@ -63,7 +72,7 @@
         $.ajax({
             type: "POST",
             url: "{{ url_for('.staff_add_extension', cid=course._id, aid=assignment.assignment_id) }}",
-            data: {netids: netids, max_runs: maxRuns, start: start, end: end},
+            data: {netids: netids, max_runs: maxRuns, start: start, end: end, config: config},
             beforeSend: function () {
                 $('#mdl-add-ext-error').html('').hide();
                 $("#mdl-add-ext-save").prop('disabled', true);
@@ -121,7 +130,7 @@
             url: "{{ url_for('.staff_delete_extension', cid=course._id, aid=assignment.assignment_id) }}",
             data: {"_id": extensionId},
             success: function (result) {
-                viewExtensions();
+                location.reload(true);
             },
             error: function (xhr) {
                 alert(xhr.responseText);
@@ -329,7 +338,8 @@
                                         </button>
                                     </div>
                                     <div class="col p-1">
-                                        <button type="button" class="btn btn-outline-primary btn-fixed-width" data-toggle="modal" data-target="#mdl-add-ext">
+                                        <button type="button" class="btn btn-outline-primary btn-fixed-width" data-toggle="modal" data-target="#mdl-add-ext" 
+                                        onclick="loadOriginalConfig('#mdl-ext-run-config', '{{ assignment.assignment_id }}_{{assignment.final_grading_run_id}}');">
                                             <i class="fas fa-plus"></i> Add extension
                                         </button>
                                     </div>
@@ -466,7 +476,7 @@
                                 </div>
                                 <div class="form-group">
                                     <label for="start">Start Date & Time</label> <span class="badge badge-secondary">{{ tzname }}</span>
-                                    <input type="datetime-local" class="form-control" id="mdl-add-ext-start" name="start" onchange="onExtensionDateChange()">
+                                    <input type="datetime-local" class="form-control" id="mdl-add-ext-start" name="start" value="{{ assignment.end_plus_one_minute |fmt_datetime_local }}" onchange="onExtensionDateChange()">
                                 </div>
                                 <div class="form-group">
                                     <label for="start">End Date & Time</label> <span
@@ -477,6 +487,10 @@
                                 <div class="form-group">
                                     <label for="max_runs">Max Runs (total)</label>
                                     <input type="number" min="1" max="100" class="form-control" id="mdl-add-ext-runs" name="max_runs">
+                                </div>
+                                <div class="form-group">
+                                    <label for="start">Configuration</label>
+                                    <textarea type="text" class="form-control" id="mdl-ext-run-config" name="config" rows="5" style="font-family: monospace;" placeholder="JSON configuration for broadway - double check that the extension run was created on submission."></textarea>
                                 </div>
                                 <div id="mdl-add-ext-error" class="form-text text-danger"></div>
                             </form>

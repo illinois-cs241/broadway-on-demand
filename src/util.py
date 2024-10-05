@@ -13,7 +13,6 @@ from pytz import utc
 
 from config import TZ, MAINTENANCE_MODE, MAINTENANCE_MODE_MESSAGE
 
-
 def check_missing_fields(data, *args):
 	"""
 	Given a dict and a variable number of keys, returns a list of the keys that are not in the dict or

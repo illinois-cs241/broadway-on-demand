@@ -3,7 +3,16 @@ from datetime import datetime
 from pytz import utc
 
 from config import TZ
-from src import db, util
+from src import db, sched_api, util
+
+def wrap_delete_scheduled_run(cid, aid, run_id):
+    sched_run = db.get_scheduled_run(cid, aid, run_id)
+    if sched_run is None:
+        raise Exception("Cannot find scheduled run")
+    sched_api.delete_scheduled_run(sched_run["scheduled_run_id"])
+    if not db.delete_scheduled_run(cid, aid, run_id):
+        raise Exception("Failed to delete scheduled run.")
+    return True
 
 def in_grading_period(assignment, now=None):
 	if now is None:
