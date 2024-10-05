@@ -1,11 +1,10 @@
 import csv
 from datetime import timedelta
-from xxlimited import new
 from flask import render_template, abort, request, jsonify
 from http import HTTPStatus
-import json, re
 
 from src import db, util, auth, bw_api, sched_api
+from src.common import wrap_delete_scheduled_run
 from src.common import verify_staff, verify_admin, verify_student
 
 MIN_PREDEADLINE_RUNS = 1  # Minimum pre-deadline runs for every assignment
@@ -429,7 +428,7 @@ class AdminRoutes:
         @auth.require_admin_status
         def staff_delete_scheduled_run(netid, cid, aid, run_id):
             try:
-                util.wrap_delete_scheduled_run(cid, aid, run_id)
+                wrap_delete_scheduled_run(cid, aid, run_id)
                 return util.success("")
             except Exception as e:
                 return util.error(str(e))

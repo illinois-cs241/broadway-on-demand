@@ -1,7 +1,8 @@
 from flask_pymongo import PyMongo, ASCENDING, DESCENDING
 from bson.objectid import ObjectId
 from bson.errors import InvalidId
-from src import util
+from src import common, util
+from src.common import wrap_delete_scheduled_run
 from src.sched_api import ScheduledRunStatus
 
 mongo = PyMongo()
@@ -254,7 +255,7 @@ def delete_extension(cid, aid, extension_id):
 	run_id = document.get("run_id", None)
 	if run_id:
 		try:
-			util.wrap_delete_scheduled_run(cid, aid, run_id)
+			wrap_delete_scheduled_run(cid, aid, run_id)
 		except Exception as e:
 			print(f"Failed to delete scheduled run for extension id {extension_id} run id {run_id}: ", str(e), flush=True)
 			pass
