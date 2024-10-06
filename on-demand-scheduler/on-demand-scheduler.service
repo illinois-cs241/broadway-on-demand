@@ -1,0 +1,14 @@
+[Unit]
+Description=Gunicorn instance serving on-demand-scheduler
+After=network.target
+
+[Service]
+User=root
+Group=www-data
+WorkingDirectory=/srv/cs241/on-demand-scheduler
+Environment="PATH=/srv/cs241/on-demand-scheduler/env/bin"
+Environment="ONDEMAND_SYSTEM_TOKEN=some_token"
+ExecStart=/srv/cs241/on-demand-scheduler/env/bin/gunicorn --workers 1 --bind localhost:3000 -m 007 wsgi:app
+
+[Install]
+WantedBy=multi-user.target
