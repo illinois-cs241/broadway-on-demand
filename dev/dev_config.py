@@ -37,6 +37,6 @@ GHE_API_URL = "https://api.github.com"
 # Microsoft Azure auth config
 AUTH_DOMAIN = "some auth domain like `illinois.edu`"
 MIP_SCOPES = ["email"]
-MIP_AUTHORITY = "some authority or `https://login.microsoftonline.com/common` for multi-tenant world-wide cloud"
+MIP_AUTHORITY = "https://login.microsoftonline.com/common"
 MIP_CLIENT_ID = "some_client_id"
 MIP_CLIENT_SECRET = "some_client_secret"
