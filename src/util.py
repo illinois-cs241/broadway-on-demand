@@ -57,7 +57,6 @@ def disable_in_maintenance_mode(func):
 		return func(*args, **kwargs)
 	return wrapper
 
-
 def error(content, status=HTTPStatus.BAD_REQUEST):
 	"""
 	Builds a response pair with the error content and status code. The Bad Request status is used if none is
@@ -95,7 +94,6 @@ def verify_csrf_token(client_token):
 
 def valid_id(id_str):
 	return bool(fullmatch(r'[a-zA-Z0-9_.\-]+', id_str))
-
 
 def parse_form_datetime(datetime_local_str):
 	try:
