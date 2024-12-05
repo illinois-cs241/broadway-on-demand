@@ -373,7 +373,7 @@ class AdminRoutes:
                     if not util.valid_id(student_netid) or not verify_student(student_netid, cid):
                         return util.error(f"Invalid or non-existent student NetID: {student_netid}")
             try:
-                replacements = {"${ON_DEMAND_AID}": aid, "${ON_DEMAND_CID}": cid, "${ON_DEMAND_STUDENT_ID}": student_netid}
+                replacements = {"${ON_DEMAND_AID}": aid, "${ON_DEMAND_CID}": cid}
                 raw_json = form["config"]
                 for key, value in replacements.items():
                     raw_json.replace(key, value)
