@@ -209,7 +209,11 @@ class AdminRoutes:
                 return util.error("Start must be before End.")
 
             try:
-                config = json.loads(request.form["config"])
+                replacements = {"${ON_DEMAND_AID}": aid, "${ON_DEMAND_CID}": cid, "${ON_DEMAND_STUDENT_ID}": student_netid}
+                raw_json = request.form["config"]
+                for key, value in replacements.items():
+                    raw_json.replace(key, value)
+                config = json.loads(raw_json)
                 msg = bw_api.set_assignment_config(cid, aid, config)
 
                 if msg:
@@ -369,7 +373,11 @@ class AdminRoutes:
                     if not util.valid_id(student_netid) or not verify_student(student_netid, cid):
                         return util.error(f"Invalid or non-existent student NetID: {student_netid}")
             try:
-                config = json.loads(form["config"])
+                replacements = {"${ON_DEMAND_AID}": aid, "${ON_DEMAND_CID}": cid, "${ON_DEMAND_STUDENT_ID}": student_netid}
+                raw_json = form["config"]
+                for key, value in replacements.items():
+                    raw_json.replace(key, value)
+                config = json.loads(raw_json)
                 msg = bw_api.set_assignment_config(cid, f"{aid}_{run_id}", config)
                 if msg:
                     return util.error(f"Failed to upload config to Broadway: {msg}")
