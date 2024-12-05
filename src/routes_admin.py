@@ -209,7 +209,7 @@ class AdminRoutes:
                 return util.error("Start must be before End.")
 
             try:
-                replacements = {"${ON_DEMAND_AID}": aid, "${ON_DEMAND_CID}": cid, "${ON_DEMAND_STUDENT_ID}": student_netid}
+                replacements = {"${ON_DEMAND_AID}": aid, "${ON_DEMAND_CID}": cid}
                 raw_json = request.form["config"]
                 for key, value in replacements.items():
                     raw_json.replace(key, value)
