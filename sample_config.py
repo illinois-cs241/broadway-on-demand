@@ -25,8 +25,8 @@ MONGO_URI = "mongodb://localhost:27017/broadway_on_demand"
 # Scheduler URI for scheduling runs
 SCHEDULER_URI = "http://localhost:3000/scheduler"
 
-# Broadway API configuration.
-BROADWAY_API_URL = "http://some-broadway-api-server.example/api/v1"
+# JENKINS API configuration.
+JENKINS_API_URL = "http://some-jenkins-server.example/jenkins/"
 
 # API token used to authenticate /system/ routes.
 SYSTEM_API_TOKEN = "some_token"

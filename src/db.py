@@ -322,3 +322,15 @@ def delete_scheduled_run(cid, aid, rid):
 		return res.deleted_count == 1
 	except InvalidId:
 		return False
+
+
+def set_jenkins_run_status(cid, rid, netid, status):
+	"""
+	Set the status of a run based on course id, run id, NetID.
+	:return: True if status was saved, false otherwise
+	"""
+	try:
+		mongo.db.jenkins_run_status.replaceOne({"cid": cid, "rid": rid, "netid": netid}, {"cid": cid, "rid": rid, "netid": netid, "status": status}, {"upsert": True})
+		return True
+	except Exception:
+		return False
