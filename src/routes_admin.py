@@ -1,11 +1,14 @@
 import csv
 from datetime import timedelta
+from typing import List, Set
 from flask import render_template, abort, request, jsonify
 from http import HTTPStatus
 import json
 from src import db, util, auth, sched_api
 from src.common import wrap_delete_scheduled_run
 from src.common import verify_staff, verify_admin, verify_student
+from src.types import StudentInfo
+from bson.objectid import ObjectId
 
 MIN_PREDEADLINE_RUNS = 1  # Minimum pre-deadline runs for every assignment
 
@@ -112,9 +115,12 @@ class AdminRoutes:
                 return util.error(f"Poorly formatted NetID: '{new_student_id}'")
             if not util.is_valid_uin(new_student_uin):
                 return util.error(f"Poorly formatted UIN: '{new_student_uin}'")
-            result = db.add_student_to_course(
-                cid, str(new_student_id), str(new_student_uin), str(new_student_name)
-            )
+            student = {
+                "netid": str(new_student_id),
+                "uin": str(new_student_uin),
+                "name": str(new_student_name),
+            }
+            result = db.add_student_to_course(cid, student)
             if none_modified(result):
                 return util.error(f"'{new_student_id}' is already a student")
             return util.success(f"Successfully added {new_student_id}")
@@ -135,8 +141,8 @@ class AdminRoutes:
         def upload_roster_file(netid, cid):
             file_content = request.form.get("content")
             reader = csv.DictReader(file_content.strip().split("\n"), dialect=csv.excel)
-            netids_seen = set()
-            students = []
+            netids_seen: Set[str] = set()
+            students: List[StudentInfo] = []
 
             for i, row in enumerate(reader):
                 netid, uin, name = row.get("Net ID"), row.get("UIN"), row.get("Name")
@@ -146,8 +152,7 @@ class AdminRoutes:
                     return util.error(
                         f"Invalid student on line {i + 1} ({row}): netid='{netid}', uin={uin}, name='{name}'"
                     )
-
-                students.append((netid, uin, name))
+                students.append({"name": name, "uin": uin, "netid": netid})
                 netids_seen.add(netid)
 
             result = db.overwrite_student_roster(cid, students)
@@ -197,7 +202,7 @@ class AdminRoutes:
             end_str = util.parse_form_datetime(request.form["end"]).strftime(
                 "%Y-%m-%dT%H:%M"
             )
-            run_id = db.generate_new_id()
+            run_id = ObjectId()
             if start is None or end is None:
                 return util.error("Missing or invalid Start or End.")
             if start >= end:
@@ -323,7 +328,7 @@ class AdminRoutes:
                 ext_end = (
                     util.parse_form_datetime(request.form["end"]) + timedelta(minutes=5)
                 ).strftime("%Y-%m-%dT%H:%M")
-                run_id = db.generate_new_id()
+                run_id = ObjectId()
                 add_or_edit_scheduled_run(
                     cid,
                     aid,
@@ -417,7 +422,7 @@ class AdminRoutes:
         @auth.require_admin_status
         def staff_schedule_run(netid, cid, aid):
             # generate new id for this scheduled run
-            run_id = db.generate_new_id()
+            run_id = ObjectId()
             return add_or_edit_scheduled_run(cid, aid, run_id, request.form, None)
 
         @blueprint.route(
