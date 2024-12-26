@@ -51,10 +51,8 @@ def get_grading_run_details(cid, rid):
 
 def get_grading_run_log(cid, aid, build_url, netid):
 	splitted = [x for x in build_url.split("/") if x != '']
-	print(build_url, splitted, flush=True)
 	build_id = splitted[-1]
 	url = f"{JENKINS_API_URL}/blue/rest/organizations/jenkins/pipelines/{aid}/runs/{build_id}/nodes/"
-	print(url, flush=True)
 	resp = requests.get(url=url, headers=build_header(cid))
 	data = resp.json()
 	for entry in data:
@@ -65,4 +63,17 @@ def get_grading_run_log(cid, aid, build_url, netid):
 
 
 def get_workers(cid):
-	return None
+	hosts = []
+	url = f"{JENKINS_API_URL}/computer/api/json"
+	resp = requests.get(url=url, headers=build_header(cid))
+	data = resp.json()
+	for item in data['computer']:
+		if item['displayName'] == "Built-In Node":
+			continue
+		hosts.append({
+			"hostname": item['displayName'],
+			"alive": not (item['offline'] or item['temporarilyOffline']),
+			"busy": not item['idle'],
+			"responseTimeMs": item['monitorData']['hudson.node_monitors.ResponseTimeMonitor']['average']
+			})
+	return hosts

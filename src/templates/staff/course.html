@@ -31,9 +31,9 @@
                        let busyText = result[i].busy ? '<span class="badge badge-warning">busy</span>' : "";
                        tbody.append(
                            '<tr><td>' + result[i].hostname
-                           + '</td><td class="text-center">' + result[i].jobs_processed
                            + '</td><td class="text-center"><i class="fas fa-circle ' + aliveClass + '" style="margin-right: 0;"></i>'
                            + '</td><td class="text-center">' + busyText
+                           + '</td><td class="text-center">' + result[i].responseTimeMs
                            + '</td></tr>\n');
                    }
                }
@@ -88,7 +88,7 @@
             <div class="card-body">
                <h5 class="card-title">Course actions</h5>
                <button type="button" class="btn btn-outline-primary mt-3" data-toggle="modal" data-target="#mdl-worker-status" onclick="viewWorkerStatus()">
-               <i class="fas fa-server"></i> Worker status
+               <i class="fas fa-server"></i> Worker Status
                </button>
                <div class="modal fade" id="mdl-worker-status" tabindex="-1" role="dialog" aria-labelledby="mdl-worker-status-label" aria-hidden="true">
                   <div class="modal-dialog" role="document">
@@ -105,9 +105,9 @@
                                  <thead>
                                     <tr>
                                        <th scope="col">Host</th>
-                                       <th scope="col">Jobs Processed</th>
                                        <th scope="col">Alive</th>
                                        <th scope="col">Busy</th>
+                                       <th scope="col">Response Time (ms)</th>
                                     </tr>
                                  </thead>
                                  <tbody id="mdl-worker-status-body">
