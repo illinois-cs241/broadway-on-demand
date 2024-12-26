@@ -17,7 +17,7 @@ class AdminRoutes:
             Return true if the database was NOT modified as a result of the API call.
             :param result: A WriteResult returned by mongo db update calls
             """
-            return result["nModified"] == 0
+            return result.modified_count == 0
 
         @blueprint.route("/staff/course/<cid>/roster", methods=["GET"])
         @auth.require_auth
@@ -135,18 +135,20 @@ class AdminRoutes:
         def upload_roster_file(netid, cid):
             file_content = request.form.get("content")
             reader = csv.DictReader(file_content.strip().split("\n"), dialect=csv.excel)
-
+            netids_seen = set()
             students = []
 
             for i, row in enumerate(reader):
                 netid, uin, name = row.get("Net ID"), row.get("UIN"), row.get("Name")
-
+                if netid in netids_seen:
+                    continue
                 if not util.is_valid_student(netid, uin, name):
                     return util.error(
                         f"Invalid student on line {i + 1} ({row}): netid='{netid}', uin={uin}, name='{name}'"
                     )
 
                 students.append((netid, uin, name))
+                netids_seen.add(netid)
 
             result = db.overwrite_student_roster(cid, students)
             if none_modified(result):

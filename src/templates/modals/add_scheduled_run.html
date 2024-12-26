@@ -242,7 +242,6 @@
             run.roster = run.roster == null ? null : run.roster.join(", ");
             let status = run.status === "scheduled" ? run.status : "past";
             initializeScheduleRunModal(run_id, "Edit Scheduled Run", run.name, run.roster, run.run_time, run.due_time, "Loading broadway config...", status);
-            loadOriginalConfig("#sched-run-config", `${run.assignment_id}_${run_id}`);
             $("#sched-run-modal").modal("show");
         });
     }
