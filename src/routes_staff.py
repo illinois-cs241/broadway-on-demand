@@ -3,7 +3,7 @@ from http import HTTPStatus
 import logging
 from flask import render_template, abort, jsonify
 
-from config import TZ
+from config import BASE_URL, TZ
 from src import db, util, auth, bw_api, sched_api
 from src.common import verify_staff, verify_admin
 
@@ -74,6 +74,7 @@ class StaffRoutes:
                                    assignment=assignment, student_runs=student_runs,
                                    scheduled_runs=scheduled_runs, sched_run_status=sched_api.ScheduledRunStatus,
                                    tzname=str(TZ), is_admin=is_admin, visibility=db.Visibility,
+                                   base_url=BASE_URL
                                    )
 
         @blueprint.route("/staff/course/<cid>/<aid>/config", methods=["GET"])
@@ -95,10 +96,15 @@ class StaffRoutes:
             if not verify_staff(netid, cid):
                 return abort(HTTPStatus.FORBIDDEN)
 
-            log = bw_api.get_grading_run_log(cid, run_id)
-            if log:
-                return util.success(jsonify(log), HTTPStatus.OK)
-            return util.error("")
+            data = db.get_jenkins_run_status_single(cid, run_id, netid)
+            if not data or data == {}:
+                return util.success("No logs found.")
+            try:
+                stuff = bw_api.get_grading_run_log(cid, data['build_url'])
+                return jsonify({"data": stuff, "build_url": data['build_url']})
+            except Exception as e:
+                print(e)
+                return util.error("")
             
         @blueprint.route("/staff/course/<cid>/<aid>/<job_id>/job_log/", methods=["GET"])
         @auth.require_auth
@@ -106,10 +112,15 @@ class StaffRoutes:
             if not verify_staff(netid, cid):
                 return abort(HTTPStatus.FORBIDDEN)
 
-            log = bw_api.get_grading_job_log(cid, job_id)
-            if log:
-                return util.success(jsonify(log), HTTPStatus.OK)
-            return util.error("")
+            data = db.get_jenkins_run_status_single(cid, job_id, netid)
+            if not data or data == {}:
+                return util.success("No logs found.")
+            try:
+                stuff = bw_api.get_grading_run_log(cid, data['build_url'])
+                return jsonify({"data": stuff, "build_url": data['build_url']})
+            except Exception as e:
+                print(e)
+                return util.error("")
 
         @blueprint.route("/staff/course/<cid>/workers/", methods=["GET"])
         @auth.require_auth

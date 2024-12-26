@@ -175,7 +175,7 @@ class AdminRoutes:
         @auth.require_admin_status
         def add_assignment(netid, cid):
             missing = util.check_missing_fields(request.form,
-                                                *["aid", "max_runs", "quota", "start", "end", "config", "visibility", "grading_config"])
+                                                *["aid", "max_runs", "quota", "start", "end", "visibility"])
             if missing:
                 return util.error(f"Missing fields ({', '.join(missing)}).")
 
@@ -208,20 +208,11 @@ class AdminRoutes:
             if start >= end:
                 return util.error("Start must be before End.")
 
-            try:
-                config = json.loads(request.form["config"])
-                msg = bw_api.set_assignment_config(cid, aid, config)
-
-                if msg:
-                    return util.error(f"Failed to add assignment to Broadway: {msg}")
-            except json.decoder.JSONDecodeError:
-                return util.error("Failed to decode config JSON")
-
             visibility = request.form["visibility"]
 
             db.add_assignment(cid, aid, max_runs, quota, start, end, visibility)
             # Schedule Final Grading Run 
-            add_or_edit_scheduled_run(cid, aid, run_id, {"run_time": run_start_str, "due_time": end_str, "name": "Final Grading Run", "config": request.form['grading_config']}, None)
+            add_or_edit_scheduled_run(cid, aid, run_id, {"run_time": run_start_str, "due_time": end_str, "name": "Final Grading Run"}, None)
             db.pair_assignment_final_grading_run(cid, aid, str(run_id))
             return util.success("")
 

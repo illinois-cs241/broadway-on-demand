@@ -324,13 +324,21 @@ def delete_scheduled_run(cid, aid, rid):
 		return False
 
 
-def set_jenkins_run_status(cid, rid, netid, status):
+def set_jenkins_run_status(cid, rid, status, build_url, netid):
 	"""
 	Set the status of a run based on course id, run id, NetID.
 	:return: True if status was saved, false otherwise
 	"""
+	mongo.db.jenkins_run_status.update_one({"cid": cid, "rid": rid, "netid": netid}, {"$set": {"status": status, "build_url": build_url}}, upsert=True)
+
+def get_jenkins_run_status_single(cid, rid, netid):
 	try:
-		mongo.db.jenkins_run_status.replaceOne({"cid": cid, "rid": rid, "netid": netid}, {"cid": cid, "rid": rid, "netid": netid, "status": status}, {"upsert": True})
-		return True
-	except Exception:
-		return False
+		response = mongo.db.jenkins_run_status.find_one({"cid": cid, "rid": rid, "netid": netid}, {"_id": 0})
+		if not response:
+			return {}
+		return response
+	except Exception as e:
+		print(e, flush=True)
+		return {}
+	
+	

@@ -76,7 +76,10 @@ def verify_student(netid, cid):
 	:param cid: a course ID.
 	:return: a boolean value.
 	"""
-	return netid in db.get_course(cid)["student_ids"]
+	try:
+		return netid in db.get_course(cid)["student_ids"]
+	except Exception:
+		return []
 
 
 def verify_student_or_staff(netid, cid):

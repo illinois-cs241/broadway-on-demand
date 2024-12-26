@@ -14,7 +14,7 @@ STUDENT_ID = "STUDENT_ID"
 
 def build_header(cid):
 	token = db.get_course(cid)["token"]
-	return {"Authorization": f"Bearer {token}"}
+	return {"Authorization": f"Basic {token}"}
 
 
 @catch_request_errors
@@ -32,7 +32,7 @@ def start_grading_run(cid, aid, netids, timestamp, publish):
 	due_date_str = timestamp_to_bw_api_format(timestamp)
 	payload = {
 		"STUDENT_IDS": ",".join(netids),
-		"TERM_ID": cid.split("_")[1], 
+		"TERM_ID": cid.split("-")[1], 
 		"DUE_DATE": due_date_str, 
 		"PUBLISH_TO_STUDENT": "true", 
 		"PUBLISH_FINAL_GRADE": "true" if publish else "false",
@@ -50,8 +50,8 @@ def set_assignment_config(*args, **kwargs):
 	return "200: Jenkins No-Op"
 
 
-def get_grading_job_log(*args, **kwargs):
-	return {"stdout": f"To view the job logs, please go to Jenkins at {JENKINS_API_URL} and view the logs there.", "stderr": ""}
+def get_grading_job_log(cid, rid):
+	return {"stdout": f"To view the job logs, please go to Jenkins at {JENKINS_API_URL} and search for the Job ID in the Builds section.", "stderr": ""}
 
 @catch_request_errors
 def get_grading_run_details(cid, run_id):
@@ -71,8 +71,11 @@ def get_grading_run_details(cid, run_id):
 	# return detail_data
 
 
-def get_grading_run_log(cid, run_id):
-	return get_grading_job_log()
+def get_grading_run_log(cid, build_url):
+	resp = requests.post(url=f"{build_url}/logText/progressiveText?start=0", headers=build_header(cid))
+	resp.raise_for_status()
+	return resp.text
+
 
 def get_workers(cid):
 	return None

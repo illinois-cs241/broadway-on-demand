@@ -1,6 +1,9 @@
 <script src="{{ url_for('.static_file', path='eventsource.min.js') }}"></script>
 <script type="application/javascript">
-    /** Status string constants, they appear as part of the "status" message fron broadway **/
+    function capitalizeFirstLetter(val) {
+        return String(val).charAt(0).toUpperCase() + String(val).slice(1);
+    }
+    /** Status string constants, they appear as part of the "status" message fron jenkins pushed via on-demand **/
     const SCHEDULED = "scheduled", RUNNING = "running", SUCCESS = "success", FAILED = "failed", ERROR = "";
     
     /** Common error messages **/
@@ -14,7 +17,7 @@
         [RUNNING]: "info",
         [SUCCESS]: "success",
         [FAILED]: "danger",
-        [ERROR]: "info"
+        [ERROR]: "warning"
     };
     // ---------------------------------------------------------------------------------
     // ----- Manual status update: requires clicking the button multiple times.---------
@@ -39,10 +42,10 @@
     function getRunState(runId, cid, queryToken) {
         $.ajax({
             type: "get",
-            url: `{{ broadway_api_url }}/grading_run_status/${cid}/${runId}`,
+            url: `{{ base_url }}/jenkins/run_status/${cid}/${runId}`,
             headers: buildHeader(queryToken),
                 success: (result) => {
-                let status = result["data"]["state"]
+                let status = result.responseText;
                 if (status.indexOf(SCHEDULED) != -1) {
                     updateButtonContent(runId, status, "btn-info")
                 } else {
@@ -72,12 +75,11 @@
     function getRunWithSingleJobHelper(runId, cid, queryToken, successCallback, errorCallback, extraParams = {}) {
         $.ajax({
             type: "get",
-            url: `{{ broadway_api_url }}/grading_run_status/${cid}/${runId}`,
+            url: `{{ base_url }}/jenkins/run_status/${cid}/${runId}`,
             headers: buildHeader(queryToken),
             success: function (result) {
-                let status = Object.values(result["data"]["student_jobs_state"])[0]
-                let jobId = Object.keys(result["data"]["student_jobs_state"])[0]
-                successCallback({ runId, cid, status, jobId, queryToken, ...extraParams })
+                let jobId = runId;
+                successCallback({ runId, cid, status: result, runId, queryToken, ...extraParams })
             },
             error: function () {
                 errorCallback({ runId, cid, queryToken, ...extraParams });
@@ -224,25 +226,14 @@
      */
     function autoUpdateStatus(runId, cid, queryToken) {
         function onSuccess({runId, cid, status, jobId}) {
+            console.log(runId, cid, status, jobId)
             for (var key in statusClassMap) {
                 if (status.indexOf(key) != -1) {
-                    if (key == SCHEDULED) {
-                        // If job is scheduled, get+display initial queue position, then set up job status stream to update queue position change/success/failure
-                        updateAutoStatus(runId, "Fetching queue position...", "text-" + statusClassMap[key], `${statusIconMap[key]} fa-spin`)
-                        getQueuePositionHelper(runId, jobId, cid, queryToken, ({runId, position}) => {
-                            let queuePositionString = queuePositionTextGenerator(position);
-                            updateAutoStatus(runId, queuePositionString, "text-" + statusClassMap[key], `${statusIconMap[key]} fa-spin`)
-                            setUpSSEListener(runId, jobId, cid, queryToken);
-                        }, ({runId}) => {
-                            updateAutoStatus(runId, QUEUE_POSITION_QUERY_FAILED, "text-warning", statusIconMap[ERROR])
-                        })
-                    } else if (key == RUNNING) {
-                        // If job is running, set up job status stream to update Succeeded/Failed
-                        updateAutoStatus(runId, status, "text-" + statusClassMap[key], `${statusIconMap[key]} fa-spin`)
-                        setUpSSEListener(runId, jobId, cid, queryToken);
+                    if (key == SCHEDULED || key == RUNNING) {
+                        updateAutoStatus(runId, capitalizeFirstLetter(status), "text-" + statusClassMap[key], `${statusIconMap[key]} fa-spin`)
                     } else {
                         // Job has succeeded / failed, no need to set up job status stream
-                        updateAutoStatus(runId, status, "text-" + statusClassMap[key], statusIconMap[key]);
+                        updateAutoStatus(runId, capitalizeFirstLetter(status), "text-" + statusClassMap[key], statusIconMap[key]);
                     }
                     break;
                 }
@@ -259,7 +250,7 @@
     function getJobStatus(runId, jobId, cid, queryToken) {
         $.ajax({
             type: "get",
-            url: `{{ broadway_api_url }}/grading_run_status/${cid}/${runId}`,
+            url: `{{ base_url }}/jenkins/run_status/${cid}/${runId}`,
             headers: buildHeader(queryToken),
             success: function (result) {
                 const status = result["data"]["student_jobs_state"][jobId]

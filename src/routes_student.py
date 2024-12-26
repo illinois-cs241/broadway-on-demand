@@ -1,7 +1,8 @@
+import json
 from flask import render_template, request, abort
 from http import HTTPStatus
 
-from config import TZ, DEV_MODE
+from config import BASE_URL, TZ, DEV_MODE
 from src import bw_api, auth, util, db
 from src.common import verify_student_or_staff, verify_staff, get_available_runs, get_active_extensions
 from src.ghe_api import get_latest_commit
@@ -73,7 +74,7 @@ class StudentRoutes:
 			if verify_staff(netid, cid):
 				num_available_runs = max(num_available_runs, 1)
 
-			return render_template("student/assignment.html", netid=netid, course=course, assignment=assignment, commit=commit, runs=runs, num_available_runs=num_available_runs, num_extension_runs=num_extension_runs, tzname=str(TZ), feedback_url=feedback_url)
+			return render_template("student/assignment.html", base_url=BASE_URL, netid=netid, course=course, assignment=assignment, commit=commit, runs=runs, num_available_runs=num_available_runs, num_extension_runs=num_extension_runs, tzname=str(TZ), feedback_url=feedback_url)
 
 		@blueprint.route("/student/course/<cid>/<aid>/run/", methods=["POST"])
 		@util.disable_in_maintenance_mode
@@ -102,7 +103,8 @@ class StudentRoutes:
 
 			now_rounded = util.timestamp_round_up_minute(now)
 
-			run_id = bw_api.start_grading_run(cid, aid, [netid], now_rounded)
+			run_id = bw_api.start_grading_run(cid, aid, [netid], now_rounded, False)
+			db.set_jenkins_run_status(cid, run_id, "scheduled", None, netid) # null refers to the overall job, which for one-user jobs is what we want.
 			if run_id is None:
 				restore_csrf_token(current_csrf_token)
 				return util.error("Failed to start grading run. Please try again.")

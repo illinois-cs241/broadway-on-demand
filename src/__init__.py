@@ -10,6 +10,7 @@ from src.routes_admin import AdminRoutes
 from src.routes_staff import StaffRoutes
 from src.routes_api import ApiRoutes
 from src.routes_student import StudentRoutes
+from src.routes_system import SystemRoutes
 from src.template_filters import TemplateFilters
 from src.util import generate_csrf_token
 
@@ -27,6 +28,7 @@ StudentRoutes(blueprint)
 StaffRoutes(blueprint)
 AdminRoutes(blueprint)
 ApiRoutes(blueprint)
+SystemRoutes(blueprint)
 
 @blueprint.route("/login/", methods=["GET"])
 @auth.require_no_auth

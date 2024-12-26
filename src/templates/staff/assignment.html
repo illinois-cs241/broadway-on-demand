@@ -187,8 +187,8 @@
                 url: `./${id}/${logType}/`,
                 success: function (result) {
                     $('#mdl-view-log-run-id').html(id);
-                    $('#mdl-view-log-stderr').html(result['stderr']);
-                    $('#mdl-view-log-stdout').html(result['stdout']);
+                    $('#mdl-view-log-data').html(result['data']);
+                    $('#mdl-view-log-jenkins-link').html(`<a href="${result['build_url']}">View this run in Jenkins</a>`);
                     $('#mdl-view-log').modal('show');
                 },
                 error: function () {
@@ -647,11 +647,8 @@
                         </button>
                     </div>
                     <div class="modal-body">
-                        <h5>stderr</h5>
-                        <pre id="mdl-view-log-stderr"></pre>
-                        <hr>
-                        <h5>stdout</h5>
-                        <pre id="mdl-view-log-stdout"></pre>
+                        <a id="mdl-view-log-jenkins-link"></a>
+                        <pre id="mdl-view-log-data"></pre>
                     </div>
                 </div>
             </div>

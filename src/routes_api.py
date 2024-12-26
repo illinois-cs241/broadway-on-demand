@@ -1,12 +1,23 @@
+import json
 import logging
-from flask import request
+from flask import request, abort
 from http import HTTPStatus
 
 from src import db, util, auth, bw_api
+from src.common import verify_student_or_staff
 from src.sched_api import ScheduledRunStatus
 
 class ApiRoutes:
     def __init__(self, blueprint):
+        @blueprint.route("/jenkins/run_status/<cid>/<runId>", methods=["GET"])
+        @util.disable_in_maintenance_mode
+        @auth.require_auth
+        @util.catch_request_errors
+        def student_get_job_status(netid, cid, runId):
+            if not verify_student_or_staff(netid, cid):
+                return abort(HTTPStatus.FORBIDDEN)
+            return util.success(db.get_jenkins_run_status_single(cid, runId, netid)['status'], 200)
+          
         @blueprint.route("/api/<cid>/<aid>/trigger_scheduled_run/<scheduled_run_id>", methods=["POST"])
         @auth.require_system_auth
         def trigger_scheduled_run(cid, aid, scheduled_run_id):
