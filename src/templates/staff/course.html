@@ -70,8 +70,8 @@
                <tr {% if assignment.end < now %} class="assignment-past-deadline" {% endif %}>
                <td><a href="{{ url_for('.staff_get_assignment', cid=course._id, aid=assignment.assignment_id) }}">{{ assignment.assignment_id }}</a></td>
                <td>{{ assignment.max_runs }} ({{ assignment.quota }})</td>
-               <td>{{ assignment.start|fmt_timestamp }}</td>
-               <td>{{ assignment.end|fmt_timestamp }}</td>
+               <td title="Starts {{assignment.start | fmt_timestamp}}">{{assignment.start|fmt_timestamp_human}}</td>
+               <td title="Ends {{assignment.end | fmt_timestamp}}">{{assignment.end|fmt_timestamp_human}}</td>
                </tr>
                {% endfor %}
                {% if not assignments %}

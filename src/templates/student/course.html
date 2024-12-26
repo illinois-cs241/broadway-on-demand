@@ -29,8 +29,8 @@
                     <td>
                         <a href="{{ url_for('.student_get_assignment', cid=course._id, aid=assignment.assignment_id) }}">{{assignment.assignment_id}}</a>
                     </td>
-                    <td>{{assignment.start|fmt_timestamp}}</td>
-                    <td>{{assignment.end|fmt_timestamp}}</td>
+                    <td title="Starts {{assignment.start | fmt_timestamp}}">{{assignment.start|fmt_timestamp_human}}</td>
+                    <td title="Ends {{assignment.end | fmt_timestamp}}">{{assignment.end|fmt_timestamp_human}}</td>
                 </tr>
                 {% endfor %}
                 {% if not assignments %}
