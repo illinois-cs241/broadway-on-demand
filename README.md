@@ -36,14 +36,14 @@ mongodump --db broadway_on_demand --out=test_data && zip -r test_data.zip test_d
 #### Steps
 - Ask on-demand managers to add your course to the on-demand database with at least one admin.
   - Admins are able to modify roster and add assignments from the user interface.
-- Generate a token and add it to both broadway-on-demand and broadway's database for your course.
+- Obtain a username and password in Jenkins which can start jobs, read logs, etc, and set the token field equal to `base64(username:password)`.
 - Create docker images for grading a single student
   - On-demand will pass in the student's netid as `STUDENT_ID` and the timestamp as `DUE_DATE` to the all grader processes.
   - The `DUE_DATE` is in the string format `YYYY-MM-DD hh:mm` in UTC time zone.
 - Add an assignment with the UI
   - Assignment ID will be displayed and can not be changed once set.
   - Max Runs along with Quota Type determine how many runs student get per day or total. Note that staff members always have one run for all assignments.
-  - Configuration is a json config provided to broadway. Refer to [broadway's Wiki](https://github.com/illinois-cs241/broadway/wiki/Configs). (The assignment config shouldn't have `STUDENT_ID` or `DUE_DATE` because those will be provided).
+  - **Given an Assignment ID in Broadway, a pipeline with the same name and accepting the requisite parameters must exist at the root parameters.** See [here](src/bw_api.py#L23) for the parameters provided to the Jenkins build job.
 - Test out the assignment by going to student view and start a grading run for yourself.
   - Make sure you are added as a student to the course in order to do this.
 
