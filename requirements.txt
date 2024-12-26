@@ -17,3 +17,4 @@ werkzeug==0.15.5
 ansi2html==1.5.2
 gunicorn==20.0.4
 identity==0.3.2
+ruff==0.8.4
