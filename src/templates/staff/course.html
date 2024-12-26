@@ -13,14 +13,6 @@
            '#mdl-add-assn-save .loader', 
            '#mdl-add-assn'
        );
-       modifyTemplates(
-           "course-templates", 
-           `{{ url_for('.set_template_values', cid=course._id) }}`, 
-           '#mdl-course-templates-error', 
-           '#mdl-course-templates-save',
-           '#mdl-course-templates-save .loader', 
-           '#mdl-course-templates'
-       );
    });
    
    function viewWorkerStatus() {
