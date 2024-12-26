@@ -77,33 +77,20 @@ class StaffRoutes:
                                    base_url=BASE_URL
                                    )
 
-        @blueprint.route("/staff/course/<cid>/<aid>/config", methods=["GET"])
+        @blueprint.route("/staff/course/<cid>/<aid>/<run_id>/<stu_id>/run_log/", methods=["GET"])
         @auth.require_auth
-        def staff_get_assignment_config(netid, cid, aid):
+        def staff_get_run_log(netid, cid, aid, run_id, stu_id):
             if not verify_staff(netid, cid):
                 return abort(HTTPStatus.FORBIDDEN)
 
-            config = bw_api.get_assignment_config(cid, aid)
-
-            if config is None:
-                return abort(404)
-
-            return jsonify(config)
-
-        @blueprint.route("/staff/course/<cid>/<aid>/<run_id>/run_log/", methods=["GET"])
-        @auth.require_auth
-        def staff_get_run_log(netid, cid, aid, run_id):
-            if not verify_staff(netid, cid):
-                return abort(HTTPStatus.FORBIDDEN)
-
-            data = db.get_jenkins_run_status_single(cid, run_id, netid)
+            data = db.get_jenkins_run_status_single(cid, run_id, stu_id)
             if not data or data == {}:
-                return util.success("No logs found.")
+                return util.error("")
             try:
-                stuff = bw_api.get_grading_run_log(cid, data['build_url'])
+                stuff = bw_api.get_grading_run_log(cid, aid, data['build_url'], stu_id)
                 return jsonify({"data": stuff, "build_url": data['build_url']})
             except Exception as e:
-                print(e)
+                print(e, flush=True)
                 return util.error("")
             
         @blueprint.route("/staff/course/<cid>/<aid>/<job_id>/job_log/", methods=["GET"])
@@ -114,12 +101,12 @@ class StaffRoutes:
 
             data = db.get_jenkins_run_status_single(cid, job_id, netid)
             if not data or data == {}:
-                return util.success("No logs found.")
+                return util.error("")
             try:
-                stuff = bw_api.get_grading_run_log(cid, data['build_url'])
+                stuff = bw_api.get_grading_run_log(cid, aid, data['build_url'])
                 return jsonify({"data": stuff, "build_url": data['build_url']})
             except Exception as e:
-                print(e)
+                print(e, flush=True)
                 return util.error("")
 
         @blueprint.route("/staff/course/<cid>/workers/", methods=["GET"])
@@ -142,7 +129,6 @@ class StaffRoutes:
             """
             if not verify_staff(netid, cid):
                 return abort(HTTPStatus.FORBIDDEN)
-
             detail = bw_api.get_grading_run_details(cid, run_id)
             if detail is not None:
                 return util.success(jsonify(detail), HTTPStatus.OK)

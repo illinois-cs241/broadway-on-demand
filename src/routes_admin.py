@@ -222,18 +222,6 @@ class AdminRoutes:
             if start >= end:
                 return util.error("Start must be before End.")
 
-            try:
-                config_str = request.form.get("config")
-
-                if config_str is not None:  # skip update otherwise
-                    config = json.loads(request.form["config"])
-                    msg = bw_api.set_assignment_config(cid, aid, config)
-
-                    if msg:
-                        return util.error(f"Failed to update assignment config to Broadway: {msg}")
-            except json.decoder.JSONDecodeError:
-                return util.error("Failed to decode config JSON")
-
             visibility = request.form["visibility"]
 
             if not db.update_assignment(cid, aid, max_runs, quota, start, end, visibility):

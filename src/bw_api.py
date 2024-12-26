@@ -1,3 +1,5 @@
+# In a bit of a misnomer, this actually interfaces with Jenkins and not Broadway anymore.
+import json
 import logging
 import requests
 from http import HTTPStatus
@@ -14,7 +16,7 @@ STUDENT_ID = "STUDENT_ID"
 
 def build_header(cid):
 	token = db.get_course(cid)["token"]
-	return {"Authorization": f"Basic {token}"}
+	return {"Authorization": f"Basic {token}", "Content-Type": "application/json"}
 
 
 @catch_request_errors
@@ -42,39 +44,24 @@ def start_grading_run(cid, aid, netids, timestamp, publish):
 	resp.raise_for_status()
 	return grading_run_id
 
-def get_assignment_config(*args, **kwargs):
-	return None
-
-
-def set_assignment_config(*args, **kwargs):
-	return "200: Jenkins No-Op"
-
-
-def get_grading_job_log(cid, rid):
-	return {"stdout": f"To view the job logs, please go to Jenkins at {JENKINS_API_URL} and search for the Job ID in the Builds section.", "stderr": ""}
 
 @catch_request_errors
-def get_grading_run_details(cid, run_id):
-	return []
-	# Get all environment variables for this run
-	# resp = requests.get(url=f"{BROADWAY_API_URL}/grading_run_env/{cid}/{run_id}", headers=build_header(cid))
-	# student_env_data = resp.json()["data"]["student_env"]
-	# detail_data = []
-	# # Extract job id and student id pairs from environment variable
-	# for job_id, env_data in student_env_data.items():
-	# 	if STUDENT_ID not in env_data:
-	# 		netid = STUDENT_ID + " not found in grading env"
-	# 	else:
-	# 		# Each env var is a list, but it will most likely only have 1 entry
-	# 		netid = ", ".join(env_data[STUDENT_ID])
-	# 	detail_data.append({"jobId": job_id, "netid": netid})
-	# return detail_data
+def get_grading_run_details(cid, rid):
+	return db.get_jenkins_run_status_all(cid, rid)
 
-
-def get_grading_run_log(cid, build_url):
-	resp = requests.post(url=f"{build_url}/logText/progressiveText?start=0", headers=build_header(cid))
-	resp.raise_for_status()
-	return resp.text
+def get_grading_run_log(cid, aid, build_url, netid):
+	splitted = [x for x in build_url.split("/") if x != '']
+	print(build_url, splitted, flush=True)
+	build_id = splitted[-1]
+	url = f"{JENKINS_API_URL}/blue/rest/organizations/jenkins/pipelines/{aid}/runs/{build_id}/nodes/"
+	print(url, flush=True)
+	resp = requests.get(url=url, headers=build_header(cid))
+	data = resp.json()
+	for entry in data:
+		if entry['displayName'].startswith(netid):
+			link = f"{JENKINS_API_URL}{entry['_links']['self']['href']}log"
+			raw = requests.get(url=link, headers=build_header(cid))
+			return raw.text
 
 
 def get_workers(cid):

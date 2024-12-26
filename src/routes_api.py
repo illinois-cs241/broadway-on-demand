@@ -16,7 +16,10 @@ class ApiRoutes:
         def student_get_job_status(netid, cid, runId):
             if not verify_student_or_staff(netid, cid):
                 return abort(HTTPStatus.FORBIDDEN)
-            return util.success(db.get_jenkins_run_status_single(cid, runId, netid)['status'], 200)
+            try:
+                return util.success(db.get_jenkins_run_status_single(cid, runId, netid)['status'], 200)
+            except Exception:
+                return util.error("")
           
         @blueprint.route("/api/<cid>/<aid>/trigger_scheduled_run/<scheduled_run_id>", methods=["POST"])
         @auth.require_system_auth
@@ -40,7 +43,7 @@ class ApiRoutes:
                 netids = sched_run["roster"]
             
             # Start broadway grading run
-            bw_run_id = bw_api.start_grading_run(cid, f"{aid}_{sched_run['_id']}", netids, sched_run["due_time"])
+            bw_run_id = bw_api.start_grading_run(cid, aid, netids, sched_run["due_time"], True)
             if bw_run_id is None:
                 logging.warning("Failed to trigger run with broadway")
                 db.update_scheduled_run_status(sched_run["_id"], ScheduledRunStatus.FAILED)

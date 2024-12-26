@@ -341,4 +341,12 @@ def get_jenkins_run_status_single(cid, rid, netid):
 		print(e, flush=True)
 		return {}
 	
-	
+def get_jenkins_run_status_all(cid, rid):
+	try:
+		response = mongo.db.jenkins_run_status.find({"cid": cid, "rid": rid}, {"_id": 0, "netid": 1, "status": 1})
+		if not response:
+			return []
+		return list(response)
+	except Exception as e:
+		print(e, flush=True)
+		return {}
