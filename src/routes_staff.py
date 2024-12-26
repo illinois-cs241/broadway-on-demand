@@ -57,7 +57,6 @@ class StaffRoutes:
                     f"Failed to get git hash; return code: {e.returncode}, command ran: {e.cmd}, output of "
                     f"process: {e.output}"
                 )
-
             return render_template(
                 "staff/home.html",
                 netid=netid,

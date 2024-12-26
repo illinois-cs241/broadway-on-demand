@@ -59,7 +59,6 @@ def get_courses_for_student(netid):
 
 def get_courses_for_staff(netid):
     courses = mongo.db.courses.find({f"staff.{netid}": {"$exists": True}})
-
     return list(courses)
 
 
