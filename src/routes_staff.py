@@ -3,7 +3,7 @@ from http import HTTPStatus
 import logging
 from flask import render_template, abort, jsonify
 
-from config import BASE_URL, TZ
+from config import BASE_URL, JENKINS_API_URL, TZ
 from src import db, util, auth, bw_api, sched_api
 from src.common import verify_staff, verify_admin
 
@@ -74,7 +74,7 @@ class StaffRoutes:
                                    assignment=assignment, student_runs=student_runs,
                                    scheduled_runs=scheduled_runs, sched_run_status=sched_api.ScheduledRunStatus,
                                    tzname=str(TZ), is_admin=is_admin, visibility=db.Visibility,
-                                   base_url=BASE_URL
+                                   base_url=BASE_URL, jenkins_url = JENKINS_API_URL
                                    )
 
         @blueprint.route("/staff/course/<cid>/<aid>/<run_id>/<stu_id>/run_log/", methods=["GET"])

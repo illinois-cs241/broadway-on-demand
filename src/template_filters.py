@@ -27,3 +27,10 @@ class TemplateFilters:
 		def _filter_fmt_datetime_local(timestamp):
 			dt = datetime.utcfromtimestamp(timestamp).replace(tzinfo=utc).astimezone(TZ)
 			return Markup(dt.strftime("%Y-%m-%dT%H:%M"))
+
+		@app.template_filter("fmt_timestamp_human")
+		def _filter_fmt_timestamp_human(timestamp):
+			dt = datetime.utcfromtimestamp(timestamp).replace(tzinfo=utc).astimezone(TZ)
+			# Format: Tue, Sep 10, 2024, 12:30pm (CDT)
+			time_str = dt.strftime("%a, %b %-d, %Y, %-I:%M %p")
+			return Markup(time_str)

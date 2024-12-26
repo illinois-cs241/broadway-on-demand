@@ -323,6 +323,11 @@
                                     <div class="col p-1">
                                         {% include 'modals/add_scheduled_run.html' %}
                                     </div>
+                                    <div class="col p-1">
+                                        <button type="button" class="btn btn-outline-primary btn-fixed-width" onclick="window.open('{{jenkins_url}}/job/{{assignment.assignment_id}}');">
+                                            <i class="fas fa-cog"></i> View Jenkins
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
