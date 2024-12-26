@@ -6,7 +6,7 @@ from bson.errors import InvalidId
 from src import util
 from src.common import wrap_delete_scheduled_run
 from src.sched_api import ScheduledRunStatus
-from src.types import NameInfo, StudentInfo
+from src.types import StudentInfo
 
 mongo = PyMongo()
 
@@ -67,7 +67,7 @@ def remove_staff_from_course(cid, staff_id):
     )
 
 
-def add_student_to_course(cid: str, student_info: NameInfo):
+def add_student_to_course(cid: str, student_info: StudentInfo):
     return mongo.db["courses"].update_one(
         {"_id": cid},
         {
