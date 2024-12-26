@@ -319,7 +319,7 @@ class AdminRoutes:
             missing = util.check_missing_fields(form, "run_time", "due_time", "name")
             if missing:
                 return util.error(f"Missing fields ({', '.join(missing)}).")
-            run_time = util.parse_form_datetime(form["run_time"]).timestamp()
+            run_time = util.parse_form_datetime(form["run_time"]).timestamp()   
             if run_time is None:
                 return util.error("Missing or invalid run time.")
             if run_time <= util.now_timestamp():
@@ -334,13 +334,6 @@ class AdminRoutes:
                 for student_netid in roster:
                     if not util.valid_id(student_netid) or not verify_student(student_netid, cid):
                         return util.error(f"Invalid or non-existent student NetID: {student_netid}")
-            try:
-                config = json.loads(form["config"])
-                msg = bw_api.set_assignment_config(cid, f"{aid}_{run_id}", config)
-                if msg:
-                    return util.error(f"Failed to upload config to Broadway: {msg}")
-            except json.decoder.JSONDecodeError:
-                return util.error("Failed to decode config JSON")
 
             # Schedule a new run with scheduler
             if scheduled_run_id is None:
