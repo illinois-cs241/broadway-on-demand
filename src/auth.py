@@ -123,17 +123,12 @@ def require_admin_status(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
         netid = kwargs.get(UID_KEY, None)
-        if request.json is not None:
+        if request.is_json:
             netid = request.json.get(UID_KEY, netid)
         cid = kwargs[CID_KEY]
-        if (
-            netid is None
-            or not verify_staff(netid, cid)
-            or not verify_admin(netid, cid)
-        ):
+        if netid is None or not verify_staff(netid, cid) or not verify_admin(netid, cid):
             return abort(HTTPStatus.FORBIDDEN)
         return func(*args, **kwargs)
-
     return wrapper
 
 
