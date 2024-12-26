@@ -1,4 +1,3 @@
-from email.policy import HTTP
 from flask import request
 from http import HTTPStatus
 from src import db
