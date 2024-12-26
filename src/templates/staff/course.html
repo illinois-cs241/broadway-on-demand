@@ -127,41 +127,6 @@
                   </div>
                </div>
                {% if is_admin %}
-               <button type="button" class="btn btn-outline-primary mt-3" data-toggle="modal" data-target="#mdl-course-templates">
-               <i class="fas fa-file-code"></i> Modify configuration templates
-               </button>
-               <div class="modal fade" id="mdl-course-templates" tabindex="-1" role="dialog" aria-labelledby="mdl-course-templates-label" aria-hidden="true">
-                  <div class="modal-dialog" role="document">
-                     <div class="modal-content">
-                        <div class="modal-header">
-                           <h5 class="modal-title" id="mdl-course-templates-label">Manage Course Templates</h5>
-                           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                           <span aria-hidden="true">&times;</span>
-                           </button>
-                        </div>
-                        <div class="modal-body">
-                            <p>The content of these fields will be the default in the UI when creating an assignment.</p>
-                           <form name="course-templates" id="course-templates">
-                              <div class="form-group">
-                                 <label for="start">Student Job (Assignment) Configuration</label>
-                                 <textarea type="text" class="form-control" id="mdl-course-templates-config" name="config" rows="8" style="font-family: monospace;" placeholder="JSON configuration for broadway">{{ course.default_assignment_config }}</textarea>
-                              </div>
-                              <div class="form-group">
-                                 <label for="start">Grading Job Configuration</label>
-                                 <textarea type="text" class="form-control" id="mdl-course-templates-config" name="grading_config" rows="8" style="font-family: monospace;" placeholder="JSON configuration for broadway">{{ course.default_grading_config }}</textarea>
-                              </div>
-                              <span id="mdl-course-templates-error" class="form-text text-danger"></span>
-                           </form>
-                        </div>
-                        <div class="modal-footer">
-                           <button type="submit" form="course-templates" class="btn btn-primary" id="mdl-course-templates-save">
-                           <span class="fa fa-cog loader" style="margin-right: 0.2em;"></span>
-                           Save
-                           </button>
-                        </div>
-                     </div>
-                  </div>
-               </div>
                <button type="button" class="btn btn-outline-primary mt-3" data-toggle="modal" data-target="#mdl-add-assn">
                <i class="fas fa-calendar-plus"></i> Add assignment
                </button>
