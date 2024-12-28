@@ -153,7 +153,7 @@ def begin_login():
             **mip_auth.log_in(
                 scopes=MIP_SCOPES,  # Have user consent to scopes during log-in
                 redirect_uri=(url_for(".login_callback", _external=True)),
-                prompt="login",  # Optional. More values defined in  https://openid.net/specs/openid-connect-core-1_0.html#AuthRequest
+                prompt="select_account",  # Optional. More values defined in  https://openid.net/specs/openid-connect-core-1_0.html#AuthRequest
             ),
         )
     )
