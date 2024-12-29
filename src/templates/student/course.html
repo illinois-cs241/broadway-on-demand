@@ -8,7 +8,7 @@
 </nav>
 <div class="container-fluid">
     <div class="row">
-        <div class="col-md-12 col-lg-8 offset-lg-2">
+        <div class="col-md-8 col-lg-10 col-xl-10">
             <table class="table table-hover">
                 <thead>
                 <tr>
@@ -29,8 +29,8 @@
                     <td>
                         <a href="{{ url_for('.student_get_assignment', cid=course._id, aid=assignment.assignment_id) }}">{{assignment.assignment_id}}</a>
                     </td>
-                    <td>{{assignment.start|fmt_timestamp}}</td>
-                    <td>{{assignment.end|fmt_timestamp}}</td>
+                    <td title="Starts {{assignment.start | fmt_timestamp}}">{{assignment.start|fmt_timestamp_human}}</td>
+                    <td title="Ends {{assignment.end | fmt_timestamp}}">{{assignment.end|fmt_timestamp_human}}</td>
                 </tr>
                 {% endfor %}
                 {% if not assignments %}
@@ -42,6 +42,18 @@
             </table>
             <div class="text-secondary"> All times in {{tzname}}</div>
         </div>
+        <div class="col-md-4 col-lg-2 col-xl-2">
+            <div class="card">
+               <div class="card-body">
+                  <h5 class="card-title">Course Links</h5>
+                  <a href="{{ url_for('.student_grades', cid=course._id) }}">
+                    <button type="button" class="btn btn-outline-primary mt-3">
+                    <i class="fas fa-award"></i>View Grades
+                    </button>
+                    </a>
+               </div>
+            </div>
+         </div>
     </div>
 </div>
 {% include 'footer.html' %}

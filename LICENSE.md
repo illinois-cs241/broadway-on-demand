@@ -2,7 +2,7 @@ University of Illinois/NCSA Open Source License
 
 Copyright (c) 2019 University of Illinois at Urbana-Champaign. All rights reserved. 
 
-Developed by: CS 241 Course Staff  
+Developed by: CS 341 Course Staff  
               University of Illinois at Urbana-Champaign  
               https://github.com/illinois-cs241/broadway-on-demand
                   
@@ -21,7 +21,7 @@ subject to the following conditions:
   notice, this list of conditions and the following disclaimers in the 
   documentation and/or other materials provided with the distribution.
 
-* Neither the names of University of Illinois at Urbana-Champaign, CS 241 Course Staff nor the names of its 
+* Neither the names of University of Illinois at Urbana-Champaign, CS 341 Course Staff nor the names of its 
   contributors may be used to endorse or promote products derived from
   this Software without specific prior written permission.
   

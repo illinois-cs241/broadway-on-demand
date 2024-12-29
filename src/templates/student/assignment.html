@@ -2,12 +2,71 @@
 {% include 'header.html' %}
 {% include 'status.html' %}
 <script type="application/javascript">
+    function convertTimestampGHE(timestamp) {
+        // convert the Broadway timestamp into the GHE timestamp style so that we can view the feedback.
+        const date = new Date(timestamp);
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const year = String(date.getFullYear()).slice(-2);
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        const seconds = String(date.getSeconds()).padStart(2, '0');
+        return `${month}_${day}_${year}_${hours}_${minutes}_${seconds}`;
+    }
+    function setupStatusObserver() {
+        // Create a mutation observer to watch for status changes
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.type === 'attributes' || mutation.type === 'childList') {
+                    const statusDiv = mutation.target;
+                    const row = statusDiv.closest('tr');
+                    if (!row) return;
+                    
+                    const actionsCell = row.querySelector('td:last-child');
+                    if (!actionsCell) return;
+
+                    // Check if the status contains "success"
+                    if (statusDiv.textContent.toLowerCase().includes('success')) {
+                        // Only add the link if it doesn't already exist
+                        if (!actionsCell.querySelector('.view-results')) {
+                            const runId = statusDiv.dataset.run_id;
+                            const link = document.createElement('a');
+                            link.target = "_blank";
+                            link.href = `{{ feedback_url }}/{{assignment.assignment_id}}/feedback_${convertTimestampGHE(actionsCell.dataset.timestamp)}_${runId}.md`;
+                            link.className = 'btn btn-sm btn-primary view-results';
+                            link.innerHTML = '<i class="fas fa-eye"></i> View Results';
+                            actionsCell.appendChild(link);
+                        }
+                    } else {
+                        // Remove the link if status is not success
+                        const existingLink = actionsCell.querySelector('.view-results');
+                        if (existingLink) {
+                            existingLink.remove();
+                        }
+                    }
+                }
+            });
+        });
+
+        // Observe all status update divs
+        document.querySelectorAll('.auto-status-update').forEach(statusDiv => {
+            observer.observe(statusDiv, {
+                attributes: true,
+                childList: true,
+                characterData: true,
+                subtree: true
+            });
+        });
+    }
+
     $(() => { // on load
         $(".auto-status-update").each((i, div) => {
             autoUpdateStatus(div.id, "{{ course._id }}", "{{ course.query_token }}");
-        })
+        });
         $("[data-toggle=popover]").popover();
-    })
+        setupStatusObserver(); // Initialize the observer
+    });
+
     function confirmGradeNow() {
         let proceed = window.confirm("The current latest commit in your repository will be graded, using 1 available run.\nIn addition, by proceeding you certify that you have read and understand the course policies regarding plagarism and academic integrity and that the work you are submitting is your own and original unless explicitly allowed otherwise.\nAre you sure you want to proceed?" );
         if (!proceed) {
@@ -47,36 +106,37 @@
 </nav>
 <div class="container-fluid">
     <div class="row">
-
         <div class="col-md-6 col-lg-8 col-xl-9">
             <table class="table table-hover">
                 <thead>
                 <tr>
                     <th scope="col">Timestamp</th>
                     <th scope="col">Status</th>
+                    <th scope="col">Actions</th>
                 </tr>
                 </thead>
                 <tbody>
                 {% for run in runs %}
                     <tr>
-                        <td style="width: 50%">{{ run.timestamp | round_timestamp | fmt_timestamp_full }}</td>
+                        <td style="width: 50%" title="{{ run.timestamp | round_timestamp | fmt_timestamp_full }}">{{ run.timestamp | round_timestamp | fmt_timestamp_human }}</td>
                         <td style="width: 50%">
-                            <div id="{{ run._id }}" class="auto-status-update">
+                            <div id="{{ run._id }}" data-run_id="{{ run._id }}" class="auto-status-update">
                                 <i class="fas fa-spinner fa-spin"></i> Loading
                             </div>
+                        </td>
+                        <td data-timestamp="{{ run.timestamp | round_timestamp | fmt_timestamp_full }}">
                         </td>
                     </tr>
                 {% endfor %}
                 {% if not runs %}
                     <tr>
-                        <td colspan="2">No previous runs</td>
+                        <td colspan="3">No previous runs</td>
                     </tr>
                 {% endif %}
                 </tbody>
             </table>
-            <div class="text-secondary"> All times in {{ tzname }}</div>
+            <div class="text-secondary"> All times in the {{ tzname }} timezone.</div>
         </div>
-
 
         <div class="col-md-6 col-lg-4 col-xl-3">
             <div class="card">
@@ -96,25 +156,23 @@
                         <input id="csrf_token" name="csrf_token" type="hidden" value="{{ csrf_token() }}">
                         <button id="grade-now" onclick="confirmGradeNow()" type="button" class="btn btn-primary" {% if not has_runs or not has_commits %}disabled{% endif %}>Grade Now</button>
                     </form>
+                    <div title="{{ assignment.start | fmt_timestamp }}">
+                        <a class="font-weight-bold">Start: </a> {{ assignment.start | fmt_timestamp_human }}
+                    </div>
+                    <div title="{{ assignment.end | fmt_timestamp }}">
+                        <strong>End: </strong> {{ assignment.end | fmt_timestamp_human }}
+                    </div>
+                    <hr>
                     <p>
-                        <strong>Start</strong> {{ assignment.start|fmt_timestamp }}
-                        <br><strong>End</strong> {{ assignment.end|fmt_timestamp }}
-                        <hr>
                         {% if not commit["sha"] %}
-                          <strong class="text-danger">Latest Commit</strong>
+                          <a class="font-weight-bold">Latest Commit<a>
                           <br>{{ commit["message"] }}
                         {% else %}
-                          <strong>Latest Commit</strong>
+                          <a class="font-weight-bold">Latest Commit<a>
                           <br><code><a class="code-link" href="{{ commit['url'] }}" target="_blank">{{ commit["sha"] | truncate(7, end="") }}</a></code>
                           <span title="{{ commit['message'] }}">{{ commit["message"] | truncate(50, killwords=True) }}</span>
                         {% endif %}
                         <div id="grade-now-error" class="text-danger"></div>
-			{% if runs and feedback_url %}
-			<hr>
-			<div id="feedback-link">
-			  <a href="{{feedback_url}}" rel="link">Feedback branch</a>
-                        </div>
-			{% endif %}
                     </p>
                 </div>
             </div>

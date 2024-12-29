@@ -4,10 +4,12 @@ from src import util
 from http import HTTPStatus
 from config import SCHEDULER_URI
 
+
 class ScheduledRunStatus:
     SCHEDULED = "scheduled"
     RAN = "ran"
     FAILED = "failed"
+
 
 @util.catch_request_errors
 def schedule_run(time, cid, aid):
@@ -16,7 +18,7 @@ def schedule_run(time, cid, aid):
     :param time: The time to schedule the run in unix timestamp
     :param cid: course id
     :param aid: assignment id
-    :return: scheduled run id, an id for the run that we just scheduled. If 
+    :return: scheduled run id, an id for the run that we just scheduled. If
         an error occurs, return None.
     """
     url = f"{SCHEDULER_URI}/api/schedule_run"
@@ -58,8 +60,3 @@ def delete_scheduled_run(scheduled_run_id):
     if not is_success:
         logging.warning("Failed to delete scheduled run: %s", resp.text)
     return is_success
-
-
-
-
-

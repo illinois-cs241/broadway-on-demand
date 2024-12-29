@@ -159,36 +159,16 @@
         }
     }
 
-    function loadOriginalConfig(configSelector, assignment_id) {
-        $(configSelector).val("Loading...").attr("disabled", "");
-
-        $.ajax({
-            type: "GET",
-            url: `{{ url_for('.staff_get_course', cid=course._id) }}${assignment_id}/config`,
-            dataType: "json",
-            success: function (result) {
-                let json = JSON.stringify(result);
-                let old = normalizeJSON(json);
-                $(configSelector).val(old).data("old-config", old).removeAttr("disabled");
-                changeTextareaRow(configSelector, old);
-            },
-            error: function () {
-                $(configSelector)
-                    .val("Config loading failed; you may proceed with editing other information");
-            }
-        });
-    }
-
-    function getLogHelper(id, logType) {
+    function getRunLog(id, netid) {
         $(`#view-log-${id} i`).attr("class", "fas fa-spinner fa-spin")
         $('#mdl-view-log-stderr').html('');
         $('#mdl-view-log-stdout').html('');
         $.ajax({
-                url: `./${id}/${logType}/`,
+                url: `./${id}/${netid}/run_log/`,
                 success: function (result) {
                     $('#mdl-view-log-run-id').html(id);
-                    $('#mdl-view-log-stderr').html(result['stderr']);
-                    $('#mdl-view-log-stdout').html(result['stdout']);
+                    $('#mdl-view-log-data').html(result['data']);
+                    $('#mdl-view-log-jenkins-link').html(`<a href="${result['build_url']}">View this run in Jenkins</a>`);
                     $('#mdl-view-log').modal('show');
                 },
                 error: function () {
@@ -198,14 +178,6 @@
         }).always(() => {
             $(`#view-log-${id} i`).attr("class", "fas fa-file-alt")
         })
-    }
-
-    function getRunLog(runId) {
-       getLogHelper(runId, "run_log")
-    }
-
-    function getJobLog(jobId) {
-       getLogHelper(jobId, "job_log")
     }
 
     function deleteAssignment() {
@@ -237,15 +209,12 @@
      * @param runId id of the scheduled run on broadway
      */
     function seeScheduledRunJobs(runId, runName) {
-        function generateTableRow(jobId, netid) {
+        function generateTableRow(jobid, netid, status) {
             return `<tr>
                         <th scope="row">${netid}</th>
-                        <td>${jobId}</td>
+                        <td><button class="btn btn-sm btn-${statusClassMap[status]}" onclick="return false;" >${status}</button></td>
                         <td>
-                            <button class="btn btn-link btn-sm" type="button" title="Check status"
-                                onclick="getJobStatus('${runId}', '${jobId}', '{{ course._id }}', '{{ course.query_token }}')" id="status-${jobId}">
-                                <i class="fas fa-info-circle"></i>Status</button>
-                            <button class="btn btn-link btn-sm" type="button" onclick="getJobLog('${jobId}')" id="view-log-${jobId}"><i class="fas fa-file-alt"></i>Log</button>
+                            <button class="btn btn-link btn-sm" type="button" onclick="getRunLog('${jobid}', '${netid}')" id="view-log-${jobid}"><i class="fas fa-file-alt"></i>Log</button>
                         </td>
                     </tr>`
         }
@@ -256,7 +225,7 @@
                     </tr>`
         }
 
-        $("#scheduledGradingRunDetailTitle").text(`Grading jobs of "${runName}"`)
+        $("#scheduledGradingRunDetailTitle").text(`Grading runs for "${runName}"`)
         $("#scheduledGradingJobsTable").html(generateSingleRow(`<i class="fas fa-spinner fa-spin fa-lg"></i>`, "text-center"))
         $("#scheduledGradingJobsCollapse").collapse('show')
         $.ajax({
@@ -265,8 +234,8 @@
             dataType: "json",
             success: (detailData) => {
                 let tableContent = ""
-                for (const {jobId, netid} of detailData) {
-                    tableContent += generateTableRow(jobId, netid)
+                for (const {netid, status} of detailData) {
+                    tableContent += generateTableRow(runId, netid, status)
                 }
                 $("#scheduledGradingJobsTable").html(tableContent)
             },
@@ -332,14 +301,13 @@
                             <div class="col-md-6 col-lg-6 col-xl-8" style="align-self: center; text-align: center;">
                                 <div class="row">
                                     <div class="col p-1">
-                                        <button type="button" class="btn btn-outline-primary btn-fixed-width" data-toggle="modal" data-target="#mdl-edit-assn"
-                                            onclick="loadOriginalConfig('#mdl-edit-assn-config', '{{ assignment.assignment_id }}');">
+                                        <button type="button" class="btn btn-outline-primary btn-fixed-width" data-toggle="modal" data-target="#mdl-edit-assn">
                                             <i class="fas fa-pen"></i> Edit assignment
                                         </button>
                                     </div>
                                     <div class="col p-1">
                                         <button type="button" class="btn btn-outline-primary btn-fixed-width" data-toggle="modal" data-target="#mdl-add-ext" 
-                                        onclick="loadOriginalConfig('#mdl-ext-run-config', '{{ assignment.assignment_id }}_{{assignment.final_grading_run_id}}');">
+                                        >
                                             <i class="fas fa-plus"></i> Add extension
                                         </button>
                                     </div>
@@ -354,6 +322,11 @@
                                     </div>
                                     <div class="col p-1">
                                         {% include 'modals/add_scheduled_run.html' %}
+                                    </div>
+                                    <div class="col p-1">
+                                        <button type="button" class="btn btn-outline-primary btn-fixed-width" onclick="window.open('{{jenkins_url}}/job/{{assignment.assignment_id}}');">
+                                            <i class="fas fa-cog"></i> View Jenkins
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -416,12 +389,6 @@
                                         <label class="form-check-label" for="mdl-edit-assn-visible-from-start-date">Visible from start date</label>
                                     </div>
                                 </div>
-                                <div class="form-group">
-                                    <label for="start">Configuration</label>
-                                    <div>
-                                        <textarea type="text" class="form-control" id="mdl-edit-assn-config" name="config" rows="5" style="font-family: monospace;"></textarea>
-                                    </div>
-                                </div>
                                 <span id="mdl-edit-assn-error" class="form-text text-danger"></span>
                             </form>
                         </div>
@@ -448,7 +415,7 @@
                                 </button>
                         </div>
                         <div class="modal-body">
-                            <p>Are you sure you want to delete <b>{{ assignment.assignment_id }}</b>?</p>
+                            <p>Are you sure you want to delete <b>{{ assignment.assignment_id }}</b>? This will also delete all scheduled runs.</p>
                             <span id="delete-assn-error" class="form-text text-danger"></span>
                         </div>
                         <div class="modal-footer">
@@ -487,10 +454,6 @@
                                 <div class="form-group">
                                     <label for="max_runs">Max Runs (total)</label>
                                     <input type="number" min="1" max="100" class="form-control" id="mdl-add-ext-runs" name="max_runs">
-                                </div>
-                                <div class="form-group">
-                                    <label for="start">Configuration</label>
-                                    <textarea type="text" class="form-control" id="mdl-ext-run-config" name="config" rows="5" style="font-family: monospace;" placeholder="JSON configuration for broadway - double check that the extension run was created on submission."></textarea>
                                 </div>
                                 <div id="mdl-add-ext-error" class="form-text text-danger"></div>
                             </form>
@@ -560,7 +523,7 @@
                                     onclick="getRunStatus('{{ run._id }}', '{{ course._id }}', '{{ course.query_token }}')" id="status-{{ run._id }}">
                                     <i class="fas fa-info-circle"></i>Status
                                 </button>
-                                <button class="btn btn-link btn-sm" type="button" onclick="getRunLog('{{ run._id }}')" id="view-log-{{ run._id }}">
+                                <button class="btn btn-link btn-sm" type="button" onclick="getRunLog('{{ run._id }}', '{{ student._id }}')" id="view-log-{{ run._id }}">
                                     <i class="fas fa-file-alt"></i>Log
                                 </button>
                             </td>
@@ -583,7 +546,6 @@
                 <tr>
                     <th scope="col" style="width: 25%;">Name</th>
                     <th scope="col" style="width: 25%;">Time ({{ tzCity }})</th>
-                    <th scope="col" style="width: 25%;">Status</th>
                     <th scope="col" style="width: 25%;">Actions</th>
                 </tr>
                 </thead>
@@ -593,14 +555,6 @@
                     <tr>
                         <td>{{ run.name }}</td>
                         <td>{{ run.run_time | round_timestamp | fmt_timestamp }}</td>
-                        <td>
-                            {% if run.status == sched_run_status.SCHEDULED %}<div class="text-info"><i class="fas fa-clock"></i>Scheduled</div>
-                            {% elif run.status == sched_run_status.FAILED %}<div class="text-danger"><i class="fas fa-times-circle"></i>Failed</div>
-                            {% elif run.status == sched_run_status.RAN %}<button class="btn btn-success btn-sm"
-                                onclick="getRunState('{{ run.broadway_run_id }}', '{{ course._id }}', '{{ course.query_token }}')"
-                                id="status-{{ run.broadway_run_id }}"><i class="fas fa-check-circle"></i>check status</button>
-                            {% endif %}
-                        </td>
                         <td>
                             {% if is_admin %}
                             <button class="btn btn-link btn-sm" type="button" onclick="editScheduledRun('{{ run._id }}')" id="edit-run-{{ run._id }}"><i class="fas fa-pen"></i>Edit</button>
@@ -623,8 +577,8 @@
                 <table class="table table-bordered table-bordered">
                     <thead>
                         <tr>
-                        <th scope="col">Net ID</th>
-                        <th scope="col">Job Id</th>
+                        <th scope="col">NetID</th>
+                        <th scope="col">Status</th>
                         <th scope="col">Actions</th>
                         </tr>
                     </thead>
@@ -647,11 +601,8 @@
                         </button>
                     </div>
                     <div class="modal-body">
-                        <h5>stderr</h5>
-                        <pre id="mdl-view-log-stderr"></pre>
-                        <hr>
-                        <h5>stdout</h5>
-                        <pre id="mdl-view-log-stdout"></pre>
+                        <a id="mdl-view-log-jenkins-link"></a>
+                        <pre id="mdl-view-log-data"></pre>
                     </div>
                 </div>
             </div>
