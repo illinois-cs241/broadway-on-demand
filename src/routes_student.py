@@ -1,4 +1,5 @@
 import json
+from typing import List
 from flask import render_template, request, abort
 from http import HTTPStatus
 
@@ -11,8 +12,8 @@ from src.common import (
     get_active_extensions,
 )
 from src.ghe_api import get_latest_commit
-from src.util import verify_csrf_token, restore_csrf_token
-
+from src.types import GradeEntry
+from src.util import bin_scores, compute_statistics, verify_csrf_token, restore_csrf_token
 
 class StudentRoutes:
     def __init__(self, blueprint):
@@ -64,7 +65,33 @@ class StudentRoutes:
                 tzname=str(TZ),
             )
 
-        @blueprint.route("/student/course/<cid>/<aid>/", methods=["GET"])
+        @blueprint.route("/student/course/<cid>/grades/", methods=["GET"])
+        @util.disable_in_maintenance_mode
+        @auth.require_auth
+        def student_grades(netid, cid):
+            if not verify_student_or_staff(netid, cid):
+                return abort(HTTPStatus.FORBIDDEN)
+
+            course = db.get_course(cid)
+            all_grades = db.get_course_grades(cid)
+            grades_parsed: List[GradeEntry] = []
+            for assignment in all_grades:
+                assignment_grades = []
+                for student in assignment['data']:
+                    assignment_grades.append(float(student['score']))
+                real_name = assignment['name'].replace("_", " ").title()
+                result = compute_statistics(real_name, assignment['type'], assignment_grades)
+                result['bins'] = bin_scores(assignment_grades)
+                try:
+                    filtered = [float(x['score']) for x in assignment['data'] if x['netid'] == netid]
+                    result['score'] = round(filtered[0], 3)
+                except Exception:
+                    result['score'] = 0
+                grades_parsed.append(result)
+  
+            return render_template("student/grades.html", netid=netid, course=course, grades=json.dumps(grades_parsed))
+    
+        @blueprint.route("/student/course/<cid>/assignment/<aid>/", methods=["GET"])
         @util.disable_in_maintenance_mode
         @auth.require_auth
         def student_get_assignment(netid, cid, aid):
@@ -114,7 +141,7 @@ class StudentRoutes:
                 feedback_url=feedback_url,
             )
 
-        @blueprint.route("/student/course/<cid>/<aid>/run/", methods=["POST"])
+        @blueprint.route("/student/course/<cid>/assignment/<aid>/run/", methods=["POST"])
         @util.disable_in_maintenance_mode
         @auth.require_auth
         def student_grade_assignment(netid, cid, aid):

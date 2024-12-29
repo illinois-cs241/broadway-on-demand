@@ -226,7 +226,7 @@ class AdminRoutes:
             db.pair_assignment_final_grading_run(cid, aid, str(run_id))
             return util.success("")
 
-        @blueprint.route("/staff/course/<cid>/<aid>/edit/", methods=["POST"])
+        @blueprint.route("/staff/course/<cid>/assignment/<aid>/edit/", methods=["POST"])
         @auth.require_auth
         @auth.require_admin_status
         def edit_assignment(netid, cid, aid):
@@ -269,7 +269,7 @@ class AdminRoutes:
                 return util.error("Save failed or no changes were made.")
             return util.success("")
 
-        @blueprint.route("/staff/course/<cid>/<aid>/delete/", methods=["POST"])
+        @blueprint.route("/staff/course/<cid>/assignment/<aid>/delete/", methods=["POST"])
         @auth.require_auth
         @auth.require_admin_status
         def delete_assignment(netid, cid, aid):
@@ -277,7 +277,7 @@ class AdminRoutes:
                 return util.error("Assignment doesn't exist")
             return util.success("")
 
-        @blueprint.route("/staff/course/<cid>/<aid>/extensions/", methods=["GET"])
+        @blueprint.route("/staff/course/<cid>/assignment/<aid>/extensions/", methods=["GET"])
         @auth.require_auth
         @auth.require_admin_status
         def staff_get_extensions(netid, cid, aid):
@@ -286,7 +286,7 @@ class AdminRoutes:
                 ext["_id"] = str(ext["_id"])
             return util.success(jsonify(extensions), HTTPStatus.OK)
 
-        @blueprint.route("/staff/course/<cid>/<aid>/extensions/", methods=["POST"])
+        @blueprint.route("/staff/course/<cid>/assignment/<aid>/extensions/", methods=["POST"])
         @auth.require_auth
         @auth.require_admin_status
         def staff_add_extension(netid, cid, aid):
@@ -345,7 +345,7 @@ class AdminRoutes:
                 db.add_extension(cid, aid, student_netid, max_runs, start, end, run_id)
             return util.success("")
 
-        @blueprint.route("/staff/course/<cid>/<aid>/extensions/", methods=["DELETE"])
+        @blueprint.route("/staff/course/<cid>/assignment/<aid>/extensions/", methods=["DELETE"])
         @auth.require_auth
         @auth.require_admin_status
         def staff_delete_extension(netid, cid, aid):
@@ -417,7 +417,7 @@ class AdminRoutes:
                 return util.error("Failed to save the changes, please try again.")
             return util.success("")
 
-        @blueprint.route("/staff/course/<cid>/<aid>/schedule_run/", methods=["POST"])
+        @blueprint.route("/staff/course/<cid>/assignment/<aid>/schedule_run/", methods=["POST"])
         @auth.require_auth
         @auth.require_admin_status
         def staff_schedule_run(netid, cid, aid):
@@ -426,7 +426,7 @@ class AdminRoutes:
             return add_or_edit_scheduled_run(cid, aid, run_id, request.form, None)
 
         @blueprint.route(
-            "/staff/course/<cid>/<aid>/schedule_run/<run_id>", methods=["POST"]
+            "/staff/course/<cid>/assignment/<aid>/schedule_run/<run_id>", methods=["POST"]
         )
         @auth.require_auth
         @auth.require_admin_status
@@ -444,7 +444,7 @@ class AdminRoutes:
             )
 
         @blueprint.route(
-            "/staff/course/<cid>/<aid>/schedule_run/<run_id>", methods=["GET"]
+            "/staff/course/<cid>/assignment/<aid>/schedule_run/<run_id>", methods=["GET"]
         )
         @auth.require_auth
         @auth.require_admin_status
@@ -456,7 +456,7 @@ class AdminRoutes:
             return util.success(json.dumps(sched_run), 200)
 
         @blueprint.route(
-            "/staff/course/<cid>/<aid>/schedule_run/<run_id>", methods=["DELETE"]
+            "/staff/course/<cid>/assignment/<aid>/schedule_run/<run_id>", methods=["DELETE"]
         )
         @auth.require_auth
         @auth.require_admin_status

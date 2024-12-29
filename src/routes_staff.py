@@ -88,7 +88,7 @@ class StaffRoutes:
                 error=None,
             )
 
-        @blueprint.route("/staff/course/<cid>/<aid>/", methods=["GET"])
+        @blueprint.route("/staff/course/<cid>/assignment/<aid>/", methods=["GET"])
         @auth.require_auth
         def staff_get_assignment(netid, cid, aid):
             if not verify_staff(netid, cid):
@@ -116,7 +116,7 @@ class StaffRoutes:
             )
 
         @blueprint.route(
-            "/staff/course/<cid>/<aid>/<run_id>/<stu_id>/run_log/", methods=["GET"]
+            "/staff/course/<cid>/assignment/<aid>/<run_id>/<stu_id>/run_log/", methods=["GET"]
         )
         @auth.require_auth
         def staff_get_run_log(netid, cid, aid, run_id, stu_id):
@@ -135,7 +135,7 @@ class StaffRoutes:
                 print(e, flush=True)
                 return util.error("")
 
-        @blueprint.route("/staff/course/<cid>/<aid>/<job_id>/job_log/", methods=["GET"])
+        @blueprint.route("/staff/course/<cid>/assignment/<aid>/<job_id>/job_log/", methods=["GET"])
         @auth.require_auth
         def staff_get_job_log(netid, cid, aid, job_id):
             if not verify_staff(netid, cid):
@@ -162,7 +162,7 @@ class StaffRoutes:
                 return util.success(jsonify(workers), HTTPStatus.OK)
             return util.error("")
 
-        @blueprint.route("/staff/course/<cid>/<aid>/<run_id>/detail", methods=["GET"])
+        @blueprint.route("/staff/course/<cid>/assignment/<aid>/<run_id>/detail", methods=["GET"])
         @auth.require_auth
         def staff_get_run_detail(netid, cid, aid, run_id):
             """

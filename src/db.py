@@ -391,4 +391,14 @@ def get_jenkins_run_status_all(cid, rid):
         return list(response) if response else []
     except Exception as e:
         print(e, flush=True)
-        return {}
+        return []
+
+def get_course_grades(cid):
+    try:
+        response = mongo.db["new_gv_assignments"].find(
+            {"courseId": cid}, {"_id": 0, "__v": 0, "courseId": 0}
+        ).sort({"dueDate": -1})
+        return list(response)
+    except Exception as e:
+        print(e, flush=True)
+        return []

@@ -25,7 +25,7 @@ class ApiRoutes:
                 return util.error("")
 
         @blueprint.route(
-            "/api/<cid>/<aid>/trigger_scheduled_run/<scheduled_run_id>",
+            "/api/<cid>/assignment/<aid>/trigger_scheduled_run/<scheduled_run_id>",
             methods=["POST"],
         )
         @auth.require_system_auth

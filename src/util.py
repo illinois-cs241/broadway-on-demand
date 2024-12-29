@@ -1,3 +1,5 @@
+import math
+from typing import List
 import uuid
 import time
 import logging
@@ -12,6 +14,7 @@ from flask import request, session
 from pytz import utc
 
 from config import TZ, MAINTENANCE_MODE, MAINTENANCE_MODE_MESSAGE
+from src.types import GradeEntry
 
 
 def check_missing_fields(data, *args):
@@ -195,3 +198,108 @@ def test_slow_respond(func):
         return func(*args, **kwargs)
 
     return wrapper
+
+
+def compute_statistics(name: str, entry_type: str, scores: List[float]) -> GradeEntry:
+    """
+    Compute statistics for an array of scores.
+    """
+    ROUNDING_DIGITS = 3
+    if not scores:
+        return GradeEntry(
+            name=name,
+            type=entry_type,
+            score=0,
+            min=0,
+            q1=0,
+            median=0,
+            q3=0,
+            max=0,
+            mean=0,
+            std=0
+        )
+
+    
+    n = len(scores)
+    
+    # First pass: compute sum for mean and find min/max
+    total = 0
+    min_val = max_val = scores[0]
+    
+    for score in scores:
+        total += score
+        min_val = min(min_val, score)
+        max_val = max(max_val, score)
+    
+    mean = total / n
+    
+    # Quick select implementation for O(n) median and quartiles
+    def quick_select(arr: List[float], k: int, left: int, right: int) -> float:
+        """
+        Quick select algorithm to find the kth smallest element in O(n) time
+        """
+        while True:
+            if left == right:
+                return arr[left]
+            
+            # Choose pivot (using middle element to avoid worst case for sorted arrays)
+            pivot_idx = (left + right) // 2
+            pivot = arr[pivot_idx]
+            
+            # Move pivot to the end
+            arr[pivot_idx], arr[right] = arr[right], arr[pivot_idx]
+            
+            # Partition
+            store_idx = left
+            for i in range(left, right):
+                if arr[i] < pivot:
+                    arr[store_idx], arr[i] = arr[i], arr[store_idx]
+                    store_idx += 1
+            
+            # Move pivot to its final place
+            arr[right], arr[store_idx] = arr[store_idx], arr[right]
+            
+            if store_idx == k:
+                return arr[k]
+            elif store_idx < k:
+                left = store_idx + 1
+            else:
+                right = store_idx - 1
+    
+    # Create a copy of scores to avoid modifying the original array
+    sorted_scores = scores.copy()
+    
+    # Find quartiles using quick select
+    median_idx = (n - 1) // 2
+    q1_idx = median_idx // 2
+    q3_idx = median_idx + (n - median_idx) // 2
+    
+    median = quick_select(sorted_scores, median_idx, 0, n - 1)
+    q1 = quick_select(sorted_scores, q1_idx, 0, median_idx)
+    q3 = quick_select(sorted_scores, q3_idx, median_idx, n - 1)
+    
+    # Second pass: compute standard deviation
+    squared_diff_sum = 0
+    for score in scores:
+        squared_diff_sum += (score - mean) ** 2
+    std = math.sqrt(squared_diff_sum / n)
+    
+    return GradeEntry(
+        name=name,
+        type=entry_type,
+        score=0,
+        min=round(min_val, ROUNDING_DIGITS),
+        q1=round(q1, ROUNDING_DIGITS),
+        median=round(median, ROUNDING_DIGITS),
+        q3=round(q3, ROUNDING_DIGITS),
+        max=round(max_val, ROUNDING_DIGITS),
+        mean=round(mean, ROUNDING_DIGITS),
+        std=round(std, ROUNDING_DIGITS)
+    )
+
+def bin_scores(scores):
+   bins = [0] * 10
+   for score in scores:
+       bin_idx = min(int(score // 10), 9)  
+       bins[bin_idx] += 1
+   return [[f"{i*10}-{min(100, (i+1)*10)}", count] for i, count in enumerate(bins)]
