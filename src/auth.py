@@ -138,7 +138,6 @@ def require_admin_status(func):
 
 
 def get_login_url():
-    print("called get_login_url", flush=True)
     presence = mip_auth.log_in(
         scopes=MIP_SCOPES,  # Have user consent to scopes during log-in
         redirect_uri=(url_for(".login_callback", _external=True)),
@@ -169,7 +168,6 @@ def begin_login():
 
 
 def complete_login():
-    print(request.args, flush=True)
     result = mip_auth.complete_log_in(request.args)
     if "error" in result:
         return render_template("login.html", error=result.get("error_description", ""))
@@ -177,10 +175,8 @@ def complete_login():
     try:
         email = result["email"]
     except KeyError:
-        error = (
-            "Could not find email associated with account. Please contact course staff."
-        )
-        print(result, flush=True)
+        error = "Could not log in. Please contact course staff."
+        print("failed auth result", result, flush=True)
         return logout(error)
 
     if not email.endswith(AUTH_DOMAIN):
