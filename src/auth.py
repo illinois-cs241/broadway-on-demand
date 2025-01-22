@@ -166,6 +166,8 @@ def begin_login():
 
 def complete_login():
     print(request.args, flush=True)
+    print("Session state:", session.get("oauth_state"), flush=True)
+    print("Callback state:", request.args.get("state"), flush=True)
     result = mip_auth.complete_log_in(request.args)
     if "error" in result:
         return render_template("login.html", error=result.get("error_description", ""))
