@@ -59,6 +59,12 @@ def login_page():
     return auth.begin_login()
 
 
+@blueprint.route("/login/start", methods=["GET"])
+@auth.require_no_auth
+def start_login():
+    return redirect(auth.get_login_url())
+
+
 @blueprint.route("/login/login_callback/", methods=["GET"])
 def login_callback():
     return auth.complete_login()
