@@ -138,6 +138,7 @@ def require_admin_status(func):
 
 
 def get_login_url():
+    print("called get_login_url", flush=True)
     presence = mip_auth.log_in(
         scopes=MIP_SCOPES,  # Have user consent to scopes during log-in
         redirect_uri=(url_for(".login_callback", _external=True)),
