@@ -144,7 +144,7 @@ def begin_login():
     # Have to save error in cookie so error is saved across multiple redirects so user is
     # logged out of Microsoft before coming back to the login page if login fails
     error = request.cookies.get(LOGIN_ERR_KEY, "")
-
+    print(url_for(".login_callback", _external=True), flush=True)
     resp = make_response(
         render_template(
             "login.html",
@@ -165,6 +165,7 @@ def begin_login():
 
 
 def complete_login():
+    print(request.args, flush=True)
     result = mip_auth.complete_log_in(request.args)
     if "error" in result:
         return render_template("login.html", error=result.get("error_description", ""))
