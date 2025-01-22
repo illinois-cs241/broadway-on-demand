@@ -171,10 +171,11 @@ def complete_login():
 
     try:
         email = result["email"]
-    except ValueError:
+    except KeyError:
         error = (
             "Could not find email associated with account. Please contact course staff."
         )
+        print(result, flush=True)
         return logout(error)
 
     if not email.endswith(AUTH_DOMAIN):
