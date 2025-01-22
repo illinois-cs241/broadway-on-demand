@@ -1,24 +1,26 @@
 <!doctype html>
 <html class="h-100">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
-            integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
-            crossorigin="anonymous"></script>
+        integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+        crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"
-            integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49"
-            crossorigin="anonymous"></script>
+        integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49"
+        crossorigin="anonymous"></script>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css"
-          integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+        integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"
-            integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy"
-            crossorigin="anonymous"></script>
+        integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy"
+        crossorigin="anonymous"></script>
     <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
     <link href="{{ url_for('.static_file', path='styles.css') }}" rel="stylesheet">
 
     <title>Log In | Broadway On Demand</title>
 </head>
+
 <body class="h-100">
     <div class="h-100 d-flex flex-column">
         <nav class="navbar bg-dark">
@@ -31,22 +33,24 @@
                         <div class="card-body">
                             <h4 class="card-title" style="margin-bottom: 0.5em;">Welcome to Broadway On-Demand</h4>
                             <div>
-                                <a href="{{auth_uri}}">
+                                <a href="{{ url_for('.start_login') }}">
                                     <button type="submit" class="btn btn-primary m-1">Log In</button>
                                 </a>
                                 {% if config.ENV == "development" %}
-                                    <form action="{{ url_for('.login_as', path=url_for('.root')) }}" method="POST">
-                                        <div class="d-flex align-items-center mt-2">
-                                            <input type="text" name="path" value="{{ request.path }}" hidden>
-                                            <input type="text" name="loginNetId" class="form-control mr-1" placeholder="(Dev only) Enter NetID" required autocomplete="off">
-                                            <button type="submit" name="devLoginButton" class="btn btn-primary">Login</button>
-                                        </div>
-                                    </form>
+                                <form action="{{ url_for('.login_as', path=url_for('.root')) }}" method="POST">
+                                    <div class="d-flex align-items-center mt-2">
+                                        <input type="text" name="path" value="{{ request.path }}" hidden>
+                                        <input type="text" name="loginNetId" class="form-control mr-1"
+                                            placeholder="(Dev only) Enter NetID" required autocomplete="off">
+                                        <button type="submit" name="devLoginButton"
+                                            class="btn btn-primary">Login</button>
+                                    </div>
+                                </form>
                                 {% endif %}
                             </div>
                             {% if error != "" %}
                             <div class="mt-3 alert alert-danger" role="alert">
-                              {{ error }}
+                                {{ error }}
                             </div>
                             {% endif %}
                             {% if success != "0" %}
@@ -61,4 +65,5 @@
         </div>
     </div>
 </body>
+
 </html>

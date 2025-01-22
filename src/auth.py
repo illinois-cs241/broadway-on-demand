@@ -137,6 +137,15 @@ def require_admin_status(func):
     return wrapper
 
 
+def get_login_url():
+    presence = mip_auth.log_in(
+        scopes=MIP_SCOPES,  # Have user consent to scopes during log-in
+        redirect_uri=(url_for(".login_callback", _external=True)),
+        prompt="select_account",  # Optional. More values defined in  https://openid.net/specs/openid-connect-core-1_0.html#AuthRequest
+    )
+    return presence["auth_uri"]
+
+
 def begin_login():
     """
     Render the login page for the user using external IAM service
@@ -144,17 +153,11 @@ def begin_login():
     # Have to save error in cookie so error is saved across multiple redirects so user is
     # logged out of Microsoft before coming back to the login page if login fails
     error = request.cookies.get(LOGIN_ERR_KEY, "")
-    print(url_for(".login_callback", _external=True), flush=True)
     resp = make_response(
         render_template(
             "login.html",
             error=error,
             success=request.args.get("success", "0"),
-            **mip_auth.log_in(
-                scopes=MIP_SCOPES,  # Have user consent to scopes during log-in
-                redirect_uri=(url_for(".login_callback", _external=True)),
-                prompt="select_account",  # Optional. More values defined in  https://openid.net/specs/openid-connect-core-1_0.html#AuthRequest
-            ),
         )
     )
 
