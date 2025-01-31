@@ -7,7 +7,7 @@ User=andy2
 Group=www-data
 WorkingDirectory=/srv/cs341/broadway-on-demand
 Environment="PATH=/srv/cs341/broadway-on-demand/env/bin"
-ExecStart=/srv/cs341/broadway-on-demand/env/bin/gunicorn --workers 3 --bind unix:broadway-on-demand.sock -m 007 wsgi:app
+ExecStart=/srv/cs341/broadway-on-demand/env/bin/gunicorn --workers 5 --bind unix:broadway-on-demand.sock -m 007 wsgi:app
 
 [Install]
 WantedBy=multi-user.target

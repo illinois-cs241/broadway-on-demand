@@ -8,11 +8,11 @@
 <script type="application/javascript">
     $(() => { // on load
         modifyAssignment(
-            "edit-assn", 
-            `{{ url_for('.edit_assignment', cid=course._id, aid=assignment.assignment_id) }}`, 
-            '#mdl-edit-assn-error', 
+            "edit-assn",
+            `{{ url_for('.edit_assignment', cid=course._id, aid=assignment.assignment_id) }}`,
+            '#mdl-edit-assn-error',
             '#mdl-edit-assn-save',
-            '#mdl-edit-assn-save .loader', 
+            '#mdl-edit-assn-save .loader',
             '#mdl-edit-assn'
         );
         {% if is_admin %}
@@ -32,7 +32,7 @@
     $(document).on('show.bs.modal', '.modal', function () {
         var zIndex = 1040 + (10 * $('.modal:visible').length);
         $(this).css('z-index', zIndex);
-        setTimeout(function() {
+        setTimeout(function () {
             $('.modal-backdrop').not('.modal-stack').css('z-index', zIndex - 1).addClass('modal-stack');
         }, 0);
     });
@@ -72,7 +72,7 @@
         $.ajax({
             type: "POST",
             url: "{{ url_for('.staff_add_extension', cid=course._id, aid=assignment.assignment_id) }}",
-            data: {netids: netids, max_runs: maxRuns, start: start, end: end, config: config},
+            data: { netids: netids, max_runs: maxRuns, start: start, end: end, config: config },
             beforeSend: function () {
                 $('#mdl-add-ext-error').html('').hide();
                 $("#mdl-add-ext-save").prop('disabled', true);
@@ -93,7 +93,7 @@
         });;
     }
     function fmtTimestamp(timestamp) {
-        return new Date(timestamp * 1000).toLocaleString('en-US', {timeZone: '{{ tzname }}'});
+        return new Date(timestamp * 1000).toLocaleString('en-US', { timeZone: '{{ tzname }}' });
     }
     function viewExtensions() {
         $.ajax({
@@ -128,7 +128,7 @@
         $.ajax({
             type: "DELETE",
             url: "{{ url_for('.staff_delete_extension', cid=course._id, aid=assignment.assignment_id) }}",
-            data: {"_id": extensionId},
+            data: { "_id": extensionId },
             success: function (result) {
                 location.reload(true);
             },
@@ -164,17 +164,17 @@
         $('#mdl-view-log-stderr').html('');
         $('#mdl-view-log-stdout').html('');
         $.ajax({
-                url: `./${id}/${netid}/run_log/`,
-                success: function (result) {
-                    $('#mdl-view-log-run-id').html(id);
-                    $('#mdl-view-log-data').html(result['data']);
-                    $('#mdl-view-log-jenkins-link').html(`<a href="${result['build_url']}">View this run in Jenkins</a>`);
-                    $('#mdl-view-log').modal('show');
-                },
-                error: function () {
-                    $('#view-log-' + id).html("<i class=\"fas fa-sync-alt\"></i> Failed. Click to try again.")
-                                         .attr("class", "btn btn-sm btn-warning");
-                },
+            url: `./${id}/${netid}/run_log/`,
+            success: function (result) {
+                $('#mdl-view-log-run-id').html(id);
+                $('#mdl-view-log-data').html(result['data']);
+                $('#mdl-view-log-jenkins-link').html(`<a href="${result['build_url']}">View this run in Jenkins</a>`);
+                $('#mdl-view-log').modal('show');
+            },
+            error: function () {
+                $('#view-log-' + id).html("<i class=\"fas fa-sync-alt\"></i> Failed. Click to try again.")
+                    .attr("class", "btn btn-sm btn-warning");
+            },
         }).always(() => {
             $(`#view-log-${id} i`).attr("class", "fas fa-file-alt")
         })
@@ -234,7 +234,7 @@
             dataType: "json",
             success: (detailData) => {
                 let tableContent = ""
-                for (const {netid, status} of detailData) {
+                for (const { netid, status } of detailData) {
                     tableContent += generateTableRow(runId, netid, status)
                 }
                 $("#scheduledGradingJobsTable").html(tableContent)
@@ -245,7 +245,7 @@
                     errorMsg = jqXHR.responseText
                 }
                 $("#scheduledGradingJobsTable").html(generateSingleRow(errorMsg, "text-danger"))
-                
+
             }
         })
     }
@@ -255,20 +255,20 @@
         let startDate = $("#mdl-add-ext-start").val();
         let endDate = $("#mdl-add-ext-end").val();
 
-        if(startDate && endDate) {
+        if (startDate && endDate) {
             startDate = moment(startDate);
             endDate = moment(endDate);
-            
+
             // sets startDate time to 12:00 AM before calculating number of runs
             startDate.hour(0);
             startDate.minute(0);
 
             let timeDifference = moment.duration(endDate.diff(startDate));
             timeDifference = timeDifference.asDays();
-            
-            if(timeDifference > 0) {
+
+            if (timeDifference > 0) {
                 timeDifference = Math.ceil(timeDifference);
-                
+
                 // set the max runs
                 $("#mdl-add-ext-runs").val(timeDifference);
             }
@@ -283,202 +283,235 @@
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
         <li class="breadcrumb-item"><a href="{{ url_for('.staff_home') }}">Staff Home</a></li>
-        <li class="breadcrumb-item"><a href="{{ url_for('.staff_get_course', cid=course._id) }}">{{ course.name }}</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('.staff_get_course', cid=course._id) }}">{{ course.name }}</a>
+        </li>
         <li class="breadcrumb-item active" aria-current="page">{{ assignment.assignment_id }}</li>
     </ol>
 </nav>
 <div class="container-fluid">
     <div class="row">
         {% if is_admin %}
-            <div class="card" style="flex-direction: row; flex: 1;">
-                <div class="card-body">
-                    <div class="container-fluid" style="padding: 0;">
-                        <div class="row">
-                            <div class="col-md-6 col-lg-6 col-xl-4 text-center" style="align-self: center;">
-                                <h2 class="card-title">{{ assignment.assignment_id }}</h2>
+        <div class="card" style="flex-direction: row; flex: 1;">
+            <div class="card-body">
+                <div class="container-fluid" style="padding: 0;">
+                    <div class="row">
+                        <div class="col-md-6 col-lg-6 col-xl-4 text-center" style="align-self: center;">
+                            <h2 class="card-title">{{ assignment.assignment_id }}</h2>
+                        </div>
+
+                        <div class="col-md-6 col-lg-6 col-xl-8" style="align-self: center; text-align: center;">
+                            <div class="row">
+                                <div class="col p-1">
+                                    <button type="button" class="btn btn-outline-primary btn-fixed-width"
+                                        data-toggle="modal" data-target="#mdl-edit-assn">
+                                        <i class="fas fa-pen"></i> Edit assignment
+                                    </button>
+                                </div>
+                                <div class="col p-1">
+                                    <button type="button" class="btn btn-outline-primary btn-fixed-width"
+                                        data-toggle="modal" data-target="#mdl-add-ext">
+                                        <i class="fas fa-plus"></i> Add extension
+                                    </button>
+                                </div>
+
+                                <!-- column break -->
+                                <div class="d-block d-xl-none w-100"></div>
+
+                                <div class="col p-1">
+                                    <button type="button" class="btn btn-outline-primary btn-fixed-width"
+                                        onclick="viewExtensions()">
+                                        <i class="fas fa-list"></i> View extensions
+                                    </button>
+                                </div>
+                                <div class="col p-1">
+                                    {% include 'modals/add_scheduled_run.html' %}
+                                </div>
+                                <div class="col p-1">
+                                    <button type="button" class="btn btn-outline-primary btn-fixed-width"
+                                        onclick="window.open('{{jenkins_url}}/job/{{assignment.assignment_id}}');">
+                                        <i class="fas fa-cog"></i> View Jenkins
+                                    </button>
+                                </div>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-                            <div class="col-md-6 col-lg-6 col-xl-8" style="align-self: center; text-align: center;">
-                                <div class="row">
-                                    <div class="col p-1">
-                                        <button type="button" class="btn btn-outline-primary btn-fixed-width" data-toggle="modal" data-target="#mdl-edit-assn">
-                                            <i class="fas fa-pen"></i> Edit assignment
-                                        </button>
-                                    </div>
-                                    <div class="col p-1">
-                                        <button type="button" class="btn btn-outline-primary btn-fixed-width" data-toggle="modal" data-target="#mdl-add-ext" 
-                                        >
-                                            <i class="fas fa-plus"></i> Add extension
-                                        </button>
-                                    </div>
-                                    
-                                    <!-- column break -->
-                                    <div class="d-block d-xl-none w-100"></div>
 
-                                    <div class="col p-1">
-                                        <button type="button" class="btn btn-outline-primary btn-fixed-width" onclick="viewExtensions()">
-                                            <i class="fas fa-list"></i> View extensions
-                                        </button>
-                                    </div>
-                                    <div class="col p-1">
-                                        {% include 'modals/add_scheduled_run.html' %}
-                                    </div>
-                                    <div class="col p-1">
-                                        <button type="button" class="btn btn-outline-primary btn-fixed-width" onclick="window.open('{{jenkins_url}}/job/{{assignment.assignment_id}}');">
-                                            <i class="fas fa-cog"></i> View Jenkins
-                                        </button>
-                                    </div>
+        <div class="modal fade" id="mdl-edit-assn" tabindex="-1" role="dialog" aria-labelledby="mdl-edit-assn-label"
+            aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="mdl-edit-assn-label">Edit assignment</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form name="edit-assn" id="edit-assn">
+                            <div class="form-group">
+                                <label for="aid">Assignment ID</label>
+                                <input type="text" class="form-control" id="mdl-edit-assn-aid" name="aid"
+                                    value="{{ assignment.assignment_id }}" disabled>
+                            </div>
+                            <div class="form-group">
+                                <label for="max_runs">Max Runs</label>
+                                <input type="number" min="1" max="100" class="form-control" id="mdl-edit-assn-runs"
+                                    name="max_runs" value="{{ assignment.max_runs }}">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-check-label">Quota Type</label><br>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="quota"
+                                        id="mdl-edit-assn-quota-daily" value="daily" {% if assignment.quota=="daily"
+                                        %}checked{% endif %}>
+                                    <label class="form-check-label" for="mdl-edit-assn-quota-daily">Daily</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="quota"
+                                        id="mdl-edit-assn-quota-daily" value="total" {% if assignment.quota=="total"
+                                        %}checked{% endif %}>
+                                    <label class="form-check-label" for="mdl-edit-assn-quota-total">Total</label>
                                 </div>
                             </div>
-                        </div>
+                            <div class="form-group">
+                                <label for="start">Start Date & Time</label> <span class="badge badge-secondary">{{
+                                    tzname }}</span>
+                                <input type="datetime-local" class="form-control" id="mdl-edit-assn-start" name="start"
+                                    value="{{ assignment.start|fmt_datetime_local }}">
+                            </div>
+                            <div class="form-group">
+                                <label for="start">End Date & Time</label> <span class="badge badge-secondary">{{ tzname
+                                    }}</span>
+                                <input type="datetime-local" class="form-control" id="mdl-edit-assn-end" name="end"
+                                    value="{{ assignment.end|fmt_datetime_local }}">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-check-label">Visibility</label><br>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="visibility"
+                                        id="mdl-edit-assn-not-visible" value="{{ visibility.HIDDEN }}" {% if
+                                        assignment.visibility==visibility.HIDDEN %}checked{% endif %}>
+                                    <label class="form-check-label" for="mdl-edit-assn-not-visible">Not visible</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="visibility"
+                                        id="mdl-edit-assn-visible" value="{{ visibility.VISIBLE }}" {% if
+                                        assignment.visibility==visibility.VISIBLE %}checked{% endif %}>
+                                    <label class="form-check-label" for="mdl-edit-assn-visible">Visible</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="visibility"
+                                        id="mdl-edit-assn-visible-from-start-date"
+                                        value="{{ visibility.VISIBLE_FROM_START }}" {% if
+                                        assignment.visibility==visibility.VISIBLE_FROM_START %}checked{% endif %}>
+                                    <label class="form-check-label" for="mdl-edit-assn-visible-from-start-date">Visible
+                                        from start date</label>
+                                </div>
+                            </div>
+                            <span id="mdl-edit-assn-error" class="form-text text-danger"></span>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-danger w-100" data-toggle="modal"
+                            data-target="#delete-confirmation">
+                            <span class="fa fa-trash-alt" style="margin-right: 0.2em;"></span>
+                            Delete
+                        </button>
+                        <button type="submit" form="edit-assn" class="btn btn-primary w-100" id="mdl-edit-assn-save">
+                            <span class="fa fa-cog loader" style="margin-right: 0.2em;"></span>
+                            Save
+                        </button>
                     </div>
                 </div>
             </div>
+        </div>
+        <div class="modal fade" tabindex="-1" role="dialog" id="delete-confirmation">
+            <div class="modal-dialog p-3" role="document" style="margin-top: 5rem;">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Delete {{ assignment.assignment_id }}</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Are you sure you want to delete <b>{{ assignment.assignment_id }}</b>? This will also delete
+                            all scheduled runs.</p>
+                        <span id="delete-assn-error" class="form-text text-danger"></span>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-danger w-100" id="delete-assn"
+                            onclick="deleteAssignment()">Yes</button>
+                        <button type="button" class="btn btn-secondary w-100" data-dismiss="modal">No</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal fade" id="mdl-add-ext" tabindex="-1" role="dialog" aria-labelledby="mdl-add-ext-label"
+            aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="mdl-add-ext-label">Add extension</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form name="add-ext" id="add-ext">
+                            <div class="form-group">
+                                <label for="netids">NetIDs</label>
+                                <small>(comma-separated list)</small>
+                                <input type="text" class="form-control" id="mdl-add-ext-netids" name="netids">
+                            </div>
+                            <div class="form-group">
+                                <label for="start">Start Date & Time</label> <span class="badge badge-secondary">{{
+                                    tzname }}</span>
+                                <input type="datetime-local" class="form-control" id="mdl-add-ext-start" name="start"
+                                    value="{{ assignment.end_plus_one_minute |fmt_datetime_local }}"
+                                    onchange="onExtensionDateChange()">
+                            </div>
+                            <div class="form-group">
+                                <label for="start">End Date & Time</label> <span class="badge badge-secondary">{{ tzname
+                                    }}</span>
+                                <input type="datetime-local" class="form-control" id="mdl-add-ext-end" name="end"
+                                    onchange="onExtensionDateChange()">
+                            </div>
+                            <div class="form-group">
+                                <label for="max_runs">Max Runs (total)</label>
+                                <input type="number" min="1" max="100" class="form-control" id="mdl-add-ext-runs"
+                                    name="max_runs">
+                            </div>
+                            <div id="mdl-add-ext-error" class="form-text text-danger"></div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" id="mdl-add-ext-save"
+                            onclick="attemptAddExtension()">Save
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-
-            <div class="modal fade" id="mdl-edit-assn" tabindex="-1" role="dialog" aria-labelledby="mdl-edit-assn-label" aria-hidden="true">
-                <div class="modal-dialog" role="document">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="mdl-edit-assn-label">Edit assignment</h5>
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                        </div>
-                        <div class="modal-body">
-                            <form name="edit-assn" id="edit-assn">
-                                <div class="form-group">
-                                    <label for="aid">Assignment ID</label>
-                                    <input type="text" class="form-control" id="mdl-edit-assn-aid" name="aid" value="{{ assignment.assignment_id }}" disabled>
-                                </div>
-                                <div class="form-group">
-                                    <label for="max_runs">Max Runs</label>
-                                    <input type="number" min="1" max="100" class="form-control" id="mdl-edit-assn-runs" name="max_runs" value="{{ assignment.max_runs }}">
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-check-label">Quota Type</label><br>
-                                    <div class="form-check form-check-inline">
-                                        <input class="form-check-input" type="radio" name="quota" id="mdl-edit-assn-quota-daily" value="daily" {% if assignment.quota == "daily" %}checked{% endif %}>
-                                        <label class="form-check-label" for="mdl-edit-assn-quota-daily">Daily</label>
-                                    </div>
-                                    <div class="form-check form-check-inline">
-                                        <input class="form-check-input" type="radio" name="quota" id="mdl-edit-assn-quota-daily" value="total" {% if assignment.quota == "total" %}checked{% endif %}>
-                                        <label class="form-check-label" for="mdl-edit-assn-quota-total">Total</label>
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label for="start">Start Date & Time</label> <span class="badge badge-secondary">{{ tzname }}</span>
-                                    <input type="datetime-local" class="form-control" id="mdl-edit-assn-start" name="start" value="{{ assignment.start|fmt_datetime_local }}">
-                                </div>
-                                <div class="form-group">
-                                    <label for="start">End Date & Time</label> <span class="badge badge-secondary">{{ tzname }}</span>
-                                    <input type="datetime-local" class="form-control" id="mdl-edit-assn-end" name="end" value="{{ assignment.end|fmt_datetime_local }}">
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-check-label">Visibility</label><br>
-                                    <div class="form-check form-check-inline">
-                                        <input class="form-check-input" type="radio" name="visibility" id="mdl-edit-assn-not-visible" value="{{ visibility.HIDDEN }}" {% if assignment.visibility == visibility.HIDDEN %}checked{% endif %}>
-                                        <label class="form-check-label" for="mdl-edit-assn-not-visible">Not visible</label>
-                                    </div>
-                                    <div class="form-check form-check-inline">
-                                        <input class="form-check-input" type="radio" name="visibility" id="mdl-edit-assn-visible" value="{{ visibility.VISIBLE }}" {% if assignment.visibility == visibility.VISIBLE %}checked{% endif %}>
-                                        <label class="form-check-label" for="mdl-edit-assn-visible">Visible</label>
-                                    </div>
-                                    <div class="form-check form-check-inline">
-                                        <input class="form-check-input" type="radio" name="visibility" id="mdl-edit-assn-visible-from-start-date" value="{{ visibility.VISIBLE_FROM_START }}" {% if assignment.visibility == visibility.VISIBLE_FROM_START %}checked{% endif %}>
-                                        <label class="form-check-label" for="mdl-edit-assn-visible-from-start-date">Visible from start date</label>
-                                    </div>
-                                </div>
-                                <span id="mdl-edit-assn-error" class="form-text text-danger"></span>
-                            </form>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-outline-danger w-100" data-toggle="modal" data-target="#delete-confirmation">
-                                <span class="fa fa-trash-alt" style="margin-right: 0.2em;"></span>
-                                Delete
-                            </button>
-                            <button type="submit" form="edit-assn" class="btn btn-primary w-100" id="mdl-edit-assn-save">
-                                <span class="fa fa-cog loader" style="margin-right: 0.2em;"></span>
-                                Save
-                            </button>
-                        </div>
+        <div class="modal fade" id="mdl-view-exts" tabindex="-1" role="dialog" aria-labelledby="mdl-view-exts-label"
+            aria-hidden="true">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="mdl-view-exts-label">View extensions</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
                     </div>
-                </div>
-            </div>
-            <div class="modal fade" tabindex="-1" role="dialog" id="delete-confirmation">
-                <div class="modal-dialog p-3" role="document" style="margin-top: 5rem;">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">Delete {{ assignment.assignment_id }}</h5>
-                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                    <span aria-hidden="true">&times;</span>
-                                </button>
-                        </div>
-                        <div class="modal-body">
-                            <p>Are you sure you want to delete <b>{{ assignment.assignment_id }}</b>? This will also delete all scheduled runs.</p>
-                            <span id="delete-assn-error" class="form-text text-danger"></span>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-danger w-100" id="delete-assn" onclick="deleteAssignment()">Yes</button>
-                            <button type="button" class="btn btn-secondary w-100" data-dismiss="modal">No</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="modal fade" id="mdl-add-ext" tabindex="-1" role="dialog" aria-labelledby="mdl-add-ext-label" aria-hidden="true">
-                <div class="modal-dialog" role="document">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="mdl-add-ext-label">Add extension</h5>
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                        </div>
-                        <div class="modal-body">
-                            <form name="add-ext" id="add-ext">
-                                <div class="form-group">
-                                    <label for="netids">NetIDs</label>
-                                    <small>(comma-separated list)</small>
-                                    <input type="text" class="form-control" id="mdl-add-ext-netids" name="netids">
-                                </div>
-                                <div class="form-group">
-                                    <label for="start">Start Date & Time</label> <span class="badge badge-secondary">{{ tzname }}</span>
-                                    <input type="datetime-local" class="form-control" id="mdl-add-ext-start" name="start" value="{{ assignment.end_plus_one_minute |fmt_datetime_local }}" onchange="onExtensionDateChange()">
-                                </div>
-                                <div class="form-group">
-                                    <label for="start">End Date & Time</label> <span
-                                        class="badge badge-secondary">{{ tzname }}</span>
-                                    <input type="datetime-local" class="form-control" id="mdl-add-ext-end"
-                                            name="end" onchange="onExtensionDateChange()">
-                                </div>
-                                <div class="form-group">
-                                    <label for="max_runs">Max Runs (total)</label>
-                                    <input type="number" min="1" max="100" class="form-control" id="mdl-add-ext-runs" name="max_runs">
-                                </div>
-                                <div id="mdl-add-ext-error" class="form-text text-danger"></div>
-                            </form>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-primary" id="mdl-add-ext-save" onclick="attemptAddExtension()">Save
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="modal fade" id="mdl-view-exts" tabindex="-1" role="dialog" aria-labelledby="mdl-view-exts-label" aria-hidden="true">
-                <div class="modal-dialog modal-lg" role="document">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="mdl-view-exts-label">View extensions</h5>
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="table-responsive">
-                                <table class="table table-fit table-hover">
-                                    <thead>
+                    <div class="modal-body">
+                        <div class="table-responsive">
+                            <table class="table table-fit table-hover">
+                                <thead>
                                     <tr>
                                         <th scope="col">NetID</th>
                                         <th scope="col">Start</th>
@@ -487,15 +520,15 @@
                                         <th scope="col">Remaining Runs</th>
                                         <th scope="col">Action</th>
                                     </tr>
-                                    </thead>
-                                    <tbody id="mdl-view-exts-body">
-                                    </tbody>
-                                </table>
-                            </div>
+                                </thead>
+                                <tbody id="mdl-view-exts-body">
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
         {% endif %}
     </div>
     <div class="row">
@@ -503,38 +536,40 @@
             <h5 style="font-weight: bold;">Student Runs</h5>
             <table class="table table-hover table-fit">
                 <thead>
-                <tr>
-                    <th scope="col">Run ID</th>
-                    <th scope="col">Time ({{ tzCity }})</th>
-                    <th scope="col">Actions</th>
-                </tr>
+                    <tr>
+                        <th scope="col">Run ID</th>
+                        <th scope="col">Time ({{ tzCity }})</th>
+                        <th scope="col">Actions</th>
+                    </tr>
                 </thead>
                 <tbody>
-                {% for student in student_runs %}
+                    {% for student in student_runs %}
                     <tr>
                         <th scope="col" class="student-header" colspan="4">{{ student._id }}</th>
                     </tr>
                     {% for run in student.runs %}
-                        <tr>
-                            <td>{{ run._id }}</td>
-                            <td>{{ run.timestamp | round_timestamp | fmt_timestamp }}</td>
-                            <td>
-                                <button class="btn btn-link btn-sm" type="button" title="Check status"
-                                    onclick="getRunStatus('{{ run._id }}', '{{ course._id }}', '{{ course.query_token }}')" id="status-{{ run._id }}">
-                                    <i class="fas fa-info-circle"></i>Status
-                                </button>
-                                <button class="btn btn-link btn-sm" type="button" onclick="getRunLog('{{ run._id }}', '{{ student._id }}')" id="view-log-{{ run._id }}">
-                                    <i class="fas fa-file-alt"></i>Log
-                                </button>
-                            </td>
-                        </tr>
+                    <tr>
+                        <td>{{ run._id }}</td>
+                        <td>{{ run.timestamp | round_timestamp | fmt_timestamp }}</td>
+                        <td>
+                            <button class="btn btn-link btn-sm" type="button" title="Check status"
+                                onclick="getRunStatus('{{ run._id }}', '{{ course._id }}', '{{ course.query_token }}')"
+                                id="status-{{ run._id }}">
+                                <i class="fas fa-info-circle"></i>Status
+                            </button>
+                            <button class="btn btn-link btn-sm" type="button"
+                                onclick="getRunLog('{{ run._id }}', '{{ student._id }}')" id="view-log-{{ run._id }}">
+                                <i class="fas fa-file-alt"></i>Log
+                            </button>
+                        </td>
+                    </tr>
                     {% endfor %}
-                {% endfor %}
-                {% if not student_runs %}
+                    {% endfor %}
+                    {% if not student_runs %}
                     <tr>
                         <td colspan="3">No grading runs</td>
                     </tr>
-                {% endif %}
+                    {% endif %}
                 </tbody>
             </table>
         </div>
@@ -543,33 +578,50 @@
             <h5 style="font-weight: bold;">Scheduled Runs</h5>
             <table class="table table-hover table-fit">
                 <thead>
-                <tr>
-                    <th scope="col" style="width: 25%;">Name</th>
-                    <th scope="col" style="width: 25%;">Time ({{ tzCity }})</th>
-                    <th scope="col" style="width: 25%;">Actions</th>
-                </tr>
+                    <tr>
+                        <th scope="col" style="width: 25%;">Name</th>
+                        <th scope="col" style="width: 25%;">Time ({{ tzCity }})</th>
+                        <th scope="col" style="width: 25%;">Status</th>
+                        <th scope="col" style="width: 25%;">Actions</th>
+                    </tr>
                 </thead>
                 <tbody>
 
-                {% for run in scheduled_runs %}
+                    {% for run in scheduled_runs %}
                     <tr>
                         <td>{{ run.name }}</td>
                         <td>{{ run.run_time | round_timestamp | fmt_timestamp }}</td>
                         <td>
+                            {% if run.status == sched_run_status.SCHEDULED %}<div class="text-info"><i
+                                    class="fas fa-clock"></i>Scheduled</div>
+                            {% elif run.status == sched_run_status.FAILED %}<div class="text-danger"><i
+                                    class="fas fa-times-circle"></i>Failed
+                            </div>
+                            {% elif run.status == sched_run_status.RAN %}<button class="btn btn-success btn-sm"
+                                onclick="getRunState('{{ run.broadway_run_id }}', '{{ course._id }}', '{{ course.query_token }}')"
+                                id="status-{{ run.broadway_run_id }}"><i class="fas fa-check-circle"></i>check
+                                status</button>
+                            {% endif %}
+                        </td>
+                        <td>
                             {% if is_admin %}
-                            <button class="btn btn-link btn-sm" type="button" onclick="editScheduledRun('{{ run._id }}')" id="edit-run-{{ run._id }}"><i class="fas fa-pen"></i>Edit</button>
+                            <button class="btn btn-link btn-sm" type="button"
+                                onclick="editScheduledRun('{{ run._id }}')" id="edit-run-{{ run._id }}"><i
+                                    class="fas fa-pen"></i>Edit</button>
                             {% endif %}
                             {% if run.status == sched_run_status.RAN %}
-                            <button class="btn btn-link btn-sm" type="button" onclick="seeScheduledRunJobs('{{ run.broadway_run_id }}', '{{ run.name }}')"><i class="fas fa-table"></i>Details</button>
+                            <button class="btn btn-link btn-sm" type="button"
+                                onclick="seeScheduledRunJobs('{{ run.broadway_run_id }}', '{{ run.name }}')"><i
+                                    class="fas fa-table"></i>Details</button>
                             {% endif %}
                         </td>
                     </tr>
-                {% endfor %}
-                {% if not scheduled_runs %}
+                    {% endfor %}
+                    {% if not scheduled_runs %}
                     <tr>
                         <td colspan="4">No scheduled runs</td>
                     </tr>
-                {% endif %}
+                    {% endif %}
                 </tbody>
             </table>
             <div class="collapse" id="scheduledGradingJobsCollapse">
@@ -577,25 +629,27 @@
                 <table class="table table-bordered table-bordered">
                     <thead>
                         <tr>
-                        <th scope="col">NetID</th>
-                        <th scope="col">Status</th>
-                        <th scope="col">Actions</th>
+                            <th scope="col">NetID</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="scheduledGradingJobsTable">
                         <tr>
-                        <th colspan="3">No jobs available</th>
+                            <th colspan="3">No jobs available</th>
                         </tr>
                     </tbody>
                 </table>
             </div>
         </div>
 
-        <div class="modal fade" id="mdl-view-log" tabindex="-1" role="dialog" aria-labelledby="mdl-view-log-label" aria-hidden="true">
+        <div class="modal fade" id="mdl-view-log" tabindex="-1" role="dialog" aria-labelledby="mdl-view-log-label"
+            aria-hidden="true">
             <div class="modal-dialog modal-xl" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="mdl-view-log-label">View log: <span id="mdl-view-log-run-id"></span></h5>
+                        <h5 class="modal-title" id="mdl-view-log-label">View log: <span id="mdl-view-log-run-id"></span>
+                        </h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
