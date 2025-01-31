@@ -67,7 +67,7 @@
         $.ajax({
             type: "POST",
             url: "{{ url_for('.staff_add_extension', cid=course._id, aid=assignment.assignment_id) }}",
-            data: { netids: netids, max_runs: maxRuns, start: start, end: end, config: config },
+            data: { netids: netids, max_runs: maxRuns, start: start, end: end },
             beforeSend: function () {
                 $('#mdl-add-ext-error').html('').hide();
                 $("#mdl-add-ext-save").prop('disabled', true);
@@ -131,27 +131,6 @@
                 alert(xhr.responseText);
             }
         });
-    }
-
-    function normalizeJSON(json) {
-        try {
-            return JSON.stringify(JSON.parse(json), undefined, 2);
-        } catch {
-            return null;
-        }
-    }
-
-    function changeTextareaRow(id, json) {
-        // Change the size of config text area based on number of rows. This row number is an approximate
-        // because it doesn't consider wrapping.
-        let numRows = json.split("\n").length;
-        if (numRows <= 5) {
-            $(id).attr('rows', 5);
-        } else if (5 < numRows && numRows <= 20) {
-            $(id).attr('rows', numRows);
-        } else if (numRows > 20) {
-            $(id).attr('rows', 20);
-        }
     }
 
     function getRunLog(id, netid) {
