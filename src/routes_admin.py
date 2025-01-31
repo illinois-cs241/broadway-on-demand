@@ -293,7 +293,6 @@ class AdminRoutes:
             assignment = db.get_assignment(cid, aid)
             if not assignment:
                 return util.error("Invalid course or assignment. Please try again.")
-
             if util.check_missing_fields(
                 request.form, "netids", "max_runs", "start", "end"
             ):
@@ -337,7 +336,6 @@ class AdminRoutes:
                         "run_time": ext_end,
                         "due_time": end_str,
                         "name": f"Extension Run - {student_netid}",
-                        "config": request.form["config"],
                         "roster": student_netid,
                     },
                     None,
