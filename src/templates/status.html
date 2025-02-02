@@ -4,20 +4,21 @@
         return String(val).charAt(0).toUpperCase() + String(val).slice(1);
     }
     /** Status string constants, they appear as part of the "status" message from jenkins pushed via on-demand **/
-    const SCHEDULED = "scheduled", RUNNING = "running", SUCCESS = "success", FAILED = "failed", ERROR = "";
-    
+    const SCHEDULED = "scheduled", RUNNING = "running", SUCCESS = "success", FAILED = "failed", ERROR = "error", UNKNOWN = "";
+
     /** Common error messages **/
     const QUEUE_POSITION_QUERY_FAILED = "Queue position query failed. Please refresh to try again";
     const UNKNOWN_CLICK_TO_TRY_AGAIN = "Unknown. Click to try again.";
     const UNKNOWN_PLEASE_TRY_AGAIN = "Unknown. Please try again.";
-    
+
     /** status string -> bootstrap text/button color class **/
     const statusClassMap = {
         [SCHEDULED]: "info",
         [RUNNING]: "info",
         [SUCCESS]: "success",
         [FAILED]: "danger",
-        [ERROR]: "warning"
+        [ERROR]: "warning",
+        [UNKNOWN]: "warning"
     };
 
     /** status string -> font awesome icon class **/
@@ -26,7 +27,8 @@
         [RUNNING]: "fa-sync-alt",
         [SUCCESS]: "fa-check",
         [FAILED]: "fa-times",
-        [ERROR]: "fa-exclamation-triangle"
+        [ERROR]: "fa-exclamation-triangle",
+        [UNKONWN]: "fa-question-circle"
     };
 
     // Polling configuration
@@ -40,7 +42,7 @@
     /** The button for status update must have "status-{runId}" as element id **/
     function updateButtonContent(runId, text, buttonType) {
         $("#status-" + runId).html("<i class=\"fas fa-sync-alt\"></i> " + text)
-                             .attr("class", "btn btn-secondary btn-sm btn-text-break " + buttonType);
+            .attr("class", "btn btn-secondary btn-sm btn-text-break " + buttonType);
     }
 
     /** For authentication between on-demand and broadway **/
@@ -65,7 +67,7 @@
                 errorCallback({ runId, cid, queryToken, ...extraParams });
             }
         });
-    } 
+    }
 
     /** Get and update student job status within a grading run **/
     function getRunStatus(runId, cid, queryToken) {
@@ -112,14 +114,14 @@
             headers: buildHeader(queryToken),
             success: function (result) {
                 let position = result["data"]["position"];
-                onSuccess({runId, jobId, cid, queryToken, position, ...extraParams});
+                onSuccess({ runId, jobId, cid, queryToken, position, ...extraParams });
             },
             error: function () {
-                onError({runId, jobId, cid, queryToken, ...extraParams});
+                onError({ runId, jobId, cid, queryToken, ...extraParams });
             }
         });
     }
-    
+
     /** Get and display queue position for a scheduled run. */
     function getQueuePosition(runId, jobId, cid, queryToken) {
         function onSuccess({ runId, position }) {
@@ -163,7 +165,7 @@
                     job.runId,
                     job.cid,
                     job.queryToken,
-                    ({status}) => {
+                    ({ status }) => {
                         for (var key in statusClassMap) {
                             if (status.indexOf(key) !== -1) {
                                 if (key === SCHEDULED || key === RUNNING) {
@@ -188,7 +190,7 @@
                             }
                         }
                     },
-                    ({runId}) => {
+                    ({ runId }) => {
                         updateAutoStatus(
                             runId,
                             UNKNOWN_PLEASE_TRY_AGAIN,
@@ -224,7 +226,7 @@
      * Main function to initialize automatic status updates for a job
      */
     function autoUpdateStatus(runId, cid, queryToken) {
-        function onSuccess({runId, cid, status, jobId}) {
+        function onSuccess({ runId, cid, status, jobId }) {
             for (var key in statusClassMap) {
                 if (status.indexOf(key) !== -1) {
                     if (key === SCHEDULED || key === RUNNING) {
@@ -236,7 +238,7 @@
                             lastPollTime: Date.now()
                         });
                         startPolling();
-                        
+
                         updateAutoStatus(
                             runId,
                             capitalizeFirstLetter(status),
@@ -256,7 +258,7 @@
             }
         }
 
-        function onError({runId}) {
+        function onError({ runId }) {
             updateAutoStatus(
                 runId,
                 UNKNOWN_PLEASE_TRY_AGAIN,
