@@ -230,10 +230,9 @@ def add_grading_run(
     }
 
     if extension_used:
-        new_run["extension_used"] = extension_used["_id"]
-        extension_used["remaining_runs"] -= 1
         mongo.db["extensions"].update_one(
-            {"_id": extension_used["_id"]}, extension_used
+            {"_id": extension_used["_id"]},
+            {"$set": {"_id": extension_used["_id"]}, "$inc": {"remaining_runs": -1}}
         )
 
     mongo.db["runs"].insert_one(new_run)
