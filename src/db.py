@@ -373,8 +373,11 @@ def set_jenkins_run_status(cid, rid, status, build_url, netid):
 
 def get_jenkins_run_status_single(cid, rid, netid):
     try:
+        query = {"cid": cid, "rid": rid, "netid": netid}
+        if not netid:
+            query = {"cid": cid, "rid": rid}
         response = mongo.db["jenkins_run_status"].find_one(
-            {"cid": cid, "rid": rid, "netid": netid}, {"_id": 0}
+            query, {"_id": 0}
         )
         return response or {}
     except Exception as e:

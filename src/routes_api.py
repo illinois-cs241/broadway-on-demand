@@ -19,7 +19,7 @@ class ApiRoutes:
                 return abort(HTTPStatus.FORBIDDEN)
             try:
                 return util.success(
-                    db.get_jenkins_run_status_single(cid, runId, netid)["status"], 200
+                    db.get_jenkins_run_status_single(cid, runId, None)["status"], 200
                 )
             except Exception:
                 return util.error("")
