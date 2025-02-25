@@ -1,0 +1,93 @@
+{% set title = "%s (%s)" % (course.name, netid) %}
+{% include 'header.html' %}
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('.student_home') }}">Student Home</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('.student_get_course', cid=course._id) }}">{{ course.name }}</a>
+        </li>
+        <li class="breadcrumb-item active" aria-current="page">Request an Extension</li>
+    </ol>
+</nav>
+
+<div class="container-fluid">
+    {% if extension_info.total_allowed == 0 %}
+    <p>Student-requested extensions are disabled for this course.</p>
+    {% endif %}
+
+    {% if extension_info.total_allowed > 0 %}
+    <div class="row">
+        <div class="col-md-12 col-lg-6 col-xl-6">
+            <h3>Current Extensions</h3>
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th scope="col">Assignment</th>
+                        <th scope="col">Ends</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for extension in extension_info.existing_extensions %}
+                    <tr>
+                        <td>{{extension.assignment_id}}</td>
+                        <td>{{extension.end | round_timestamp | fmt_timestamp_human}}</td>
+                    </tr>
+                    {% endfor %}
+                    {% if extension_info.existing_extensions | length == 0 %}
+                    <tr>
+                        <td colspan="2">No existing extensions</td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+            <div class="text-secondary"> All times in the {{tzname}} timezone.</div>
+        </div>
+
+        <div class="col-md-12 col-lg-6 col-xl-6">
+            <h3>Request an Extension</h3>
+
+            {% if extension_info.existing_extensions | length >= extension_info.total_allowed %}
+            <p>You have already used all available student-requested extensions.</p>
+
+            {% elif granted == none %}
+            <ul>
+                <li>You may request up to <b>{{extension_info.total_allowed}}</b> no-questions-asked extensions per
+                    semester. </li>
+                <li>You will receive a {{extension_info.num_hours}}-hour extension on your selected assignment.</li>
+                <li>You may request up to one extension per assignment.</li>
+            </ul>
+
+            <form name="req-ext" id="req-ext" action="{{ url_for('.student_request_extension_post', cid=course._id) }}"
+                method="POST">
+                <input id="csrf_token" name="csrf_token" type="hidden" value="{{ csrf_token() }}">
+
+                <div class="form-group">
+                    <label for="assignment">Select Assignment</label> <span class="badge badge-secondary"></span>
+                    <select class="form-control" id="req-ext-assignment" name="assignment" required>
+                        {% for assignment in assignments | sort(attribute='start') | reverse %}
+                        <option value="{{assignment.assignment_id}}">{{assignment.assignment_id}}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div id="mdl-add-ext-error" class="form-text text-danger"></div>
+                <div>
+                    <button type="submit" class="btn btn-primary" id="req-ext-submit">Submit</button>
+                </div>
+            </form>
+
+            {% elif granted == true %}
+            <div class="alert alert-success" role="alert">
+                Your extension was granted. Go forth and conquer!
+            </div>
+            {% elif granted == false %}
+            <div class="alert alert-danger" role="alert">
+                Your extension failed to process. Please contact course staff.
+            </div>
+            {% endif %} {# Closing {% else %} block #}
+
+        </div>
+    </div>
+    {% endif %} {# Closing {% if extension_info.total_allowed > 0 %} block #}
+
+</div>
