@@ -13,6 +13,65 @@ from bson.objectid import ObjectId
 MIN_PREDEADLINE_RUNS = 1  # Minimum pre-deadline runs for every assignment
 
 
+def add_or_edit_scheduled_run(cid, aid, run_id, form, scheduled_run_id):
+    # course and assignment name validation
+    course = db.get_course(cid)
+    assignment = db.get_assignment(cid, aid)
+    if course is None or assignment is None:
+        return abort(HTTPStatus.NOT_FOUND)
+
+    # form validation
+    missing = util.check_missing_fields(form, "run_time", "due_time", "name")
+    if missing:
+        return util.error(f"Missing fields ({', '.join(missing)}).")
+    run_time = util.parse_form_datetime(form["run_time"]).timestamp()
+    if run_time is None:
+        return util.error("Missing or invalid run time.")
+    if run_time <= util.now_timestamp():
+        return util.error("Run time must be in the future.")
+    due_time = util.parse_form_datetime(form["due_time"]).timestamp()
+    if due_time is None:
+        return util.error("Missing or invalid due time.")
+    if "roster" not in form or not form["roster"]:
+        roster = None
+    else:
+        roster = form["roster"].replace(" ", "").lower().split(",")
+        for student_netid in roster:
+            is_valid = verify_student(
+                student_netid, cid
+            ) or verify_staff(student_netid, cid)
+            if not util.valid_id(student_netid) or not is_valid: 
+                return util.error(
+                    f"Invalid or non-existent student NetID: {student_netid}"
+                )
+
+    # Schedule a new run with scheduler
+    if scheduled_run_id is None:
+        scheduled_run_id = sched_api.schedule_run(run_time, cid, aid)
+        if scheduled_run_id is None:
+            return util.error("Failed to schedule run with scheduler")
+    # Or if the run was already scheduled, update the time
+    else:
+        if not sched_api.update_scheduled_run(scheduled_run_id, run_time):
+            return util.error(
+                "Failed to update scheduled run time with scheduler"
+            )
+
+    assert scheduled_run_id is not None
+
+    if not db.add_or_update_scheduled_run(
+        run_id,
+        cid,
+        aid,
+        run_time,
+        due_time,
+        roster,
+        form["name"],
+        scheduled_run_id,
+    ):
+        return util.error("Failed to save the changes, please try again.")
+    return util.success("")
+
 class AdminRoutes:
     def __init__(self, blueprint):
         def none_modified(result):
@@ -355,64 +414,6 @@ class AdminRoutes:
             if delete_result.deleted_count != 1:
                 return util.error("Failed to delete extension.")
 
-            return util.success("")
-
-        def add_or_edit_scheduled_run(cid, aid, run_id, form, scheduled_run_id):
-            # course and assignment name validation
-            course = db.get_course(cid)
-            assignment = db.get_assignment(cid, aid)
-            if course is None or assignment is None:
-                return abort(HTTPStatus.NOT_FOUND)
-
-            # form validation
-            missing = util.check_missing_fields(form, "run_time", "due_time", "name")
-            if missing:
-                return util.error(f"Missing fields ({', '.join(missing)}).")
-            run_time = util.parse_form_datetime(form["run_time"]).timestamp()
-            if run_time is None:
-                return util.error("Missing or invalid run time.")
-            if run_time <= util.now_timestamp():
-                return util.error("Run time must be in the future.")
-            due_time = util.parse_form_datetime(form["due_time"]).timestamp()
-            if due_time is None:
-                return util.error("Missing or invalid due time.")
-            if "roster" not in form or not form["roster"]:
-                roster = None
-            else:
-                roster = form["roster"].replace(" ", "").lower().split(",")
-                for student_netid in roster:
-                    if not util.valid_id(student_netid) or not verify_student(
-                        student_netid, cid
-                    ):
-                        return util.error(
-                            f"Invalid or non-existent student NetID: {student_netid}"
-                        )
-
-            # Schedule a new run with scheduler
-            if scheduled_run_id is None:
-                scheduled_run_id = sched_api.schedule_run(run_time, cid, aid)
-                if scheduled_run_id is None:
-                    return util.error("Failed to schedule run with scheduler")
-            # Or if the run was already scheduled, update the time
-            else:
-                if not sched_api.update_scheduled_run(scheduled_run_id, run_time):
-                    return util.error(
-                        "Failed to update scheduled run time with scheduler"
-                    )
-
-            assert scheduled_run_id is not None
-
-            if not db.add_or_update_scheduled_run(
-                run_id,
-                cid,
-                aid,
-                run_time,
-                due_time,
-                roster,
-                form["name"],
-                scheduled_run_id,
-            ):
-                return util.error("Failed to save the changes, please try again.")
             return util.success("")
 
         @blueprint.route("/staff/course/<cid>/assignment/<aid>/schedule_run/", methods=["POST"])
