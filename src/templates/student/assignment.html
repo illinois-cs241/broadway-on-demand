@@ -21,7 +21,7 @@
                     const statusDiv = mutation.target;
                     const row = statusDiv.closest('tr');
                     if (!row) return;
-                    
+
                     const actionsCell = row.querySelector('td:last-child');
                     if (!actionsCell) return;
 
@@ -68,57 +68,93 @@
     });
 
     function confirmGradeNow() {
-        let proceed = window.confirm("The current latest commit in your repository will be graded, using 1 available run.\nIn addition, by proceeding you certify that you have read and understand the course policies regarding plagarism and academic integrity and that the work you are submitting is your own and original unless explicitly allowed otherwise.\nAre you sure you want to proceed?" );
-        if (!proceed) {
-            return;
-        }
-        $.ajax({
-            type: "POST",
-            url: "{{ url_for('.student_grade_assignment', cid=course._id, aid=assignment.assignment_id) }}",
-            data: {
-                "csrf_token": $("#csrf_token").val()
-            },
-            beforeSend: function () {
-                $('#grade-now-error').html('').hide();
-                $('#grade-now').prop('disabled', true);
-            },
-            success: function () {
-                location.reload();
-            },
-            error: function (xhr) {
-                if (!xhr.responseText) {
-                    $('#grade-now-error').html("Failed to start grading run. Please try again.").show();
-                } else {
-                    $('#grade-now-error').html(xhr.responseText).show();
-                }
-            }
-        }).always(() => {
-            $('#grade-now').prop('disabled', false);
-        });
+        // Show the Bootstrap modal
+        $('#confirmGradeModal').modal('show');
     }
+
+    $(document).ready(function () {
+        $('#confirmGradeNowBtn').click(function () {
+            // Close modal
+            $('#confirmGradeModal').modal('hide');
+
+            $.ajax({
+                type: "POST",
+                url: "{{ url_for('.student_grade_assignment', cid=course._id, aid=assignment.assignment_id) }}",
+                data: {
+                    "csrf_token": $("#csrf_token").val()
+                },
+                beforeSend: function () {
+                    $('#grade-now-error').html('').hide();
+                    $('#grade-now').prop('disabled', true);
+                },
+                success: function () {
+                    location.reload();
+                },
+                error: function (xhr) {
+                    if (!xhr.responseText) {
+                        $('#grade-now-error').html("Failed to start grading run. Please try again.").show();
+                    } else {
+                        $('#grade-now-error').html(xhr.responseText).show();
+                    }
+                }
+            }).always(() => {
+                $('#grade-now').prop('disabled', false);
+            });
+        });
+    });
+
 </script>
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
         <li class="breadcrumb-item"><a href="{{ url_for('.student_home') }}">Student Home</a></li>
-        <li class="breadcrumb-item"><a href="{{ url_for('.student_get_course', cid=course._id) }}">{{ course.name }}</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('.student_get_course', cid=course._id) }}">{{ course.name }}</a>
+        </li>
         <li class="breadcrumb-item active" aria-current="page">{{ assignment.assignment_id }}</li>
     </ol>
 </nav>
 <div class="container-fluid">
+    <!-- Confirm Grading Modal -->
+    <div class="modal fade" id="confirmGradeModal" tabindex="-1" role="dialog" aria-labelledby="confirmGradeLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmGradeLabel">Confirm Grading</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    The current latest commit in your repository will be graded, using 1 available run.<br><br>
+                    In addition, by proceeding you certify that you have read and understand the course policies
+                    regarding
+                    plagiarism and academic integrity and that the work you are submitting is your own and original
+                    unless
+                    explicitly allowed otherwise.<br><br>
+                    Are you sure you want to proceed?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="confirmGradeNowBtn">Yes, Grade Now</button>
+                </div>
+            </div>
+        </div>
+    </div>
     <div class="row">
         <div class="col-md-6 col-lg-8 col-xl-9">
             <table class="table table-hover">
                 <thead>
-                <tr>
-                    <th scope="col">Timestamp</th>
-                    <th scope="col">Status</th>
-                    <th scope="col">Actions</th>
-                </tr>
+                    <tr>
+                        <th scope="col">Timestamp</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Actions</th>
+                    </tr>
                 </thead>
                 <tbody>
-                {% for run in runs %}
+                    {% for run in runs %}
                     <tr>
-                        <td style="width: 50%" title="{{ run.timestamp | round_timestamp | fmt_timestamp_full }}">{{ run.timestamp | round_timestamp | fmt_timestamp_human }}</td>
+                        <td style="width: 50%" title="{{ run.timestamp | round_timestamp | fmt_timestamp_full }}">{{
+                            run.timestamp | round_timestamp | fmt_timestamp_human }}</td>
                         <td style="width: 50%">
                             <div id="{{ run._id }}" data-run_id="{{ run._id }}" class="auto-status-update">
                                 <i class="fas fa-spinner fa-spin"></i> Loading
@@ -127,12 +163,12 @@
                         <td data-timestamp="{{ run.timestamp | round_timestamp | fmt_timestamp_full }}">
                         </td>
                     </tr>
-                {% endfor %}
-                {% if not runs %}
+                    {% endfor %}
+                    {% if not runs %}
                     <tr>
                         <td colspan="3">No previous runs</td>
                     </tr>
-                {% endif %}
+                    {% endif %}
                 </tbody>
             </table>
             <div class="text-secondary"> All times in the {{ tzname }} timezone.</div>
@@ -141,20 +177,24 @@
         <div class="col-md-6 col-lg-4 col-xl-3">
             <div class="card">
                 <div class="card-body">
-                    <h5 class="card-title">Available Runs: {{ num_available_runs }}/{{ assignment.max_runs }} ({{ assignment.quota }})</h5>
+                    <h5 class="card-title">Available Runs: {{ num_available_runs }}/{{ assignment.max_runs }} ({{
+                        assignment.quota }})</h5>
                     {% if num_extension_runs > 0 %}
-                        <div id="extension-runs-container">
-                            <h5 id="extension-runs" class="card-title">+ {{ num_extension_runs }} Extra Runs</h5>
-                            <button type="button" id="extension-runs-info" class="btn btn-link" data-container="body" data-toggle="popover" data-placement="left" data-trigger="focus" data-content="Extra runs are pre-deadline runs which may be used at any time until the end date below.">
-                                (what is this?)
-                            </button>
-                        </div>
+                    <div id="extension-runs-container">
+                        <h5 id="extension-runs" class="card-title">+ {{ num_extension_runs }} Extra Runs</h5>
+                        <button type="button" id="extension-runs-info" class="btn btn-link" data-container="body"
+                            data-toggle="popover" data-placement="left" data-trigger="focus"
+                            data-content="Extra runs are pre-deadline runs which may be used at any time until the end date below.">
+                            (what is this?)
+                        </button>
+                    </div>
                     {% endif %}
                     {% set has_runs = num_available_runs + num_extension_runs > 0 %}
                     {% set has_commits = not not commit["sha"] %}
                     <form action="">
                         <input id="csrf_token" name="csrf_token" type="hidden" value="{{ csrf_token() }}">
-                        <button id="grade-now" onclick="confirmGradeNow()" type="button" class="btn btn-primary" {% if not has_runs or not has_commits %}disabled{% endif %}>Grade Now</button>
+                        <button id="grade-now" onclick="confirmGradeNow()" type="button" class="btn btn-primary" {% if
+                            not has_runs or not has_commits %}disabled{% endif %}>Grade Now</button>
                     </form>
                     <div title="{{ assignment.start | fmt_timestamp }}">
                         <a class="font-weight-bold">Start: </a> {{ assignment.start | fmt_timestamp_human }}
@@ -165,14 +205,15 @@
                     <hr>
                     <p>
                         {% if not commit["sha"] %}
-                          <a class="font-weight-bold">Latest Commit<a>
-                          <br>{{ commit["message"] }}
-                        {% else %}
-                          <a class="font-weight-bold">Latest Commit<a>
-                          <br><code><a class="code-link" href="{{ commit['url'] }}" target="_blank">{{ commit["sha"] | truncate(7, end="") }}</a></code>
-                          <span title="{{ commit['message'] }}">{{ commit["message"] | truncate(50, killwords=True) }}</span>
-                        {% endif %}
-                        <div id="grade-now-error" class="text-danger"></div>
+                        <a class="font-weight-bold">Latest Commit<a>
+                                <br>{{ commit["message"] }}
+                                {% else %}
+                                <a class="font-weight-bold">Latest Commit<a>
+                                        <br><code><a class="code-link" href="{{ commit['url'] }}" target="_blank">{{ commit["sha"] | truncate(7, end="") }}</a></code>
+                                        <span title="{{ commit['message'] }}">{{ commit["message"] | truncate(50,
+                                            killwords=True) }}</span>
+                                        {% endif %}
+                                        <div id="grade-now-error" class="text-danger"></div>
                     </p>
                 </div>
             </div>
