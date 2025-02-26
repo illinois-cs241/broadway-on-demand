@@ -20,7 +20,7 @@ from src.types import GradeEntry
 from src.util import bin_scores, compute_statistics, verify_csrf_token, restore_csrf_token
 from src.routes_admin import add_or_edit_scheduled_run
 
-NO_EXTENSION_ASSIGNMENTS = set(['malloc_contest', 'nonstop_networking_pt1','nonstop_networking_pt2', 'nonstop_networking_pt3', 'lovable_linux'])
+NO_EXTENSION_ASSIGNMENTS = set(['malloc_contest', 'nonstop_networking_pt3', 'lovable_linux'])
 
 def compute_extension_parameters(assignment, extension_info):
     num_periods = 0
@@ -124,6 +124,10 @@ class StudentRoutes:
             raw_assignments =  db.get_assignments_for_course(cid, visible_only=True)
             raw_assignments = list(filter(lambda x: x['end'] >= now, raw_assignments))
             assignments = list(filter(lambda x: x['assignment_id'] not in NO_EXTENSION_ASSIGNMENTS and x['assignment_id'] not in already_extended, raw_assignments))
+            for assignment in assignments:
+                assignment['extended_to'] = assignment['end'] + extension_info['num_hours'] * 3600
+                if extension_info['last_assignment_due_date'] != 0:
+                   assignment['extended_to'] = min(assignment['extended_to'], extension_info['last_assignment_due_date'])
             return render_template("student/request_extension.html",
                 base_url=BASE_URL,
                 netid=netid,
@@ -153,6 +157,10 @@ class StudentRoutes:
             raw_assignments =  db.get_assignments_for_course(cid, visible_only=True)
             raw_assignments = list(filter(lambda x: x['end'] >= now, raw_assignments))
             assignments = list(filter(lambda x: x['assignment_id'] not in NO_EXTENSION_ASSIGNMENTS and x['assignment_id'] not in already_extended, raw_assignments))
+            for assignment in assignments:
+                assignment['extended_to'] = assignment['end'] + extension_info['num_hours'] * 3600
+                if extension_info['last_assignment_due_date'] != 0:
+                   assignment['extended_to'] = min(assignment['extended_to'], extension_info['last_assignment_due_date'])
             invalid = False
             # cannot grant more extensions than are available
             invalid = invalid or (len(extension_info['existing_extensions']) > extension_info['total_allowed'])
@@ -176,6 +184,8 @@ class StudentRoutes:
                 assignment = db.get_assignment(cid, assignment_id)
                 ext_start_raw = assignment['end'] + 1
                 ext_end_raw = assignment['end'] + extension_info['num_hours'] * 3600
+                if extension_info['last_assignment_due_date'] != 0:
+                    ext_end_raw = min(ext_end_raw, extension_info['last_assignment_due_date'])
                 num_periods, num_runs_per_period = compute_extension_parameters(assignment, extension_info)
                 sched_run_duedate = datetime.fromtimestamp(ext_end_raw)
                 # avoid that weird race condition - start run 5 min after, but with a container due date of the original time

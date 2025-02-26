@@ -412,14 +412,17 @@ def get_user_requested_extensions(cid, netid):
         response = mongo.db["extensions"].find(
             {"course_id": cid, "netid": netid, "userRequested": True}, {"_id": 0, "__v": 0, "courseId": 0}
         ).sort({"dueDate": -1})
-        course_data = mongo.db["courses"].find_one({"_id": cid}, {"_id": 0, "num_student_extensions": 1, "num_ext_hours": 1})
+        course_data = mongo.db["courses"].find_one({"_id": cid}, {"_id": 0, "num_student_extensions": 1, "num_ext_hours": 1, "last_assignment_due_date": 1})
         allowed_extensions = 0
         num_ext_hours = 0
+        last_assignment_due_date = 0
         if 'num_student_extensions' in course_data:
             allowed_extensions = course_data['num_student_extensions']
         if 'num_ext_hours' in course_data:
             num_ext_hours = course_data['num_ext_hours']
-        robj = {"existing_extensions": list(response), "total_allowed": allowed_extensions, "num_hours": num_ext_hours}
+        if 'last_assignment_due_date' in course_data:
+            last_assignment_due_date = course_data['last_assignment_due_date']
+        robj = {"existing_extensions": list(response), "total_allowed": allowed_extensions, "num_hours": num_ext_hours, "last_assignment_due_date": last_assignment_due_date}
         return robj
     except Exception as e:
         print(traceback.format_exc(), flush=True)

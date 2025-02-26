@@ -6,7 +6,7 @@
         <li class="breadcrumb-item"><a href="{{ url_for('.student_home') }}">Student Home</a></li>
         <li class="breadcrumb-item"><a href="{{ url_for('.student_get_course', cid=course._id) }}">{{ course.name }}</a>
         </li>
-        <li class="breadcrumb-item active" aria-current="page">Request an Extension</li>
+        <li class="breadcrumb-item active" aria-current="page">Apply an Extension</li>
     </ol>
 </nav>
 
@@ -19,6 +19,10 @@
     <div class="row">
         <div class="col-md-12 col-lg-6 col-xl-6">
             <h3>Current Extensions</h3>
+            You have used <b>{{extension_info.existing_extensions | length}}</b> of
+            <b>{{extension_info.total_allowed}}</b> available extensions.
+            <br />
+            <br />
             <table class="table table-hover">
                 <thead>
                     <tr>
@@ -40,49 +44,64 @@
                     {% endif %}
                 </tbody>
             </table>
-            <div class="text-secondary"> All times in the {{tzname}} timezone.</div>
         </div>
 
         <div class="col-md-12 col-lg-6 col-xl-6">
-            <h3>Request an Extension</h3>
+            <h3>Apply an Extension</h3>
 
             {% if extension_info.existing_extensions | length >= extension_info.total_allowed %}
             <p>You have already used all available student-requested extensions.</p>
 
             {% elif granted == none %}
             <ul>
-                <li>You may request up to <b>{{extension_info.total_allowed}}</b> no-questions-asked extensions per
+                <li>You may apply up to <b>{{extension_info.total_allowed}}</b> no-questions-asked extensions per
                     semester. </li>
                 <li>You will receive a {{extension_info.num_hours}}-hour extension from the assignment due date.</li>
-                <li>You will recieve the same number of runs per day as the original assignment.</li>
-                <li>You may request up to one extension per assignment.</li>
-                <li>You may not request extensions on assignments outside of the Broadway On-Demand autograder.</li>
+                <ul>
+                    <li>No extension may extend the due date of your assignment past Reading Day
+                        ({{extension_info.last_assignment_due_date | round_timestamp
+                        | fmt_timestamp_human}}).
+                    </li>
+                </ul>
+                <li>You will receive the same number of runs per day as the original assignment.</li>
+                <li>You may apply up to one extension per assignment, and the assignment must be open when you apply the
+                    extension.</li>
+                <li>You may not apply extensions on assignments outside of the Broadway On-Demand autograder.</li>
                 <ul>
                     <li>Examples include HW0, PrairieLearn quizzes, and pre-labs.</li>
                 </ul>
             </ul>
 
-            <b>This extension cannot be reverted - please be sure you want to use an extension before submitting!</b>
+            <b>This extension cannot be reverted - please be sure you want to apply an extension before submitting!</b>
             <br />
             <br />
 
             <form name="req-ext" id="req-ext" action="{{ url_for('.student_request_extension_post', cid=course._id) }}"
-                method="POST" onsubmit="return confirm('Are you sure you want to submit this extension request?');">
+                method="POST" onsubmit="return confirm('Are you sure you want to apply this extension?');">
                 <input id="csrf_token" name="csrf_token" type="hidden" value="{{ csrf_token() }}">
 
                 <div class="form-group">
                     <label for="assignment">Select Assignment</label> <span class="badge badge-secondary"></span>
+                    {% if assignments | length == 0 %}
+                    <option value="" disabled selected>No assignments available to extend.</option>
+                    {% else %}
                     <select class="form-control" id="req-ext-assignment" name="assignment" required>
                         {% for assignment in assignments | sort(attribute='start') | reverse %}
-                        <option value="{{assignment.assignment_id}}">{{assignment.assignment_id}}</option>
+                        <option value="{{assignment.assignment_id}}">{{assignment.assignment_id}} (extension until
+                            {{assignment.extended_to | round_timestamp
+                            | fmt_timestamp_human}})</option>
                         {% endfor %}
                     </select>
+
+                    {% endif %}
                 </div>
 
                 <div id="mdl-add-ext-error" class="form-text text-danger"></div>
+                {% if assignments | length > 0 %}
                 <div>
-                    <button type="submit" class="btn btn-primary" id="req-ext-submit">Submit</button>
+                    <button type="submit" class="btn btn-primary" id="req-ext-submit">Apply Extension</button>
                 </div>
+                {% endif %}
             </form>
 
             {% elif granted == true %}
@@ -96,6 +115,9 @@
             {% endif %} {# Closing {% else %} block #}
 
         </div>
+    </div>
+    <div class="container-fluid">
+        <div class="text-secondary"> All times in the {{tzname}} timezone.</div>
     </div>
     {% endif %} {# Closing {% if extension_info.total_allowed > 0 %} block #}
 
