@@ -20,6 +20,8 @@ from src.types import GradeEntry
 from src.util import bin_scores, compute_statistics, verify_csrf_token, restore_csrf_token
 from src.routes_admin import add_or_edit_scheduled_run
 
+NO_EXTENSION_ASSIGNMENTS = set(['malloc_contest', 'nonstop_networking_pt1','nonstop_networking_pt2', 'nonstop_networking_pt3', 'lovable_linux'])
+
 def compute_extension_parameters(assignment, extension_info):
     num_periods = 0
     num_runs_per_period = 0
@@ -121,7 +123,7 @@ class StudentRoutes:
             now = util.now_timestamp()
             raw_assignments =  db.get_assignments_for_course(cid, visible_only=True)
             raw_assignments = list(filter(lambda x: x['end'] >= now, raw_assignments))
-            assignments = list(filter(lambda x: x['assignment_id'] != 'malloc_contest' and x['assignment_id'] not in already_extended, raw_assignments))
+            assignments = list(filter(lambda x: x['assignment_id'] not in NO_EXTENSION_ASSIGNMENTS and x['assignment_id'] not in already_extended, raw_assignments))
             return render_template("student/request_extension.html",
                 base_url=BASE_URL,
                 netid=netid,
@@ -150,7 +152,7 @@ class StudentRoutes:
             now = util.now_timestamp()
             raw_assignments =  db.get_assignments_for_course(cid, visible_only=True)
             raw_assignments = list(filter(lambda x: x['end'] >= now, raw_assignments))
-            assignments = list(filter(lambda x: x['assignment_id'] != 'malloc_contest' and x['assignment_id'] not in already_extended, raw_assignments))
+            assignments = list(filter(lambda x: x['assignment_id'] not in NO_EXTENSION_ASSIGNMENTS and x['assignment_id'] not in already_extended, raw_assignments))
             invalid = False
             # cannot grant more extensions than are available
             invalid = invalid or (len(extension_info['existing_extensions']) > extension_info['total_allowed'])
@@ -202,7 +204,6 @@ class StudentRoutes:
                     ext_end_raw,
                     scheduled_run_id=run_id,
                     userRequested=True,
-                    tzname=str(TZ),
                 )
                 # malloc escape hatch - grant extensions for malloc_contest with any malloc assignment
                 if assignment_id.startswith("malloc_"):
@@ -244,6 +245,7 @@ class StudentRoutes:
                 extension_info=db.get_user_requested_extensions(cid, netid) if granted else extension_info,
                 assignments=assignments,
                 granted=granted,
+                tzname=str(TZ),
             )
 
         @blueprint.route("/student/course/<cid>/assignment/<aid>/", methods=["GET"])

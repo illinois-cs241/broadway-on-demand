@@ -53,12 +53,21 @@
             <ul>
                 <li>You may request up to <b>{{extension_info.total_allowed}}</b> no-questions-asked extensions per
                     semester. </li>
-                <li>You will receive a {{extension_info.num_hours}}-hour extension on your selected assignment.</li>
+                <li>You will receive a {{extension_info.num_hours}}-hour extension from the assignment due date.</li>
+                <li>You will recieve the same number of runs per day as the original assignment.</li>
                 <li>You may request up to one extension per assignment.</li>
+                <li>You may not request extensions on assignments outside of the Broadway On-Demand autograder.</li>
+                <ul>
+                    <li>Examples include HW0, PrairieLearn quizzes, and pre-labs.</li>
+                </ul>
             </ul>
 
+            <b>This extension cannot be reverted - please be sure you want to use an extension before submitting!</b>
+            <br />
+            <br />
+
             <form name="req-ext" id="req-ext" action="{{ url_for('.student_request_extension_post', cid=course._id) }}"
-                method="POST">
+                method="POST" onsubmit="return confirm('Are you sure you want to submit this extension request?');">
                 <input id="csrf_token" name="csrf_token" type="hidden" value="{{ csrf_token() }}">
 
                 <div class="form-group">
