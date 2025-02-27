@@ -1,3 +1,4 @@
+import traceback
 from types import NoneType
 from typing import List
 from flask_pymongo import PyMongo, ASCENDING, DESCENDING
@@ -258,7 +259,7 @@ def pair_assignment_final_grading_run(cid: str, aid: str, scheduled_run_id: Obje
 
 
 def add_extension(
-    cid, aid, netid, max_runs, start, end, scheduled_run_id: ObjectId = None
+    cid, aid, netid, max_runs, start, end, scheduled_run_id: ObjectId = None, userRequested: bool = False
 ):
     return mongo.db["extensions"].insert_one(
         {
@@ -270,6 +271,7 @@ def add_extension(
             "start": start,
             "end": end,
             "run_id": str(scheduled_run_id) if scheduled_run_id else None,
+            "userRequested": userRequested
         }
     )
 
@@ -403,4 +405,25 @@ def get_course_grades(cid):
         return list(response)
     except Exception as e:
         print(e, flush=True)
+        return []
+    
+def get_user_requested_extensions(cid, netid):
+    try:
+        response = mongo.db["extensions"].find(
+            {"course_id": cid, "netid": netid, "userRequested": True}, {"_id": 0, "__v": 0, "courseId": 0}
+        ).sort({"dueDate": -1})
+        course_data = mongo.db["courses"].find_one({"_id": cid}, {"_id": 0, "num_student_extensions": 1, "num_ext_hours": 1, "last_assignment_due_date": 1})
+        allowed_extensions = 0
+        num_ext_hours = 0
+        last_assignment_due_date = 0
+        if 'num_student_extensions' in course_data:
+            allowed_extensions = course_data['num_student_extensions']
+        if 'num_ext_hours' in course_data:
+            num_ext_hours = course_data['num_ext_hours']
+        if 'last_assignment_due_date' in course_data:
+            last_assignment_due_date = course_data['last_assignment_due_date']
+        robj = {"existing_extensions": list(response), "total_allowed": allowed_extensions, "num_hours": num_ext_hours, "last_assignment_due_date": last_assignment_due_date}
+        return robj
+    except Exception as e:
+        print(traceback.format_exc(), flush=True)
         return []

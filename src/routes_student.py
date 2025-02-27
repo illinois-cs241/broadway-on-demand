@@ -1,7 +1,11 @@
+from datetime import datetime, timedelta
 import json
+import traceback
 from typing import List
+from bson import ObjectId
 from flask import render_template, request, abort
 from http import HTTPStatus
+import math
 
 from config import BASE_URL, TZ, DEV_MODE
 from src import auth, jenkins_api, util, db
@@ -14,6 +18,20 @@ from src.common import (
 from src.ghe_api import get_latest_commit
 from src.types import GradeEntry
 from src.util import bin_scores, compute_statistics, verify_csrf_token, restore_csrf_token
+from src.routes_admin import add_or_edit_scheduled_run
+
+NO_EXTENSION_ASSIGNMENTS = set(['malloc_contest', 'nonstop_networking_pt3', 'lovable_linux'])
+
+def compute_extension_parameters(assignment, extension_info):
+    num_periods = 0
+    num_runs_per_period = 0
+    if assignment['quota'] == db.Quota.DAILY:
+        num_periods = extension_info['num_hours'] // 24
+        num_runs_per_period = assignment['max_runs']
+    elif assignment['quota'] == db.Quota.TOTAL:
+        num_periods = 1
+        num_runs_per_period = math.ceil(((extension_info['num_hours'] / ((assignment['end'] - assignment['start']) / 3600))) * assignment['max_runs'])
+    return num_periods, num_runs_per_period
 
 class StudentRoutes:
     def __init__(self, blueprint):
@@ -90,7 +108,156 @@ class StudentRoutes:
                 grades_parsed.append(result)
   
             return render_template("student/grades.html", netid=netid, course=course, grades=json.dumps(grades_parsed))
-    
+
+        @blueprint.route("/student/course/<cid>/extensions/", methods=["GET"])
+        @util.disable_in_maintenance_mode
+        @auth.require_auth
+        def student_request_extension(netid, cid):
+            if not verify_student_or_staff(netid, cid):
+                return abort(HTTPStatus.FORBIDDEN)
+            course = db.get_course(cid)
+            extension_info = db.get_user_requested_extensions(cid, netid)
+            already_extended = set([x['assignment_id'] for x in extension_info['existing_extensions']])
+            # filter valid assignments
+            # malloc specific escape hatch and check that assignment is open currently
+            now = util.now_timestamp()
+            raw_assignments =  db.get_assignments_for_course(cid, visible_only=True)
+            raw_assignments = list(filter(lambda x: x['end'] >= now, raw_assignments))
+            assignments = list(filter(lambda x: x['assignment_id'] not in NO_EXTENSION_ASSIGNMENTS and x['assignment_id'] not in already_extended, raw_assignments))
+            for assignment in assignments:
+                assignment['extended_to'] = assignment['end'] + extension_info['num_hours'] * 3600
+                if extension_info['last_assignment_due_date'] != 0:
+                   assignment['extended_to'] = min(assignment['extended_to'], extension_info['last_assignment_due_date'])
+            return render_template("student/request_extension.html",
+                base_url=BASE_URL,
+                netid=netid,
+                course=course,
+                extension_info=extension_info,
+                assignments=assignments,
+                granted=None,
+                tzname=str(TZ),
+                )
+
+        @blueprint.route("/student/course/<cid>/extensions/", methods=["POST"])
+        @util.disable_in_maintenance_mode
+        @auth.require_auth
+        def student_request_extension_post(netid, cid):
+            if not verify_student_or_staff(netid, cid):
+                return abort(HTTPStatus.FORBIDDEN)
+            if not verify_csrf_token(request.form.get("csrf_token")):
+                return abort(HTTPStatus.BAD_REQUEST)
+            current_csrf_token = request.form.get("csrf_token")
+            assignment_id = request.form.get("assignment")
+            course = db.get_course(cid)
+            extension_info = db.get_user_requested_extensions(cid, netid)
+            already_extended = set([x['assignment_id'] for x in extension_info['existing_extensions']])
+            # filter valid assignments
+            # malloc specific escape hatch and check that assignment is open currently
+            now = util.now_timestamp()
+            raw_assignments =  db.get_assignments_for_course(cid, visible_only=True)
+            raw_assignments = list(filter(lambda x: x['end'] >= now, raw_assignments))
+            assignments = list(filter(lambda x: x['assignment_id'] not in NO_EXTENSION_ASSIGNMENTS and x['assignment_id'] not in already_extended, raw_assignments))
+            for assignment in assignments:
+                assignment['extended_to'] = assignment['end'] + extension_info['num_hours'] * 3600
+                if extension_info['last_assignment_due_date'] != 0:
+                   assignment['extended_to'] = min(assignment['extended_to'], extension_info['last_assignment_due_date'])
+            invalid = False
+            # cannot grant more extensions than are available
+            invalid = invalid or (len(extension_info['existing_extensions']) > extension_info['total_allowed'])
+            # can't extend an already extended assignment
+            invalid = invalid or (assignment_id in already_extended)
+            if invalid:
+                restore_csrf_token(current_csrf_token)
+                return render_template("student/request_extension.html",
+                    base_url=BASE_URL,
+                    netid=netid,
+                    course=course,
+                    extension_info=extension_info,
+                    assignments=assignments,
+                    granted=False,
+                    tzname=str(TZ),
+                )
+            # the request is valid, actually grant the extension
+            # first, figure out how many additional runs for the number of hours that will be granted 
+            granted = False
+            try:
+                assignment = db.get_assignment(cid, assignment_id)
+                ext_start_raw = assignment['end'] + 1
+                ext_end_raw = assignment['end'] + extension_info['num_hours'] * 3600
+                if extension_info['last_assignment_due_date'] != 0:
+                    ext_end_raw = min(ext_end_raw, extension_info['last_assignment_due_date'])
+                num_periods, num_runs_per_period = compute_extension_parameters(assignment, extension_info)
+                sched_run_duedate = datetime.fromtimestamp(ext_end_raw)
+                # avoid that weird race condition - start run 5 min after, but with a container due date of the original time
+                schedrun_start_time = sched_run_duedate + timedelta(minutes=5)
+                run_id = ObjectId()
+                response = add_or_edit_scheduled_run(
+                    cid,
+                    assignment_id,
+                    run_id,
+                    {
+                        "run_time": schedrun_start_time.strftime("%Y-%m-%dT%H:%M"),
+                        "due_time": sched_run_duedate.strftime("%Y-%m-%dT%H:%M"),
+                        "name": f"Extension Run - {netid}",
+                        "roster": netid,
+                    },
+                    None,
+                )
+                if response[1] != HTTPStatus.NO_CONTENT:
+                    raise Exception(f"Failed to schedule student-requested extension run: {response[0]}")
+                db.add_extension(
+                    cid,
+                    assignment_id,
+                    netid,
+                    num_periods * num_runs_per_period, 
+                    ext_start_raw,
+                    ext_end_raw,
+                    scheduled_run_id=run_id,
+                    userRequested=True,
+                )
+                # malloc escape hatch - grant extensions for malloc_contest with any malloc assignment
+                if assignment_id.startswith("malloc_"):
+                    assignment_contest = db.get_assignment(cid, "malloc_contest")
+                    num_periods_contest, num_runs_per_period_contest = compute_extension_parameters(assignment_contest, extension_info)
+                    # avoid that weird race condition - start run 5 min after, but with a container due date of the original time
+                    run_id = ObjectId()
+                    add_or_edit_scheduled_run(
+                        cid,
+                        "malloc_contest",
+                        run_id,
+                        {
+                            "run_time": schedrun_start_time.strftime("%Y-%m-%dT%H:%M"),
+                            "due_time": sched_run_duedate.strftime("%Y-%m-%dT%H:%M"),
+                            "name": f"Extension Run - {netid}",
+                            "roster": netid,
+                        },
+                        None,
+                    )
+                    db.add_extension(
+                        cid,
+                        "malloc_contest",
+                        netid,
+                        num_periods_contest * num_runs_per_period_contest, 
+                        ext_start_raw,
+                        ext_end_raw,
+                        scheduled_run_id=run_id,
+                        userRequested=False
+                    )
+                granted = True
+            except Exception:
+                print(traceback.format_exc(), flush=True)
+                granted = False
+
+            return render_template("student/request_extension.html",
+                base_url=BASE_URL,
+                netid=netid,
+                course=course,
+                extension_info=db.get_user_requested_extensions(cid, netid) if granted else extension_info,
+                assignments=assignments,
+                granted=granted,
+                tzname=str(TZ),
+            )
+
         @blueprint.route("/student/course/<cid>/assignment/<aid>/", methods=["GET"])
         @util.disable_in_maintenance_mode
         @auth.require_auth
