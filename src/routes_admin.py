@@ -46,17 +46,9 @@ def add_or_edit_scheduled_run(cid, aid, run_id, form, scheduled_run_id):
                 )
 
     # Schedule a new run with scheduler
+    scheduled_run_id = sched_api.schedule_run(run_time, cid, aid)
     if scheduled_run_id is None:
-        scheduled_run_id = sched_api.schedule_run(run_time, cid, aid)
-        if scheduled_run_id is None:
-            return util.error("Failed to schedule run with scheduler")
-    # Or if the run was already scheduled, update the time
-    else:
-        if not sched_api.update_scheduled_run(scheduled_run_id, run_time):
-            return util.error(
-                "Failed to update scheduled run time with scheduler"
-            )
-
+        return util.error("Failed to schedule run with scheduler")
     assert scheduled_run_id is not None
 
     if not db.add_or_update_scheduled_run(
