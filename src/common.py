@@ -11,14 +11,13 @@ def wrap_delete_scheduled_run(cid, aid, run_id):
     if sched_run is None:
         raise Exception("Cannot find scheduled run")
     scheduler_id = sched_run["scheduled_run_id"]
-    sched_api.delete_scheduled_run(scheduler_id)
+    if not db.delete_scheduled_run(cid, aid, run_id):
+        raise Exception("Failed to delete scheduled run.")
     # multiple scheduled runs can have the same run ID
     # make sure we only call delete when no other job references it
     referenced_jobs = db.find_referenced_scheduled_runs(scheduler_id)
-    if referenced_jobs > 0:
-        return True
-    if not db.delete_scheduled_run(cid, aid, run_id):
-        raise Exception("Failed to delete scheduled run.")
+    if referenced_jobs == 0:
+        sched_api.delete_scheduled_run(scheduler_id)
     return True
 
 
