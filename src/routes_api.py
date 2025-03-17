@@ -30,42 +30,46 @@ class ApiRoutes:
         )
         @auth.require_system_auth
         def trigger_scheduled_run(cid, aid, scheduled_run_id):
-            sched_run = db.get_scheduled_run_by_scheduler_id(cid, aid, scheduled_run_id)
-            if sched_run is None:
+            sched_runs = db.get_scheduled_run_by_scheduler_id(cid, aid, scheduled_run_id)
+            if len(sched_runs) == 0:
                 logging.warning(
                     "Received trigger scheduled run request for scheduled_run_id '%s' but cannot find corresponding run.",
                     scheduled_run_id,
                 )
                 return util.error("")
-            if sched_run["status"] != ScheduledRunStatus.SCHEDULED:
-                logging.warning(
-                    "Received trigger scheduled run for _id '%s' but this run has status '%s', which is not 'scheduled'.",
-                    str(sched_run["_id"]),
-                    sched_run["status"],
-                )
-                return util.error("")
+            errors = 0
+            for sched_run in sched_runs:
+                if sched_run["status"] != ScheduledRunStatus.SCHEDULED:
+                    logging.warning(
+                        "Received trigger scheduled run for _id '%s' but this run has status '%s', which is not 'scheduled'.",
+                        str(sched_run["_id"]),
+                        sched_run["status"],
+                    )
+                    errors += 1
 
-            # If roster is not provided, use course roster
-            if sched_run["roster"] is None:
-                course = db.get_course(cid)
-                if course is None:
-                    return util.error("")
-                netids = course["student_ids"]
-            # If a roster is provided, use it
-            else:
-                netids = sched_run["roster"]
+                # If roster is not provided, use course roster
+                if sched_run["roster"] is None:
+                    course = db.get_course(cid)
+                    if course is None:
+                        errors += 1
+                    netids = course["student_ids"]
+                # If a roster is provided, use it
+                else:
+                    netids = sched_run["roster"]
 
-            # Start broadway grading run
-            bw_run_id = jenkins_api.start_grading_run(
-                cid, aid, netids, sched_run["due_time"], True
-            )
-            if bw_run_id is None:
-                logging.warning("Failed to trigger run with broadway")
-                db.update_scheduled_run_status(
-                    sched_run["_id"], ScheduledRunStatus.FAILED
+                # Start broadway grading run
+                bw_run_id = jenkins_api.start_grading_run(
+                    cid, aid, netids, sched_run["due_time"], True
                 )
+                if bw_run_id is None:
+                    logging.warning("Failed to trigger run with broadway")
+                    db.update_scheduled_run_status(
+                        sched_run["_id"], ScheduledRunStatus.FAILED
+                    )
+                    errors += 1
+                else:
+                    db.update_scheduled_run_status(sched_run["_id"], ScheduledRunStatus.RAN)
+                    db.update_scheduled_run_bw_run_id(sched_run["_id"], bw_run_id)
+            if errors > 0:
                 return util.error("")
-            else:
-                db.update_scheduled_run_status(sched_run["_id"], ScheduledRunStatus.RAN)
-                db.update_scheduled_run_bw_run_id(sched_run["_id"], bw_run_id)
             return util.success("")

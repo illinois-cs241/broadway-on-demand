@@ -350,9 +350,9 @@ def get_scheduled_run(cid, aid, rid):
 
 
 def get_scheduled_run_by_scheduler_id(cid, aid, scheduled_run_id):
-    return mongo.db["scheduled_runs"].find_one(
+    return list(mongo.db["scheduled_runs"].find(
         {"scheduled_run_id": scheduled_run_id, "course_id": cid, "assignment_id": aid}
-    )
+    ))
 
 
 def delete_scheduled_run(cid, aid, rid):
@@ -427,3 +427,7 @@ def get_user_requested_extensions(cid, netid):
     except Exception as e:
         print(traceback.format_exc(), flush=True)
         return []
+
+def find_referenced_scheduled_runs(scheduled_run_id: str) -> int:
+    """Find the number of scheduled runs which use a given scheduled run id"""
+    return mongo.db['scheduled_runs'].count_documents({"scheduled_run_id": scheduled_run_id})
