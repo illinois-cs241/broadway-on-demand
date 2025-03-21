@@ -19,6 +19,7 @@ from src.ghe_api import get_latest_commit
 from src.types import GradeEntry
 from src.util import bin_scores, compute_statistics, verify_csrf_token, restore_csrf_token
 from src.routes_admin import add_or_edit_scheduled_run
+from uuid import uuid4
 
 NO_EXTENSION_ASSIGNMENTS = set(['malloc_contest', 'nonstop_networking_pt3', 'lovable_linux'])
 
@@ -327,7 +328,6 @@ class StudentRoutes:
                 active_extensions, num_extension_runs = get_active_extensions(
                     cid, aid, netid, now
                 )
-
                 if num_available_runs + num_extension_runs <= 0:
                     restore_csrf_token(current_csrf_token)
                     return util.error("No grading runs available.")
@@ -336,16 +336,17 @@ class StudentRoutes:
                     ext_to_use = min(active_extensions, key=lambda ext: ext["end"])
 
             now_rounded = util.timestamp_round_up_minute(now)
-
-            run_id = jenkins_api.start_grading_run(
-                cid, aid, [netid], now_rounded, False
+            run_id = str(uuid4())
+            db.add_grading_run(cid, aid, netid, now, run_id, extension_used=ext_to_use)
+            run_status = jenkins_api.start_grading_run(
+                cid, aid, [netid], now_rounded, False, grading_run_id=run_id
             )
+            if run_status is None:
+                restore_csrf_token(current_csrf_token)
+                db.remove_grading_run(cid, aid, netid, run_id, extension_used=ext_to_use)
+                return util.error("Failed to start grading run. Please try again.")
             db.set_jenkins_run_status(
                 cid, run_id, "scheduled", None, netid
             )  # null refers to the overall job, which for one-user jobs is what we want.
-            if run_id is None:
-                restore_csrf_token(current_csrf_token)
-                return util.error("Failed to start grading run. Please try again.")
 
-            db.add_grading_run(cid, aid, netid, now, run_id, extension_used=ext_to_use)
             return util.success("")

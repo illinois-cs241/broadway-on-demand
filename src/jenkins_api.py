@@ -14,7 +14,7 @@ def build_header(cid):
 
 
 @catch_request_errors
-def start_grading_run(cid, aid, netids, timestamp, publish):
+def start_grading_run(cid, aid, netids, timestamp, publish, grading_run_id: str | None):
     """
     Attempt to start a grading run.
     :param cid: the course ID.
@@ -24,7 +24,8 @@ def start_grading_run(cid, aid, netids, timestamp, publish):
     :param publish: whether this run should be published to the grade viewer
     :return: a run_id string if successful, or None otherwise.
     """
-    grading_run_id = str(uuid4())
+    if not grading_run_id:
+        grading_run_id = str(uuid4())
     due_date_str = timestamp_to_bw_api_format(timestamp)
     payload = {
         "STUDENT_IDS": ",".join(netids),

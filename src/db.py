@@ -238,17 +238,32 @@ def add_grading_run(
 
     mongo.db["runs"].insert_one(new_run)
 
+def remove_grading_run(cid, aid, netid, run_id, extension_used: str | NoneType = None):
+    run = {
+        "_id": run_id,
+        "course_id": cid,
+        "assignment_id": aid,
+        "netid": netid,
+    }
+    result = mongo.db["runs"].delete_one(run)
+    if result.deleted_count != 1:
+        return
+
+    if extension_used:
+        mongo.db["extensions"].update_one(
+            {"_id": extension_used["_id"]},
+            {"$set": {"_id": extension_used["_id"]}, "$inc": {"remaining_runs": 1}}
+        )
 
 def get_grading_run(run_id: str):
     return mongo.db["runs"].find_one({"_id": run_id})
 
 
 def get_extensions(cid: str, aid: str, netid: str | NoneType = None):
-    query = {"course_id": cid, "assignment_id": aid}
+    query = {"course_id": cid, "assignment_id": aid, "remaining_runs": {"$gt": 0}} # avoid making one of them negative
     if netid:
         query["netid"] = netid
-        return mongo.db["extensions"].find(query)
-    return mongo.db["extensions"].find(query).sort("netid", ASCENDING)
+    return mongo.db["extensions"].find(query).sort("netid", ASCENDING).sort("remaining_runs", ASCENDING)
 
 
 def pair_assignment_final_grading_run(cid: str, aid: str, scheduled_run_id: ObjectId):
