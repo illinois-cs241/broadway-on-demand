@@ -59,7 +59,7 @@ class ApiRoutes:
 
                 # Start broadway grading run
                 bw_run_id = jenkins_api.start_grading_run(
-                    cid, aid, netids, sched_run["due_time"], True
+                    cid, aid, netids, sched_run["due_time"], True, None
                 )
                 if bw_run_id is None:
                     logging.warning("Failed to trigger run with broadway")
