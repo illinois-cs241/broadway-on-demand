@@ -22,6 +22,7 @@ def start_grading_run(cid, aid, netids, timestamp, publish, grading_run_id: str 
     :param netid: an arary of student NetIDs.
     :param timestamp: the UNIX timestamp for the run due date.
     :param publish: whether this run should be published to the grade viewer
+    :param grading_run_id: grading run ID to use (optional)
     :return: a run_id string if successful, or None otherwise.
     """
     if not grading_run_id:
