@@ -1,5 +1,6 @@
 from functools import wraps
 from http import HTTPStatus
+import traceback
 
 from flask import (
     session,
@@ -86,8 +87,11 @@ def require_system_auth(func):
 
     @wraps(func)
     def wrapper(*args, **kwargs):
-        token = request.headers["Authorization"]
-        if token != f"Bearer {SYSTEM_API_TOKEN}":
+        try:
+            token = request.headers["Authorization"]
+            if token != f"Bearer {SYSTEM_API_TOKEN}":
+                return abort(HTTPStatus.FORBIDDEN)
+        except KeyError:
             return abort(HTTPStatus.FORBIDDEN)
         return func(*args, **kwargs)
 
