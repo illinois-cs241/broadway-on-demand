@@ -125,6 +125,8 @@ class StudentRoutes:
             raw_assignments =  db.get_assignments_for_course(cid, visible_only=True)
             raw_assignments = list(filter(lambda x: x['end'] >= now, raw_assignments))
             assignments = list(filter(lambda x: x['assignment_id'] not in NO_EXTENSION_ASSIGNMENTS and x['assignment_id'] not in already_extended, raw_assignments))
+            # don't enable extending assignments that are already due past reading day (used for regrades portion of the class)
+            assignments = list(filter(lambda x: x['end'] < course['last_assignment_due_date'], assignments))
             for assignment in assignments:
                 assignment['extended_to'] = assignment['end'] + extension_info['num_hours'] * 3600
                 if extension_info['last_assignment_due_date'] != 0:
