@@ -110,3 +110,5 @@ config.py
 .vscode/
 
 broadway-on-demand.venv/
+mongo/db/
+mongo/data/

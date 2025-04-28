@@ -1,19 +1,41 @@
 services:
-  web:
+  on-demand:
+    restart: unless-stopped
+    depends_on:
+      - mongodb
     build:
       context: .
-      args:
-        DEP_DIR: /opt/broadway-on-demand
-        CODE_DIR: /srv/broadway-on-demand
-      dockerfile: dev/web.Dockerfile
+      dockerfile: Dockerfile
     ports:
-      - "3000:5000"
+      - "127.0.0.1:9090:9090"
     volumes:
-      - ${PWD}/:/srv/broadway-on-demand
-  db:
-    build:
-      context: .
-      dockerfile: dev/db.Dockerfile
+      - ./config.py:/srv/cs341/broadway-on-demand/config.py:ro
+    labels:
+      - "autoheal=true"
+    healthcheck:
+      test: curl --fail http://localhost:9090/on-demand/login || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 90s
+  mongodb:
+    image: mongo:8.0.8
+    container_name: on-demand-mongodb
     ports:
-      - "27018:27017"
-    restart: always
+      - "127.0.0.1:27017:27017"
+    volumes:
+      - ./mongo/db:/data/db
+    command:
+      ["mongod", "--bind_ip", "0.0.0.0", "--port", "27017", "--replSet", "rs0"]
+    restart: unless-stopped
+
+  mongo-init-replica:
+    image: mongo:8.0.8
+    depends_on:
+      - mongodb
+    entrypoint:
+      [
+        "bash",
+        "-c",
+        'sleep 5 && mongosh --host mongodb --eval ''rs.initiate({_id: "rs0", members: [{ _id: 0, host: "mongodb:27017" }]})''',
+      ]
