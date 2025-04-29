@@ -21,7 +21,7 @@ from src.util import bin_scores, compute_statistics, verify_csrf_token, restore_
 from src.routes_admin import add_or_edit_scheduled_run
 from uuid import uuid4
 
-NO_EXTENSION_ASSIGNMENTS = set(['malloc_contest', 'nonstop_networking_pt3', 'lovable_linux'])
+NO_EXTENSION_ASSIGNMENTS = set(['malloc_contest', 'lovable_linux'])
 
 def compute_extension_parameters(assignment, extension_info):
     num_periods = 0
