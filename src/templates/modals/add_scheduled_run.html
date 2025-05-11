@@ -183,9 +183,7 @@
         $("#sched-run-id").val(id);
         $("#sched-run-label").text(title);
         $("#sched-run-name").val(name);
-        if (roster == null) {
-            checkBox("#sched-run-roster", "#sched-run-roster-checkbox");
-        } else {
+        if (roster != null) {
             uncheckBox("#sched-run-roster", "#sched-run-roster-checkbox");
             $("#sched-run-roster").val(roster);
         }
