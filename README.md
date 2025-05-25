@@ -1,3 +1,7 @@
+# Deprecation Notice
+
+We have moved to https://github.com/cs341-illinois/on-demand, which is a rewritten version 2 of Brodway On-Demand.
+
 # Broadway on Demand
 
 ### Developer Setup (Docker Compose)
